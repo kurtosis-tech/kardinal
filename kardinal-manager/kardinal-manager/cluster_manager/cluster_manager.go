@@ -5,6 +5,7 @@ import (
 	"github.com/kurtosis-tech/kardinal/libs/manager-kontrol-api/api/golang/types"
 	"github.com/kurtosis-tech/stacktrace"
 	"github.com/samber/lo"
+	"github.com/sirupsen/logrus"
 	istio "istio.io/api/networking/v1alpha3"
 	"istio.io/client-go/pkg/apis/networking/v1alpha3"
 	appsv1 "k8s.io/api/apps/v1"
@@ -181,6 +182,11 @@ func (manager *ClusterManager) GetTopologyForNameSpace(namespace string) (map[st
 
 func (manager *ClusterManager) ApplyClusterResources(ctx context.Context, clusterResources *types.ClusterResources) error {
 
+	if clusterResources == nil {
+		logrus.Debugf("the received cluster resources is nil, nothing to apply.")
+		return nil
+	}
+
 	allNSs := [][]string{
 		lo.Uniq(lo.Map(*clusterResources.Services, func(item corev1.Service, _ int) string { return item.Namespace })),
 		lo.Uniq(lo.Map(*clusterResources.Deployments, func(item appsv1.Deployment, _ int) string { return item.Namespace })),
@@ -191,11 +197,9 @@ func (manager *ClusterManager) ApplyClusterResources(ctx context.Context, cluste
 
 	uniqueNamespaces := lo.Uniq(lo.Flatten(allNSs))
 
-	var ensureNamespacesErr error
-
 	for _, namespace := range uniqueNamespaces {
 		if err := manager.ensureNamespace(ctx, namespace); err != nil {
-			return stacktrace.Propagate(ensureNamespacesErr, "An error occurred while creating or updating cluster namespace '%s'", namespace)
+			return stacktrace.Propagate(err, "An error occurred while creating or updating cluster namespace '%s'", namespace)
 		}
 	}
 
