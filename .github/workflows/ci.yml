@@ -75,6 +75,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Publish images
+        if: github.ref == 'refs/heads/main'
         run: |
           nix run ./#publish-kardinal-manager-container
           nix run ./#publish-kardinal-cli-container
