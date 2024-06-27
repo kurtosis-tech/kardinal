@@ -11,11 +11,12 @@
   cli_kontrol_api_shell = pkgs.callPackage ./libs/cli-kontrol-api/shell.nix {inherit pkgs;};
   kardinal_shell = with pkgs;
     pkgs.mkShell {
-      buildInputs = [k3d kubectl kustomize argo-rollouts kubernetes-helm minikube istioctl tilt reflex];
+      nativeBuildInputs = [bashInteractive bash-completion];
+      buildInputs = [kubectl kustomize kubernetes-helm minikube istioctl tilt reflex];
       shellHook = ''
-        source <(kubectl completion bash)
-        source <(kubectl-argo-rollouts completion bash)
-        source <(minikube completion bash)
+        export SHELLNAME=$(basename $shell)
+        source <(kubectl completion $SHELLNAME)
+        source <(minikube completion $SHELLNAME)
         printf '\u001b[31m
 
                                           :::::
