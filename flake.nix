@@ -25,7 +25,7 @@
           ];
         };
 
-        service_names = ["kardinal-manager" "redis-proxy-overlay"];
+        service_names = ["kardinal-manager" "kardinal-cli" "redis-proxy-overlay"];
         architectures = ["amd64" "arm64"];
         imageRegistry = "kurtosistech";
 
