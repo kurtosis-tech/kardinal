@@ -1,0 +1,7 @@
+package: client
+generate:
+  client: true
+additional-imports:
+  - package: github.com/kurtosis-tech/kardinal/libs/cli-kontrol-api/api/golang/types
+    alias: .
+output: api/golang/client/client.gen.go

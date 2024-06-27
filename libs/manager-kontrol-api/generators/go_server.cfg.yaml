@@ -1,0 +1,9 @@
+package: server
+generate:
+  embedded-spec: true
+  echo-server: true
+  strict-server: true
+additional-imports:
+  - package: github.com/kurtosis-tech/kardinal/libs/manager-kontrol-api/api/golang/types
+    alias: .
+output: api/golang/server/server.gen.go

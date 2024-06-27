@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kardinal-manager
+  namespace: default
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kardinal-manager-role
+rules:
+  - apiGroups: ["*"]
+    resources: ["pods", "services", "deployments", "virtualservices", "workloadgroups", "workloadentries", "sidecars", "serviceentries", "gateways", "envoyfilters", "destinationrules"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kardinal-manager-binding
+subjects:
+  - kind: ServiceAccount
+    name: kardinal-manager
+    namespace: default
+roleRef:
+  kind: ClusterRole
+  name: kardinal-manager-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kardinal-manager
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kardinal-manager
+  template:
+    metadata:
+      labels:
+        app: kardinal-manager
+    spec:
+      serviceAccountName: kardinal-manager
+      containers:
+        - name: kardinal-manager
+          image: kurtosistech/kardinal-manager:latest
+          # TODO: Policy to local dev only - figure a way to remove it
+          imagePullPolicy: Never
+          env:
+            - name: KUBERNETES_SERVICE_HOST
+              value: "kubernetes.default.svc"
+            - name: KUBERNETES_SERVICE_PORT
+              value: "443"

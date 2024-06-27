@@ -1,0 +1,95 @@
+openapi: 3.0.0
+info:
+  title: Manager/Kontrol API
+  version: 1.0.0
+paths:
+  /cluster-resources:
+    get:
+      tags:
+        - cluster-resources
+      summary: Cluster resource definition
+      parameters:
+        - in: query
+          name: namespace
+          schema:
+            type: string
+          required: false
+          description: The namespace for which to retrieve the cluster resources
+      responses:
+        default:
+          $ref: "#/components/responses/NotOk"
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClusterResources"
+
+components:
+  responses:
+    NotOk:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ResponseInfo"
+            required: true
+  schemas:
+    ResponseInfo:
+      type: object
+      properties:
+        type:
+          $ref: "#/components/schemas/ResponseType"
+        message:
+          type: string
+        code:
+          type: integer
+          format: uint32
+      required:
+        - type
+        - message
+        - code
+
+    ResponseType:
+      type: string
+      enum:
+        - ERROR
+        - INFO
+        - WARNING
+
+    ClusterResources:
+      type: object
+      properties:
+        services:
+          type: array
+          items:
+            x-go-type: corev1.Service
+            x-go-type-import:
+              path: k8s.io/api/core/v1
+              name: corev1
+        deployments:
+          type: array
+          items:
+            x-go-type: appsv1.Deployment
+            x-go-type-import:
+              path: k8s.io/api/apps/v1
+              name: appsv1
+        virtual_services:
+          type: array
+          items:
+            x-go-type: v1alpha3.VirtualService
+            x-go-type-import:
+              path: istio.io/client-go/pkg/apis/networking/v1alpha3
+              name: v1alpha3
+        destination_rules:
+          type: array
+          items:
+            x-go-type: v1alpha3.DestinationRule
+            x-go-type-import:
+              path: istio.io/client-go/pkg/apis/networking/v1alpha3
+              name: v1alpha3
+        gateway:
+          x-go-type: v1alpha3.Gateway
+          x-go-type-import:
+            path: istio.io/client-go/pkg/apis/networking/v1alpha3
+            name: v1alpha3

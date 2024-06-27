@@ -1,0 +1,142 @@
+openapi: 3.0.0
+info:
+  title: CLI/Kontrol API
+  version: 1.0.0
+paths:
+  /flow/create:
+    post:
+      requestBody:
+        description: Create a dev flow
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DevFlowSpec"
+      responses:
+        "200":
+          description: Dev flow creation status
+          content:
+            application/json:
+              schema:
+                type: string
+  /flow/delete:
+    post:
+      requestBody:
+        description: Delete dev flow (revert back to prod only)
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProdFlowSpec"
+      responses:
+        "200":
+          description: Dev flow creation status
+          content:
+            application/json:
+              schema:
+                type: string
+  /deploy:
+    post:
+      requestBody:
+        description: Deploy a prod only cluster
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProdFlowSpec"
+      responses:
+        "200":
+          description: Dev flow creation status
+          content:
+            application/json:
+              schema:
+                type: string
+  /topology:
+    get:
+      parameters:
+        - in: query
+          name: namespace
+          schema:
+            type: string
+          required: false
+          description: The namespace for which to retrieve the topology
+      responses:
+        "200":
+          description: Topology information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClusterTopology"
+
+components:
+  schemas:
+    ProdFlowSpec:
+      type: object
+      properties:
+        docker-compose:
+          type: array
+          items:
+            x-go-type: compose.ServiceConfig
+            x-go-type-import:
+              path: github.com/compose-spec/compose-go/types
+              name: compose
+
+    DevFlowSpec:
+      type: object
+      properties:
+        image-locator:
+          type: string
+          example: backend-a:latest
+        service-name:
+          type: string
+          example: backend-service-a
+        docker-compose:
+          type: array
+          items:
+            x-go-type: compose.ServiceConfig
+            x-go-type-import:
+              path: github.com/compose-spec/compose-go/types
+              name: compose
+
+    Node:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the node.
+        label:
+          type: string
+          description: Label for the node.
+      required:
+        - id
+
+    Edge:
+      type: object
+      properties:
+        source:
+          type: string
+          description: The identifier of the source node of the edge.
+        target:
+          type: string
+          description: The identifier of the target node of the edge.
+        label:
+          type: string
+          description: Label for the edge.
+      required:
+        - source
+        - target
+
+    ClusterTopology:
+      type: object
+      properties:
+        nodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/Node"
+        edges:
+          type: array
+          items:
+            $ref: "#/components/schemas/Edge"
+      required:
+        - nodes
+        - edges

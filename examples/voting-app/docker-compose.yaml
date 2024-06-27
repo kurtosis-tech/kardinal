@@ -1,0 +1,20 @@
+version: "3"
+services:
+  azure-vote-back:
+    image: bitnami/redis:6.0.8
+    container_name: redis-prod
+    environment:
+      ALLOW_EMPTY_PASSWORD: "yes"
+      REDIS_PORT_NUMBER: "6379"
+    ports:
+      - "6379:6379"
+
+  azure-vote-front:
+    image: voting-app-ui
+    container_name: voting-app-ui
+    environment:
+      REDIS: redis-prod
+    ports:
+      - "80:80"
+    depends_on:
+      - azure-vote-back

@@ -1,0 +1,111 @@
+openapi: 3.0.3
+
+info:
+  title: Kardinal Manager RESTful API
+  description: RESTful API specification for the Kardinal Manager application, it's used to auto-generate client SDK's and server-side code
+  version: 0.1.0
+
+servers:
+  - url: https://www.kardinal.dev/kardinal-manager/api
+    description: Kardinal manager server in Kardinal DEV
+
+paths:
+
+  /virtual-services:
+    get:
+      tags:
+        - virtual-services
+      summary: List virtual services
+      responses:
+        default:
+          $ref: "#/components/responses/NotOk"
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  $ref: "#/components/schemas/VirtualService"
+
+    post:
+      tags:
+        - virtual-services
+      summary: Create virtual service
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VirtualService"
+      responses:
+        default:
+          $ref: "#/components/responses/NotOk"
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VirtualService"
+
+    delete:
+      tags:
+        - virtual-services
+      summary: Delete virtual service
+      responses:
+        default:
+          $ref: "#/components/responses/NotOk"
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VirtualService"
+  
+
+# =========================================================================================================================
+# =========================================================================================================================
+# > > > > > > > > > > > > > > > > > > > > > > > > Data Models < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < <
+# =========================================================================================================================
+# =========================================================================================================================
+
+components:
+  responses:
+    NotOk:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ResponseInfo"
+            required: true
+
+  schemas:
+    ResponseType:
+      type: string
+      enum:
+        - ERROR
+        - INFO
+        - WARNING
+
+    ResponseInfo:
+      type: object
+      properties:
+        type:
+          $ref: "#/components/schemas/ResponseType"
+        message:
+          type: string
+        code:
+          type: integer
+          format: uint32
+      required:
+        - type
+        - message
+        - code
+
+    VirtualService:
+      type: object
+      properties:
+        name:
+          type: string
+      required:
+        - name

@@ -1,0 +1,11 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/deepmap/oapi-codegen/HEAD/configuration-schema.json
+package: kardinal_manager_rest_client
+generate:
+  client: true
+additional-imports:
+  - package: kardinal.kontrol/kardinal-manager/api/http_rest/types
+    alias: .
+output: ./client/client.gen.go
+output-options:
+  # to make sure that all types are generated
+  skip-prune: true

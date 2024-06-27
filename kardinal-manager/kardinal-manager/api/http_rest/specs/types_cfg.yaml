@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/deepmap/oapi-codegen/HEAD/configuration-schema.json
+package: kardinal_manager_rest_types
+generate:
+  models: true
+output: ./types/types.gen.go
+output-options:
+  # to make sure that all types are generated
+  skip-prune: true

@@ -1,0 +1,59 @@
+# Our desired pipeline using only a Nix shell environment
+name: Check and build Kardinal
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*.*.*"
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check_nix:
+    name: Basic Check
+    runs-on: ubuntu-22.04
+    steps:
+      - name: git checkout
+        uses: actions/checkout@v3
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Magic cache
+        uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Check Nixpkgs inputs
+        uses: DeterminateSystems/flake-checker-action@main
+        with:
+          fail-mode: true
+
+      # Nix-specific logic begins here
+      - name: Nix Check
+        run: |
+          nix flake check
+
+      - name: Check Go formatting
+        run: |
+          nix develop --command test -z $(gofmt -l .)
+
+  build_and_test_nix:
+    name: Test and build
+    needs: check_nix
+    runs-on: ubuntu-22.04
+    steps:
+      - name: git checkout
+        uses: actions/checkout@v3
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Magic cache
+        uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Build Kardinal Manager images
+        run: |
+          nix build ./#containers.x86_64-linux.kardinal-manager.arm64 --no-link --print-out-paths
+          nix build ./#containers.x86_64-linux.kardinal-manager.amd64 --no-link --print-out-paths
