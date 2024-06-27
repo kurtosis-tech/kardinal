@@ -11,7 +11,7 @@ metadata:
   name: kardinal-manager-role
 rules:
   - apiGroups: ["*"]
-    resources: ["pods", "services", "deployments", "virtualservices", "workloadgroups", "workloadentries", "sidecars", "serviceentries", "gateways", "envoyfilters", "destinationrules"]
+    resources: ["namespaces", "pods", "services", "deployments", "virtualservices", "workloadgroups", "workloadentries", "sidecars", "serviceentries", "gateways", "envoyfilters", "destinationrules"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 
 ---
@@ -55,3 +55,8 @@ spec:
               value: "kubernetes.default.svc"
             - name: KUBERNETES_SERVICE_PORT
               value: "443"
+            - name: CLUSTER_CONFIG_ENDPOINT
+              # This is valid for reaching out the Kardinal Kontrol if this is running on the host
+              value: "http://host.minikube.internal:8080/cluster-resources"
+            - name: FETCHER_JOB_DURATION_SECONDS
+              value: "10"
