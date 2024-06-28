@@ -70,7 +70,7 @@ The Kardinal CLI is a standalone tool interacting with the Kardinal Cloud to man
 
 ### Kardinal Manager
 
-The Kardinal Manager retrieves the latest user services topology from the Kardinal Cloud and applies the changes by interacting with the Istio client and K8S client. The Manager manages traffic using Istio objects such as virtual servicess and destination rules. The Manager also updates the K8S services and deployments.
+The Kardinal Manager retrieves the latest user services topology from the Kardinal Cloud and applies the changes by interacting with the Istio client and K8S client. The Manager manages traffic using Istio objects such as virtual services and destination rules. The Manager also updates the K8S services and deployments.
 
 ## Development instructions
 
