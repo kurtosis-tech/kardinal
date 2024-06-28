@@ -12,6 +12,8 @@ name: release-please
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    # skip releases on forks
+    if: github.repository == 'kurtosis-tech/kardinal'
     steps:
       - name: Run Release Please
         uses: googleapis/release-please-action@v3
