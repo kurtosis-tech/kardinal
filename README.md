@@ -56,6 +56,22 @@ Have questions or need assistance? We're here to help:
 
 ---
 
+## Architecture
+
+Kardinal main components are the Kardinal CLI and the Kardinal Manager.  The Kardinal CLI allows the user to manage the development flows.  The Kardinal Manager retrieves the latest configuration from the Kardinal Cloud and applies changes to the K8S user services topology.
+
+![kardinal-dev-overview](https://github.com/kurtosistech/kardinal/blob/laurent/dev-flow/kardinal-dev-overview.png?raw=true)
+
+The Kardinal Cloud code is not open-source.
+
+### Kardinal CLI
+
+The Kardinal CLI is a standalone tool interacting with the Kardinal Cloud to manage the dev flows. Examples of
+
+### Kardinal Manager
+
+The Kardinal Manager retrieves the user services topology from the Kardinal Cloud and applies the latest changes by interacting with the Istio client and K8S client.  The Manager manages traffic with Istio objects like virtual servicess and destination rules. The Manager manages K8S services and deployments.
+
 ## Development instructions
 
 1. Enter the dev shell and start the local cluster:
