@@ -1,0 +1,24 @@
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+name: release-please
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Release Please
+        uses: googleapis/release-please-action@v3
+        with:
+          token: ${{ secrets.KURTOSIS_BOT_TOKEN }}
+          release-type: simple
+          package-name: kardinal
+          bump-minor-pre-major: true
+          bump-patch-for-minor-pre-major: true
+          include-v-in-tag: false          

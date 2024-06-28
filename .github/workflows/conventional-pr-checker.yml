@@ -1,0 +1,22 @@
+# Check PR title for conventional commits
+name: Check PR title
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - edited
+      - synchronize
+
+# cancel redundant builds
+concurrency:
+  group: "title-checker-${{ github.head_ref }}"
+  cancel-in-progress: true
+
+jobs:
+  title_check:
+    runs-on: self-hosted-ghr-size-s-x64
+    steps:
+      - uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
