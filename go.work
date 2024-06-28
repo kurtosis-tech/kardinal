@@ -1,0 +1,9 @@
+go 1.22.3
+
+use (
+	./kardinal-manager
+	./libs/manager-kontrol-api
+	./libs/cli-kontrol-api
+	./kardinal-cli
+	./sidecars/redis-overlay-service
+)
