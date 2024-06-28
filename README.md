@@ -4,7 +4,7 @@
 
 ![Kardi B](https://kardinal.dev/_next/static/media/kardinal-orange.65ea335b.png)
 
-Kardinal is a revolutionary traffic control and data isolation layer that enables engineers to safely do development and QA work directly in production. Say goodbye to maintaining multiple environments and hello to faster, more efficient development workflows.
+Kardinal is a traffic control and data isolation layer that enables engineers to safely do development and QA work directly in production. Say goodbye to maintaining multiple environments and hello to faster, more efficient development workflows.
 
 ## What is Kardinal?
 
@@ -31,7 +31,32 @@ kardinal create-dev-flow <service-name> <dev-image-tag>
 
 This creates a dev flow for your service with access to all the data, traffic, and services in your production environment, while ensuring complete isolation and safety.
 
-## Developing instructions
+## Join the Beta Program
+
+Our beta program for a select group of developers is coming soon! Be among the first to experience the future of software development:
+
+- Email us at: [hello@kardinal.dev](mailto:hello@kardinal.dev) to learn more about joining the beta
+- Get early access to Kardinal
+- Provide valuable feedback to shape the future of the product
+
+## Try the Kardinal Playground
+
+Can't wait to get started? Check out our proof of concept:
+
+- Visit the [Kardinal playground](https://github.com/kurtosis-tech/kardinal-playground/)
+- Experience a simple demonstration of how Kardinal can enhance your development workflow
+- Get a taste of developing directly in production, risk-free
+
+## Get Support
+
+Have questions or need assistance? We're here to help:
+
+- Email us at: [hello@kardinal.dev](mailto:hello@kardinal.dev)
+- Check out our documentation: [https://kardinal.dev/docs](https://kardinal.dev/docs)
+
+---
+
+## Development instructions
 
 1. Enter the dev shell and start the local cluster:
 
