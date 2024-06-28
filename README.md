@@ -66,11 +66,11 @@ The Kardinal Cloud code is not open-source.
 
 ### Kardinal CLI
 
-The Kardinal CLI is a standalone tool interacting with the Kardinal Cloud to manage the dev flows. Examples of
+The Kardinal CLI is a standalone tool interacting with the Kardinal Cloud to manage the dev flows.
 
 ### Kardinal Manager
 
-The Kardinal Manager retrieves the user services topology from the Kardinal Cloud and applies the latest changes by interacting with the Istio client and K8S client.  The Manager manages traffic with Istio objects like virtual servicess and destination rules. The Manager manages K8S services and deployments.
+The Kardinal Manager retrieves the latest user services topology from the Kardinal Cloud and applies the changes by interacting with the Istio client and K8S client. The Manager manages traffic using Istio objects such as virtual servicess and destination rules. The Manager also updates the K8S services and deployments.
 
 ## Development instructions
 
