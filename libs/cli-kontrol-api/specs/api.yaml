@@ -5,6 +5,8 @@ info:
 paths:
   /flow/create:
     post:
+      parameters:
+        - $ref: "#/components/parameters/tenant"
       requestBody:
         description: Create a dev flow
         required: true
@@ -21,6 +23,8 @@ paths:
                 type: string
   /flow/delete:
     post:
+      parameters:
+        - $ref: "#/components/parameters/tenant"
       requestBody:
         description: Delete dev flow (revert back to prod only)
         required: true
@@ -37,6 +41,8 @@ paths:
                 type: string
   /deploy:
     post:
+      parameters:
+        - $ref: "#/components/parameters/tenant"
       requestBody:
         description: Deploy a prod only cluster
         required: true
@@ -60,6 +66,7 @@ paths:
             type: string
           required: false
           description: The namespace for which to retrieve the topology
+        - $ref: "#/components/parameters/tenant"
       responses:
         "200":
           description: Topology information
@@ -69,6 +76,15 @@ paths:
                 $ref: "#/components/schemas/ClusterTopology"
 
 components:
+  parameters:
+    tenant:
+      name: tenant
+      in: query
+      required: true
+      description: UUID of the tenant
+      schema:
+        type: string
+
   schemas:
     ProdFlowSpec:
       type: object

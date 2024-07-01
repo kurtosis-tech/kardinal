@@ -10,21 +10,24 @@ import (
 	"kardinal.kontrol/kardinal-manager/cluster_manager"
 	"kardinal.kontrol/kardinal-manager/utils"
 	"net/http"
+	"net/url"
 	"time"
 )
 
 const (
 	defaultTickerDuration              = time.Second * 5
-	fetcherJobDurationSecondsEnvVarKey = "FETCHER_JOB_DURATION_SECONDS"
+	fetcherJobDurationSecondsEnvVarKey = "KARDINAL_MANAGER_FETCHER_JOB_DURATION_SECONDS"
+	tenantParamKey                     = "tenant"
 )
 
 type fetcher struct {
 	clusterManager *cluster_manager.ClusterManager
 	configEndpoint string
+	tenantUuidStr  string
 }
 
-func NewFetcher(clusterManager *cluster_manager.ClusterManager, configEndpoint string) *fetcher {
-	return &fetcher{clusterManager: clusterManager, configEndpoint: configEndpoint}
+func NewFetcher(clusterManager *cluster_manager.ClusterManager, configEndpoint string, tenantUuidStr string) *fetcher {
+	return &fetcher{clusterManager: clusterManager, configEndpoint: configEndpoint, tenantUuidStr: tenantUuidStr}
 }
 
 func (fetcher *fetcher) Run(ctx context.Context) error {
@@ -72,7 +75,21 @@ func (fetcher *fetcher) fetchAndApply(ctx context.Context) error {
 }
 
 func (fetcher *fetcher) getClusterResourcesFromCloud() (*types.ClusterResources, error) {
-	resp, err := http.Get(fetcher.configEndpoint)
+
+	configEndpointURL, err := url.Parse(fetcher.configEndpoint)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := configEndpointURL.Query()
+
+	queryValues.Add(tenantParamKey, fetcher.tenantUuidStr)
+
+	configEndpointURL.RawQuery = queryValues.Encode()
+
+	configEndpointURLStr := configEndpointURL.String()
+
+	resp, err := http.Get(configEndpointURLStr)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "Error fetching cluster resources from endpoint '%s'", fetcher.configEndpoint)
 	}
@@ -81,6 +98,11 @@ func (fetcher *fetcher) getClusterResourcesFromCloud() (*types.ClusterResources,
 	responseBodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "Error reading the response from '%v'", fetcher.configEndpoint)
+	}
+
+	if len(responseBodyBytes) == 0 {
+		logrus.Debugf("The cluster resources endpoint '%s' returned an empty body", fetcher.configEndpoint)
+		return nil, nil
 	}
 
 	var clusterResources *types.ClusterResources

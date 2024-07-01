@@ -7,6 +7,11 @@
 export interface paths {
   "/flow/create": {
     post: {
+      parameters: {
+        query: {
+          tenant: components["parameters"]["tenant"];
+        };
+      };
       /** @description Create a dev flow */
       requestBody: {
         content: {
@@ -25,6 +30,11 @@ export interface paths {
   };
   "/flow/delete": {
     post: {
+      parameters: {
+        query: {
+          tenant: components["parameters"]["tenant"];
+        };
+      };
       /** @description Delete dev flow (revert back to prod only) */
       requestBody: {
         content: {
@@ -43,6 +53,11 @@ export interface paths {
   };
   "/deploy": {
     post: {
+      parameters: {
+        query: {
+          tenant: components["parameters"]["tenant"];
+        };
+      };
       /** @description Deploy a prod only cluster */
       requestBody: {
         content: {
@@ -62,9 +77,10 @@ export interface paths {
   "/topology": {
     get: {
       parameters: {
-        query?: {
+        query: {
           /** @description The namespace for which to retrieve the topology */
           namespace?: string;
+          tenant: components["parameters"]["tenant"];
         };
       };
       responses: {
@@ -113,7 +129,10 @@ export interface components {
     };
   };
   responses: never;
-  parameters: never;
+  parameters: {
+    /** @description UUID of the tenant */
+    tenant: string;
+  };
   requestBodies: never;
   headers: never;
   pathItems: never;

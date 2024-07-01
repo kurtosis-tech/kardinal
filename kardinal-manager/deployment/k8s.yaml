@@ -55,8 +55,10 @@ spec:
               value: "kubernetes.default.svc"
             - name: KUBERNETES_SERVICE_PORT
               value: "443"
-            - name: CLUSTER_CONFIG_ENDPOINT
+            - name: KARDINAL_MANAGER_CLUSTER_CONFIG_ENDPOINT
               # This is valid for reaching out the Kardinal Kontrol if this is running on the host
               value: "http://host.minikube.internal:8080/cluster-resources"
-            - name: FETCHER_JOB_DURATION_SECONDS
+            - name: KARDINAL_MANAGER_FETCHER_JOB_DURATION_SECONDS
               value: "10"
+            - name: KARDINAL_MANAGER_TENANT_UUID
+              value: "58d33536-3c9e-4110-aa83-bf112ae94a49"

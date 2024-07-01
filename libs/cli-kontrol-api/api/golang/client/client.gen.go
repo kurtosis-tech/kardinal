@@ -91,26 +91,26 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 // The interface specification for the client above.
 type ClientInterface interface {
 	// PostDeployWithBody request with any body
-	PostDeployWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PostDeployWithBody(ctx context.Context, params *PostDeployParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostDeploy(ctx context.Context, body PostDeployJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PostDeploy(ctx context.Context, params *PostDeployParams, body PostDeployJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// PostFlowCreateWithBody request with any body
-	PostFlowCreateWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PostFlowCreateWithBody(ctx context.Context, params *PostFlowCreateParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostFlowCreate(ctx context.Context, body PostFlowCreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PostFlowCreate(ctx context.Context, params *PostFlowCreateParams, body PostFlowCreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// PostFlowDeleteWithBody request with any body
-	PostFlowDeleteWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PostFlowDeleteWithBody(ctx context.Context, params *PostFlowDeleteParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostFlowDelete(ctx context.Context, body PostFlowDeleteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PostFlowDelete(ctx context.Context, params *PostFlowDeleteParams, body PostFlowDeleteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetTopology request
 	GetTopology(ctx context.Context, params *GetTopologyParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
-func (c *Client) PostDeployWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostDeployRequestWithBody(c.Server, contentType, body)
+func (c *Client) PostDeployWithBody(ctx context.Context, params *PostDeployParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostDeployRequestWithBody(c.Server, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -121,8 +121,8 @@ func (c *Client) PostDeployWithBody(ctx context.Context, contentType string, bod
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostDeploy(ctx context.Context, body PostDeployJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostDeployRequest(c.Server, body)
+func (c *Client) PostDeploy(ctx context.Context, params *PostDeployParams, body PostDeployJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostDeployRequest(c.Server, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -133,8 +133,8 @@ func (c *Client) PostDeploy(ctx context.Context, body PostDeployJSONRequestBody,
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostFlowCreateWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostFlowCreateRequestWithBody(c.Server, contentType, body)
+func (c *Client) PostFlowCreateWithBody(ctx context.Context, params *PostFlowCreateParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostFlowCreateRequestWithBody(c.Server, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -145,8 +145,8 @@ func (c *Client) PostFlowCreateWithBody(ctx context.Context, contentType string,
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostFlowCreate(ctx context.Context, body PostFlowCreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostFlowCreateRequest(c.Server, body)
+func (c *Client) PostFlowCreate(ctx context.Context, params *PostFlowCreateParams, body PostFlowCreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostFlowCreateRequest(c.Server, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -157,8 +157,8 @@ func (c *Client) PostFlowCreate(ctx context.Context, body PostFlowCreateJSONRequ
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostFlowDeleteWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostFlowDeleteRequestWithBody(c.Server, contentType, body)
+func (c *Client) PostFlowDeleteWithBody(ctx context.Context, params *PostFlowDeleteParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostFlowDeleteRequestWithBody(c.Server, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -169,8 +169,8 @@ func (c *Client) PostFlowDeleteWithBody(ctx context.Context, contentType string,
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostFlowDelete(ctx context.Context, body PostFlowDeleteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostFlowDeleteRequest(c.Server, body)
+func (c *Client) PostFlowDelete(ctx context.Context, params *PostFlowDeleteParams, body PostFlowDeleteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostFlowDeleteRequest(c.Server, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -194,18 +194,18 @@ func (c *Client) GetTopology(ctx context.Context, params *GetTopologyParams, req
 }
 
 // NewPostDeployRequest calls the generic PostDeploy builder with application/json body
-func NewPostDeployRequest(server string, body PostDeployJSONRequestBody) (*http.Request, error) {
+func NewPostDeployRequest(server string, params *PostDeployParams, body PostDeployJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewPostDeployRequestWithBody(server, "application/json", bodyReader)
+	return NewPostDeployRequestWithBody(server, params, "application/json", bodyReader)
 }
 
 // NewPostDeployRequestWithBody generates requests for PostDeploy with any type of body
-func NewPostDeployRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+func NewPostDeployRequestWithBody(server string, params *PostDeployParams, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -223,6 +223,24 @@ func NewPostDeployRequestWithBody(server string, contentType string, body io.Rea
 		return nil, err
 	}
 
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tenant", runtime.ParamLocationQuery, params.Tenant); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
 	req, err := http.NewRequest("POST", queryURL.String(), body)
 	if err != nil {
 		return nil, err
@@ -234,18 +252,18 @@ func NewPostDeployRequestWithBody(server string, contentType string, body io.Rea
 }
 
 // NewPostFlowCreateRequest calls the generic PostFlowCreate builder with application/json body
-func NewPostFlowCreateRequest(server string, body PostFlowCreateJSONRequestBody) (*http.Request, error) {
+func NewPostFlowCreateRequest(server string, params *PostFlowCreateParams, body PostFlowCreateJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewPostFlowCreateRequestWithBody(server, "application/json", bodyReader)
+	return NewPostFlowCreateRequestWithBody(server, params, "application/json", bodyReader)
 }
 
 // NewPostFlowCreateRequestWithBody generates requests for PostFlowCreate with any type of body
-func NewPostFlowCreateRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+func NewPostFlowCreateRequestWithBody(server string, params *PostFlowCreateParams, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -263,6 +281,24 @@ func NewPostFlowCreateRequestWithBody(server string, contentType string, body io
 		return nil, err
 	}
 
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tenant", runtime.ParamLocationQuery, params.Tenant); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
 	req, err := http.NewRequest("POST", queryURL.String(), body)
 	if err != nil {
 		return nil, err
@@ -274,18 +310,18 @@ func NewPostFlowCreateRequestWithBody(server string, contentType string, body io
 }
 
 // NewPostFlowDeleteRequest calls the generic PostFlowDelete builder with application/json body
-func NewPostFlowDeleteRequest(server string, body PostFlowDeleteJSONRequestBody) (*http.Request, error) {
+func NewPostFlowDeleteRequest(server string, params *PostFlowDeleteParams, body PostFlowDeleteJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewPostFlowDeleteRequestWithBody(server, "application/json", bodyReader)
+	return NewPostFlowDeleteRequestWithBody(server, params, "application/json", bodyReader)
 }
 
 // NewPostFlowDeleteRequestWithBody generates requests for PostFlowDelete with any type of body
-func NewPostFlowDeleteRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+func NewPostFlowDeleteRequestWithBody(server string, params *PostFlowDeleteParams, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -301,6 +337,24 @@ func NewPostFlowDeleteRequestWithBody(server string, contentType string, body io
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tenant", runtime.ParamLocationQuery, params.Tenant); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("POST", queryURL.String(), body)
@@ -349,6 +403,18 @@ func NewGetTopologyRequest(server string, params *GetTopologyParams) (*http.Requ
 				}
 			}
 
+		}
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tenant", runtime.ParamLocationQuery, params.Tenant); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
@@ -406,19 +472,19 @@ func WithBaseURL(baseURL string) ClientOption {
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
 	// PostDeployWithBodyWithResponse request with any body
-	PostDeployWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostDeployResponse, error)
+	PostDeployWithBodyWithResponse(ctx context.Context, params *PostDeployParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostDeployResponse, error)
 
-	PostDeployWithResponse(ctx context.Context, body PostDeployJSONRequestBody, reqEditors ...RequestEditorFn) (*PostDeployResponse, error)
+	PostDeployWithResponse(ctx context.Context, params *PostDeployParams, body PostDeployJSONRequestBody, reqEditors ...RequestEditorFn) (*PostDeployResponse, error)
 
 	// PostFlowCreateWithBodyWithResponse request with any body
-	PostFlowCreateWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostFlowCreateResponse, error)
+	PostFlowCreateWithBodyWithResponse(ctx context.Context, params *PostFlowCreateParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostFlowCreateResponse, error)
 
-	PostFlowCreateWithResponse(ctx context.Context, body PostFlowCreateJSONRequestBody, reqEditors ...RequestEditorFn) (*PostFlowCreateResponse, error)
+	PostFlowCreateWithResponse(ctx context.Context, params *PostFlowCreateParams, body PostFlowCreateJSONRequestBody, reqEditors ...RequestEditorFn) (*PostFlowCreateResponse, error)
 
 	// PostFlowDeleteWithBodyWithResponse request with any body
-	PostFlowDeleteWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostFlowDeleteResponse, error)
+	PostFlowDeleteWithBodyWithResponse(ctx context.Context, params *PostFlowDeleteParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostFlowDeleteResponse, error)
 
-	PostFlowDeleteWithResponse(ctx context.Context, body PostFlowDeleteJSONRequestBody, reqEditors ...RequestEditorFn) (*PostFlowDeleteResponse, error)
+	PostFlowDeleteWithResponse(ctx context.Context, params *PostFlowDeleteParams, body PostFlowDeleteJSONRequestBody, reqEditors ...RequestEditorFn) (*PostFlowDeleteResponse, error)
 
 	// GetTopologyWithResponse request
 	GetTopologyWithResponse(ctx context.Context, params *GetTopologyParams, reqEditors ...RequestEditorFn) (*GetTopologyResponse, error)
@@ -513,16 +579,16 @@ func (r GetTopologyResponse) StatusCode() int {
 }
 
 // PostDeployWithBodyWithResponse request with arbitrary body returning *PostDeployResponse
-func (c *ClientWithResponses) PostDeployWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostDeployResponse, error) {
-	rsp, err := c.PostDeployWithBody(ctx, contentType, body, reqEditors...)
+func (c *ClientWithResponses) PostDeployWithBodyWithResponse(ctx context.Context, params *PostDeployParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostDeployResponse, error) {
+	rsp, err := c.PostDeployWithBody(ctx, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
 	return ParsePostDeployResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostDeployWithResponse(ctx context.Context, body PostDeployJSONRequestBody, reqEditors ...RequestEditorFn) (*PostDeployResponse, error) {
-	rsp, err := c.PostDeploy(ctx, body, reqEditors...)
+func (c *ClientWithResponses) PostDeployWithResponse(ctx context.Context, params *PostDeployParams, body PostDeployJSONRequestBody, reqEditors ...RequestEditorFn) (*PostDeployResponse, error) {
+	rsp, err := c.PostDeploy(ctx, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -530,16 +596,16 @@ func (c *ClientWithResponses) PostDeployWithResponse(ctx context.Context, body P
 }
 
 // PostFlowCreateWithBodyWithResponse request with arbitrary body returning *PostFlowCreateResponse
-func (c *ClientWithResponses) PostFlowCreateWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostFlowCreateResponse, error) {
-	rsp, err := c.PostFlowCreateWithBody(ctx, contentType, body, reqEditors...)
+func (c *ClientWithResponses) PostFlowCreateWithBodyWithResponse(ctx context.Context, params *PostFlowCreateParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostFlowCreateResponse, error) {
+	rsp, err := c.PostFlowCreateWithBody(ctx, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
 	return ParsePostFlowCreateResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostFlowCreateWithResponse(ctx context.Context, body PostFlowCreateJSONRequestBody, reqEditors ...RequestEditorFn) (*PostFlowCreateResponse, error) {
-	rsp, err := c.PostFlowCreate(ctx, body, reqEditors...)
+func (c *ClientWithResponses) PostFlowCreateWithResponse(ctx context.Context, params *PostFlowCreateParams, body PostFlowCreateJSONRequestBody, reqEditors ...RequestEditorFn) (*PostFlowCreateResponse, error) {
+	rsp, err := c.PostFlowCreate(ctx, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -547,16 +613,16 @@ func (c *ClientWithResponses) PostFlowCreateWithResponse(ctx context.Context, bo
 }
 
 // PostFlowDeleteWithBodyWithResponse request with arbitrary body returning *PostFlowDeleteResponse
-func (c *ClientWithResponses) PostFlowDeleteWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostFlowDeleteResponse, error) {
-	rsp, err := c.PostFlowDeleteWithBody(ctx, contentType, body, reqEditors...)
+func (c *ClientWithResponses) PostFlowDeleteWithBodyWithResponse(ctx context.Context, params *PostFlowDeleteParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostFlowDeleteResponse, error) {
+	rsp, err := c.PostFlowDeleteWithBody(ctx, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
 	return ParsePostFlowDeleteResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostFlowDeleteWithResponse(ctx context.Context, body PostFlowDeleteJSONRequestBody, reqEditors ...RequestEditorFn) (*PostFlowDeleteResponse, error) {
-	rsp, err := c.PostFlowDelete(ctx, body, reqEditors...)
+func (c *ClientWithResponses) PostFlowDeleteWithResponse(ctx context.Context, params *PostFlowDeleteParams, body PostFlowDeleteJSONRequestBody, reqEditors ...RequestEditorFn) (*PostFlowDeleteResponse, error) {
+	rsp, err := c.PostFlowDelete(ctx, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}

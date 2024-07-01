@@ -9,9 +9,10 @@ export interface paths {
     /** Cluster resource definition */
     get: {
       parameters: {
-        query?: {
+        query: {
           /** @description The namespace for which to retrieve the cluster resources */
           namespace?: string;
+          tenant: components["parameters"]["tenant"];
         };
       };
       responses: {
@@ -55,7 +56,10 @@ export interface components {
       };
     };
   };
-  parameters: never;
+  parameters: {
+    /** @description UUID of the tenant */
+    tenant: string;
+  };
   requestBodies: never;
   headers: never;
   pathItems: never;

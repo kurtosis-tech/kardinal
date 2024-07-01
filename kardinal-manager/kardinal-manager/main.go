@@ -12,7 +12,8 @@ import (
 
 const (
 	successExitCode                = 0
-	clusterConfigEndpointEnvVarKey = "CLUSTER_CONFIG_ENDPOINT"
+	clusterConfigEndpointEnvVarKey = "KARDINAL_MANAGER_CLUSTER_CONFIG_ENDPOINT"
+	tenantUuidEnvVarKey            = "KARDINAL_MANAGER_TENANT_UUID"
 )
 
 func main() {
@@ -29,12 +30,17 @@ func main() {
 		logrus.Fatal("An error occurred getting the config endpoint from the env vars!\nError was: %s", err)
 	}
 
+	tenantUuidStr, err := utils.GetFromEnvVar(tenantUuidEnvVarKey, "the tenant uuid")
+	if err != nil {
+		logrus.Fatal("An error occurred getting the tenant UUID from the env vars!\nError was: %s", err)
+	}
+
 	clusterManager, err := cluster_manager.CreateClusterManager()
 	if err != nil {
 		logrus.Fatal("An error occurred while creating the cluster manager!\nError was: %s", err)
 	}
 
-	fetcher := fetcher.NewFetcher(clusterManager, configEndpoint)
+	fetcher := fetcher.NewFetcher(clusterManager, configEndpoint, tenantUuidStr)
 
 	if err = fetcher.Run(ctx); err != nil {
 		logrus.Fatalf("An error occurred while running the fetcher!\nError was: %s", err)

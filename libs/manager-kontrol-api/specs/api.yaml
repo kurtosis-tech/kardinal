@@ -15,6 +15,7 @@ paths:
             type: string
           required: false
           description: The namespace for which to retrieve the cluster resources
+        - $ref: "#/components/parameters/tenant"
       responses:
         default:
           $ref: "#/components/responses/NotOk"
@@ -26,6 +27,15 @@ paths:
                 $ref: "#/components/schemas/ClusterResources"
 
 components:
+  parameters:
+    tenant:
+      name: tenant
+      in: query
+      required: true
+      description: UUID of the tenant
+      schema:
+        type: string
+
   responses:
     NotOk:
       description: Unexpected error

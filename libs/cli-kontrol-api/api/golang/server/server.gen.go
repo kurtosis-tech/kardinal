@@ -26,13 +26,13 @@ import (
 type ServerInterface interface {
 
 	// (POST /deploy)
-	PostDeploy(ctx echo.Context) error
+	PostDeploy(ctx echo.Context, params PostDeployParams) error
 
 	// (POST /flow/create)
-	PostFlowCreate(ctx echo.Context) error
+	PostFlowCreate(ctx echo.Context, params PostFlowCreateParams) error
 
 	// (POST /flow/delete)
-	PostFlowDelete(ctx echo.Context) error
+	PostFlowDelete(ctx echo.Context, params PostFlowDeleteParams) error
 
 	// (GET /topology)
 	GetTopology(ctx echo.Context, params GetTopologyParams) error
@@ -47,8 +47,17 @@ type ServerInterfaceWrapper struct {
 func (w *ServerInterfaceWrapper) PostDeploy(ctx echo.Context) error {
 	var err error
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params PostDeployParams
+	// ------------- Required query parameter "tenant" -------------
+
+	err = runtime.BindQueryParameter("form", true, true, "tenant", ctx.QueryParams(), &params.Tenant)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter tenant: %s", err))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PostDeploy(ctx)
+	err = w.Handler.PostDeploy(ctx, params)
 	return err
 }
 
@@ -56,8 +65,17 @@ func (w *ServerInterfaceWrapper) PostDeploy(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) PostFlowCreate(ctx echo.Context) error {
 	var err error
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params PostFlowCreateParams
+	// ------------- Required query parameter "tenant" -------------
+
+	err = runtime.BindQueryParameter("form", true, true, "tenant", ctx.QueryParams(), &params.Tenant)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter tenant: %s", err))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PostFlowCreate(ctx)
+	err = w.Handler.PostFlowCreate(ctx, params)
 	return err
 }
 
@@ -65,8 +83,17 @@ func (w *ServerInterfaceWrapper) PostFlowCreate(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) PostFlowDelete(ctx echo.Context) error {
 	var err error
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params PostFlowDeleteParams
+	// ------------- Required query parameter "tenant" -------------
+
+	err = runtime.BindQueryParameter("form", true, true, "tenant", ctx.QueryParams(), &params.Tenant)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter tenant: %s", err))
+	}
+
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PostFlowDelete(ctx)
+	err = w.Handler.PostFlowDelete(ctx, params)
 	return err
 }
 
@@ -81,6 +108,13 @@ func (w *ServerInterfaceWrapper) GetTopology(ctx echo.Context) error {
 	err = runtime.BindQueryParameter("form", true, false, "namespace", ctx.QueryParams(), &params.Namespace)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespace: %s", err))
+	}
+
+	// ------------- Required query parameter "tenant" -------------
+
+	err = runtime.BindQueryParameter("form", true, true, "tenant", ctx.QueryParams(), &params.Tenant)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter tenant: %s", err))
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
@@ -124,7 +158,8 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 }
 
 type PostDeployRequestObject struct {
-	Body *PostDeployJSONRequestBody
+	Params PostDeployParams
+	Body   *PostDeployJSONRequestBody
 }
 
 type PostDeployResponseObject interface {
@@ -141,7 +176,8 @@ func (response PostDeploy200JSONResponse) VisitPostDeployResponse(w http.Respons
 }
 
 type PostFlowCreateRequestObject struct {
-	Body *PostFlowCreateJSONRequestBody
+	Params PostFlowCreateParams
+	Body   *PostFlowCreateJSONRequestBody
 }
 
 type PostFlowCreateResponseObject interface {
@@ -158,7 +194,8 @@ func (response PostFlowCreate200JSONResponse) VisitPostFlowCreateResponse(w http
 }
 
 type PostFlowDeleteRequestObject struct {
-	Body *PostFlowDeleteJSONRequestBody
+	Params PostFlowDeleteParams
+	Body   *PostFlowDeleteJSONRequestBody
 }
 
 type PostFlowDeleteResponseObject interface {
@@ -220,8 +257,10 @@ type strictHandler struct {
 }
 
 // PostDeploy operation middleware
-func (sh *strictHandler) PostDeploy(ctx echo.Context) error {
+func (sh *strictHandler) PostDeploy(ctx echo.Context, params PostDeployParams) error {
 	var request PostDeployRequestObject
+
+	request.Params = params
 
 	var body PostDeployJSONRequestBody
 	if err := ctx.Bind(&body); err != nil {
@@ -249,8 +288,10 @@ func (sh *strictHandler) PostDeploy(ctx echo.Context) error {
 }
 
 // PostFlowCreate operation middleware
-func (sh *strictHandler) PostFlowCreate(ctx echo.Context) error {
+func (sh *strictHandler) PostFlowCreate(ctx echo.Context, params PostFlowCreateParams) error {
 	var request PostFlowCreateRequestObject
+
+	request.Params = params
 
 	var body PostFlowCreateJSONRequestBody
 	if err := ctx.Bind(&body); err != nil {
@@ -278,8 +319,10 @@ func (sh *strictHandler) PostFlowCreate(ctx echo.Context) error {
 }
 
 // PostFlowDelete operation middleware
-func (sh *strictHandler) PostFlowDelete(ctx echo.Context) error {
+func (sh *strictHandler) PostFlowDelete(ctx echo.Context, params PostFlowDeleteParams) error {
 	var request PostFlowDeleteRequestObject
+
+	request.Params = params
 
 	var body PostFlowDeleteJSONRequestBody
 	if err := ctx.Bind(&body); err != nil {
@@ -334,19 +377,19 @@ func (sh *strictHandler) GetTopology(ctx echo.Context, params GetTopologyParams)
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/9RWTW/DNgz9K4K2wwbEcbbdfNvSbShaDAXanYoeFIlx1NqiStFpgyL/fZDkfLtdimFY",
-	"d7MlvkfykSb9JjW2Hh04DrJ6k0EvoFXpcdp0gYHu0GOD9SoeeUIPxBaSAZg6P1iGNj18SzCXlfym3JGW",
-	"PWP5q6lBrkeSVx5kJRWRWsV3h+YTLH+gGWBZjyTBc2cJjKzue8pRH+DD1hpnj6A5wi9g+VuDL7ce9Gle",
-	"BvUTUJG8BzgI7bWosejZ+vvxLdDSapiim9tajnY2hW09EkecU+0eRI6kV7yQlawtL7rZWGNb9ndF8KC3",
-	"LzWWkSmkFI+Vs62qoWhQK0ZKBXlVrW+izUzpJ3CmUFWjGALLLTowWVdHeMhxFzm2IfTGQp3C1wOipgqf",
-	"qNmoGTRJVgiarGeLTlbyOh6LOZLgBYhYqfFgkNiRhlP43QKENeDYzi2QwHmiydYi1n9z9C4zK6qBz2XO",
-	"1ucwH/Vin8DW31A3pqY+Ec6a0+D+dPa5O4hvo2CMbDDPs/R/B32UizWD4d8Qmv/713Taz/HIujlGh2w5",
-	"fRjT68vyqsHOFFfomLARP99cypFcAoUs6w/jyXgSRUEPTnkrK/lTOspBprRLA77BPFAxpIyiYCpW5tLI",
-	"St5g4ItskwsAgX9BkxAaHYNLIOV9Y3WClY8hut/M77+bogcVS5keNkd2LpTwhEaga1ZC520g9zuCqYPU",
-	"IsGjC7ncP04mnwrzuOMGYlmKeYMvQhMkEhFYcReLGI3LeFemO/hY0ZjwNNv9O6ruL5WBRLJvoYTpM/qi",
-	"Whpo4BwtL7Ldf9Wh0flWSvEdwRKIRVxdgnHXuN9/PZV574+qX0GHCv8OvP3rinODVAsMFGR1P7St4jgM",
-	"XmlI4/xlYfUiSkDAZGEJeX/t+GzEPXdA8aUfpVsKOfog04d/qNxHBT/+2xzQdXMn4limNnlJmq7XfwUA",
-	"AP//eCMynscKAAA=",
+	"H4sIAAAAAAAC/9RWTW/jNhD9KwTbQwtIltvedGvttjC6KALs7mmxB5ocy0wkDjOknBiB/ntBUvKXFMNB",
+	"L8lN4gxn3rw35PCFS2wsGjDe8fKFW0GiAQ8U/zwYYXz4UuAkaes1Gl7yr19XS4Yb5rfAep+M62B5bIH2",
+	"PONGNMBLfjASPLaaQPHSUwsZd3ILjYg59jZ4Ok/aVLzrusEYESzq1nmgL2ixxmofIRJaIK8hOoCq0of2",
+	"0MSPHwk2vOQ/FMfKij5i8aeqgHfZkFQQiX34N6jeEOVfVBNRutMqv/Uhsx7g94M3ru9B+rB9Cbu/anz6",
+	"bEGO61IoH4DymN3BGbTnvMK8j9bbZ5+BdlrCAs1GVzw7+uS6sUhRw16TIWTGrfBbXvJK+227nklsit6W",
+	"Owvy8FNhESK5WOIlc7oRFeQ1SuGRoiDPorF18FkL+QBG5aKshQcX2uBC7Iy7hDtP2KZ2Dx5ivL2bIDUq",
+	"PGKzFmuox338KSyzDVLs5KDUbBIktiRhvP3LFphWYLzeaKDhQCRvFvQfll6N7AVV4G+NnLxviXzRi30B",
+	"h3xT3RibekScVhOn3+jH9gzfwGBANlnnTfy/svuiFq0m4d8Rqo9+msb9HJa02WC8KLWPB2PxaVX8g8YT",
+	"1uz3uxXP+A7IJUJ/mc1n80AHWjDCal7y3+JSghcLLhTYGtNVii7WEqgSQZOV4iW/Q+eXySc7Gwjfpq/F",
+	"o0vR3/fd96QZOP8HqphKovGQZomwttYy5ivuXcD9cjIPrl28ZyJHcs77KaFmgllCxdDUeybTABmNoNhV",
+	"zqJxqUN+nc/fBHNibF1i2bFNjU9MEsQgzHnh26B7cC6CrYg2uC5FKHiR/N6ZHKcDbIKBBJoJpnoq3qkI",
+	"Cmq4RYRl8vtwZyKgPmjAfiLYAXkW5ivzeDwqP78/efzJs6+fk+fS/A3+8DQc6TIeqeHOdlZIiDPnaavl",
+	"NlBA4EnDDtKQPcabetEeQvBrj9jsbV3xPzi+1hqXj+cJBQYbC1OGmpglst91/wUAAP//RYsNdxsMAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

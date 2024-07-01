@@ -46,10 +46,34 @@ type ProdFlowSpec struct {
 	DockerCompose *[]compose.ServiceConfig `json:"docker-compose,omitempty"`
 }
 
+// Tenant defines model for tenant.
+type Tenant = string
+
+// PostDeployParams defines parameters for PostDeploy.
+type PostDeployParams struct {
+	// Tenant UUID of the tenant
+	Tenant Tenant `form:"tenant" json:"tenant"`
+}
+
+// PostFlowCreateParams defines parameters for PostFlowCreate.
+type PostFlowCreateParams struct {
+	// Tenant UUID of the tenant
+	Tenant Tenant `form:"tenant" json:"tenant"`
+}
+
+// PostFlowDeleteParams defines parameters for PostFlowDelete.
+type PostFlowDeleteParams struct {
+	// Tenant UUID of the tenant
+	Tenant Tenant `form:"tenant" json:"tenant"`
+}
+
 // GetTopologyParams defines parameters for GetTopology.
 type GetTopologyParams struct {
 	// Namespace The namespace for which to retrieve the topology
 	Namespace *string `form:"namespace,omitempty" json:"namespace,omitempty"`
+
+	// Tenant UUID of the tenant
+	Tenant Tenant `form:"tenant" json:"tenant"`
 }
 
 // PostDeployJSONRequestBody defines body for PostDeploy for application/json ContentType.
