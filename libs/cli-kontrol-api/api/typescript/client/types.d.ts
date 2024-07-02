@@ -77,10 +77,6 @@ export interface paths {
   "/tenant/{uuid}/topology": {
     get: {
       parameters: {
-        query?: {
-          /** @description The namespace for which to retrieve the topology */
-          namespace?: string;
-        };
         path: {
           uuid: components["parameters"]["uuid"];
         };

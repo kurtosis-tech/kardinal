@@ -9,12 +9,6 @@ paths:
         - cluster-resources
       summary: Cluster resource definition
       parameters:
-        - in: query
-          name: namespace
-          schema:
-            type: string
-          required: false
-          description: The namespace for which to retrieve the cluster resources
         - $ref: "#/components/parameters/uuid"
       responses:
         default:

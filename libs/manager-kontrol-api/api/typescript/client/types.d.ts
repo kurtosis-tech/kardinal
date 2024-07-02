@@ -9,10 +9,6 @@ export interface paths {
     /** Cluster resource definition */
     get: {
       parameters: {
-        query?: {
-          /** @description The namespace for which to retrieve the cluster resources */
-          namespace?: string;
-        };
         path: {
           uuid: components["parameters"]["uuid"];
         };

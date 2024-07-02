@@ -106,7 +106,7 @@ type ClientInterface interface {
 	PostTenantUuidFlowDelete(ctx context.Context, uuid Uuid, body PostTenantUuidFlowDeleteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetTenantUuidTopology request
-	GetTenantUuidTopology(ctx context.Context, uuid Uuid, params *GetTenantUuidTopologyParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetTenantUuidTopology(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) PostTenantUuidDeployWithBody(ctx context.Context, uuid Uuid, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -181,8 +181,8 @@ func (c *Client) PostTenantUuidFlowDelete(ctx context.Context, uuid Uuid, body P
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetTenantUuidTopology(ctx context.Context, uuid Uuid, params *GetTenantUuidTopologyParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetTenantUuidTopologyRequest(c.Server, uuid, params)
+func (c *Client) GetTenantUuidTopology(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetTenantUuidTopologyRequest(c.Server, uuid)
 	if err != nil {
 		return nil, err
 	}
@@ -335,7 +335,7 @@ func NewPostTenantUuidFlowDeleteRequestWithBody(server string, uuid Uuid, conten
 }
 
 // NewGetTenantUuidTopologyRequest generates requests for GetTenantUuidTopology
-func NewGetTenantUuidTopologyRequest(server string, uuid Uuid, params *GetTenantUuidTopologyParams) (*http.Request, error) {
+func NewGetTenantUuidTopologyRequest(server string, uuid Uuid) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -358,28 +358,6 @@ func NewGetTenantUuidTopologyRequest(server string, uuid Uuid, params *GetTenant
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
-	}
-
-	if params != nil {
-		queryValues := queryURL.Query()
-
-		if params.Namespace != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "namespace", runtime.ParamLocationQuery, *params.Namespace); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -449,7 +427,7 @@ type ClientWithResponsesInterface interface {
 	PostTenantUuidFlowDeleteWithResponse(ctx context.Context, uuid Uuid, body PostTenantUuidFlowDeleteJSONRequestBody, reqEditors ...RequestEditorFn) (*PostTenantUuidFlowDeleteResponse, error)
 
 	// GetTenantUuidTopologyWithResponse request
-	GetTenantUuidTopologyWithResponse(ctx context.Context, uuid Uuid, params *GetTenantUuidTopologyParams, reqEditors ...RequestEditorFn) (*GetTenantUuidTopologyResponse, error)
+	GetTenantUuidTopologyWithResponse(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*GetTenantUuidTopologyResponse, error)
 }
 
 type PostTenantUuidDeployResponse struct {
@@ -592,8 +570,8 @@ func (c *ClientWithResponses) PostTenantUuidFlowDeleteWithResponse(ctx context.C
 }
 
 // GetTenantUuidTopologyWithResponse request returning *GetTenantUuidTopologyResponse
-func (c *ClientWithResponses) GetTenantUuidTopologyWithResponse(ctx context.Context, uuid Uuid, params *GetTenantUuidTopologyParams, reqEditors ...RequestEditorFn) (*GetTenantUuidTopologyResponse, error) {
-	rsp, err := c.GetTenantUuidTopology(ctx, uuid, params, reqEditors...)
+func (c *ClientWithResponses) GetTenantUuidTopologyWithResponse(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*GetTenantUuidTopologyResponse, error) {
+	rsp, err := c.GetTenantUuidTopology(ctx, uuid, reqEditors...)
 	if err != nil {
 		return nil, err
 	}

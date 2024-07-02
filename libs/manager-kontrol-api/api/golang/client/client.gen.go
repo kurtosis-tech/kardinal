@@ -90,11 +90,11 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 // The interface specification for the client above.
 type ClientInterface interface {
 	// GetTenantUuidClusterResources request
-	GetTenantUuidClusterResources(ctx context.Context, uuid Uuid, params *GetTenantUuidClusterResourcesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetTenantUuidClusterResources(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
-func (c *Client) GetTenantUuidClusterResources(ctx context.Context, uuid Uuid, params *GetTenantUuidClusterResourcesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetTenantUuidClusterResourcesRequest(c.Server, uuid, params)
+func (c *Client) GetTenantUuidClusterResources(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetTenantUuidClusterResourcesRequest(c.Server, uuid)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +106,7 @@ func (c *Client) GetTenantUuidClusterResources(ctx context.Context, uuid Uuid, p
 }
 
 // NewGetTenantUuidClusterResourcesRequest generates requests for GetTenantUuidClusterResources
-func NewGetTenantUuidClusterResourcesRequest(server string, uuid Uuid, params *GetTenantUuidClusterResourcesParams) (*http.Request, error) {
+func NewGetTenantUuidClusterResourcesRequest(server string, uuid Uuid) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -129,28 +129,6 @@ func NewGetTenantUuidClusterResourcesRequest(server string, uuid Uuid, params *G
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
-	}
-
-	if params != nil {
-		queryValues := queryURL.Query()
-
-		if params.Namespace != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "namespace", runtime.ParamLocationQuery, *params.Namespace); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -205,7 +183,7 @@ func WithBaseURL(baseURL string) ClientOption {
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
 	// GetTenantUuidClusterResourcesWithResponse request
-	GetTenantUuidClusterResourcesWithResponse(ctx context.Context, uuid Uuid, params *GetTenantUuidClusterResourcesParams, reqEditors ...RequestEditorFn) (*GetTenantUuidClusterResourcesResponse, error)
+	GetTenantUuidClusterResourcesWithResponse(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*GetTenantUuidClusterResourcesResponse, error)
 }
 
 type GetTenantUuidClusterResourcesResponse struct {
@@ -232,8 +210,8 @@ func (r GetTenantUuidClusterResourcesResponse) StatusCode() int {
 }
 
 // GetTenantUuidClusterResourcesWithResponse request returning *GetTenantUuidClusterResourcesResponse
-func (c *ClientWithResponses) GetTenantUuidClusterResourcesWithResponse(ctx context.Context, uuid Uuid, params *GetTenantUuidClusterResourcesParams, reqEditors ...RequestEditorFn) (*GetTenantUuidClusterResourcesResponse, error) {
-	rsp, err := c.GetTenantUuidClusterResources(ctx, uuid, params, reqEditors...)
+func (c *ClientWithResponses) GetTenantUuidClusterResourcesWithResponse(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*GetTenantUuidClusterResourcesResponse, error) {
+	rsp, err := c.GetTenantUuidClusterResources(ctx, uuid, reqEditors...)
 	if err != nil {
 		return nil, err
 	}

@@ -49,12 +49,6 @@ type ProdFlowSpec struct {
 // Uuid defines model for uuid.
 type Uuid = string
 
-// GetTenantUuidTopologyParams defines parameters for GetTenantUuidTopology.
-type GetTenantUuidTopologyParams struct {
-	// Namespace The namespace for which to retrieve the topology
-	Namespace *string `form:"namespace,omitempty" json:"namespace,omitempty"`
-}
-
 // PostTenantUuidDeployJSONRequestBody defines body for PostTenantUuidDeploy for application/json ContentType.
 type PostTenantUuidDeployJSONRequestBody = ProdFlowSpec
 

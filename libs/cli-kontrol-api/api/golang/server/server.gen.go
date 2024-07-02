@@ -35,7 +35,7 @@ type ServerInterface interface {
 	PostTenantUuidFlowDelete(ctx echo.Context, uuid Uuid) error
 
 	// (GET /tenant/{uuid}/topology)
-	GetTenantUuidTopology(ctx echo.Context, uuid Uuid, params GetTenantUuidTopologyParams) error
+	GetTenantUuidTopology(ctx echo.Context, uuid Uuid) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -102,17 +102,8 @@ func (w *ServerInterfaceWrapper) GetTenantUuidTopology(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter uuid: %s", err))
 	}
 
-	// Parameter object where we will unmarshal all parameters from the context
-	var params GetTenantUuidTopologyParams
-	// ------------- Optional query parameter "namespace" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "namespace", ctx.QueryParams(), &params.Namespace)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespace: %s", err))
-	}
-
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetTenantUuidTopology(ctx, uuid, params)
+	err = w.Handler.GetTenantUuidTopology(ctx, uuid)
 	return err
 }
 
@@ -206,8 +197,7 @@ func (response PostTenantUuidFlowDelete200JSONResponse) VisitPostTenantUuidFlowD
 }
 
 type GetTenantUuidTopologyRequestObject struct {
-	Uuid   Uuid `json:"uuid"`
-	Params GetTenantUuidTopologyParams
+	Uuid Uuid `json:"uuid"`
 }
 
 type GetTenantUuidTopologyResponseObject interface {
@@ -345,11 +335,10 @@ func (sh *strictHandler) PostTenantUuidFlowDelete(ctx echo.Context, uuid Uuid) e
 }
 
 // GetTenantUuidTopology operation middleware
-func (sh *strictHandler) GetTenantUuidTopology(ctx echo.Context, uuid Uuid, params GetTenantUuidTopologyParams) error {
+func (sh *strictHandler) GetTenantUuidTopology(ctx echo.Context, uuid Uuid) error {
 	var request GetTenantUuidTopologyRequestObject
 
 	request.Uuid = uuid
-	request.Params = params
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
 		return sh.ssi.GetTenantUuidTopology(ctx.Request().Context(), request.(GetTenantUuidTopologyRequestObject))
@@ -373,20 +362,19 @@ func (sh *strictHandler) GetTenantUuidTopology(ctx echo.Context, uuid Uuid, para
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/9RWTW/cNhD9KwTbQwtIK7e96dbabWE0KAzEPgU50OSslonEoYejdRaG/ntBUtovKYaN",
-	"XuzTrsj5ePPekMMnqbHz6MBxkPWT9IpUBwyUvvremvhrIGiyni06Wcu7u+srgWvBGxAEAXvSIAtp455X",
-	"vJGFdKoDWWf/QhI89JbAyJqph0IGvYFOxcC889EuMFnXyGEYps2U/rLtAwPdoscWm13CR+iB2EIyANPk",
-	"P5ahS39+JFjLWv5QHcqqxojVn6YBORRTUkWkdvHboXlFlH/RLEQZjqv8NIYsRoCf99Z4/wU0R/cr2P7V",
-	"4uNHD3pel0H9FahM2QOcQPtWNliO0cb91UegrdVwiW5tG1kcbErbeSSOfqMiU8giK1XLxvKmv19p7Kpx",
-	"rwwe9P6jwSpGCqnEc+ZspxooW9SKkZIg31Tn22hzr/RXcKZUdasYAsviXOxChoy7zNiWvCcLNXcfFkhN",
-	"Cs/YbNU9tPM2/hCXxRopNXJUarUIMvf3zP12A8IacGzXFmg6D9laRP2npe9GZkUN8EsjZ+uXRD7rxf0B",
-	"HfMtdWNq6hlxi4ff2Yf+BN/EYES2WOeL+P+O91kt1izCvyE07/00zfs5Llm3xnRRWk4H4/LDdfUPOiZs",
-	"xe8317KQW6CQCf1ldbG6iHSgB6e8lbX8LS1leKngisEpx9VTvJqHyoBvMV+sGFJlkTgVFbo2spY3GPg2",
-	"edz11lxl6+JkSnxavi4PJlWaAsPnrCQE/gNNSqnRMbiUVXnfWp3yVl9CrObpaEo8dx2fSJ8oO+2yjFko",
-	"4QmNQNfuhM5jZTaYUq8Fjy7kvvn14uJVMBeG2TmWrVi3+Cg0QQoiAivuYzdE4zNtomWVLOGlAkUiLrPH",
-	"mxLpeNgt8JIhCyXMSNC7kMZAC6+T5ip7vLPzEzHvlRE/EWyBWMQJLRgPx+rnty4aHz0jx7l7KtjfcKTX",
-	"/tE5U2s+rOM0CF5pSNPscWP1JlJDwGRhC3l8H+Klh/JDD7Q7vJT3IeRzz+PiNb3yP5h/rmHOH+ULukx7",
-	"Ik4v6lKWpMkw/BcAAP//SreIgXAMAAA=",
+	"H4sIAAAAAAAC/9RWTW/jNhD9KwTbQwtIltvedGvttjC6KAJsclrsgSbHMnclDpcceWMY+u8LkpK/pAQO",
+	"cklOtsT5ePPeDEcHLrGxaMCQ5+WBW+FEAwQuPrWtVuFXgZdOW9JoeMkfHlZLhhtGW2AOPLZOAs+4DmdW",
+	"0JZn3IgGeJn8M+7gW6sdKF6SayHjXm6hESEw7W2w8+S0qXjXdcNhTL+oW0/g7tFijdU+4nNowZGGaACq",
+	"Sn80QRP//Oxgw0v+U3Eqq+gjFn+rCniXDUmFc2Ifng2qF0T5H9VElO68yk99yKwH+PlojesvICm4L2H3",
+	"T43fP1qQ47oUyq/g8pjdwwW0x7zCvI/Wn88+gttpCQs0G13x7GST68aio+DXKzKEzJJSJa80bdv1TGJT",
+	"9Ge5tyCPDxUWIZKPJV4zpxtRQV6jFIQuCvIoGlsHm7WQX8GoXJS1IPDEs2uxM+4T7jxhm/IeLMTYvZsg",
+	"NSo8YrMWa6jHbfwhvGYbdLGRg1KzSZCpv0fu91tgWoEhvdHghnlI1izoP7x6MjIJVwHdGjlZ3xL5qheP",
+	"A9rnm+rG2NQj4iaH3+hv7QW+gcGAbLLOm/h/wvuqFq0m4d85VO99msb9HF5ps8F4UWqKg7H4sCr+Q0MO",
+	"a/bn3YpnfAfOJ0J/m81n80AHWjDCal7yP+KrBC8WXBAYYag4hKu5KxTYGtPFij5WFogTQaGV4iW/Q0/3",
+	"0eOh1WqZrLOLLfFp+ro8mRRxC3Sfk5Lg6S9UMaVEQ2BiVmFtrWXMW3zxoZrD2ZZ47jq+kD5SdtllCTMT",
+	"zDpUDE29ZzKtldFiir3mLRqf+ub3+fxFMCeW2TWWHdvU+J1JBzEI8ySoDd0QjK+0CZZFtIRbBQpELJLH",
+	"mxLpfNlN8JIgM8FUT9C7kEZBDS+TZpk83tn8BMxHZdgvDnbgiIUNzQhPY/XrWxeNzj4j+717Kdi/cKbX",
+	"8aPzFWq9ovbnJLv+LJ5gZjhjYX+4JmaJrHTdjwAAAP//BT6DjfILAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

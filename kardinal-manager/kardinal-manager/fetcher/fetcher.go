@@ -17,7 +17,6 @@ import (
 const (
 	defaultTickerDuration              = time.Second * 5
 	fetcherJobDurationSecondsEnvVarKey = "KARDINAL_MANAGER_FETCHER_JOB_DURATION_SECONDS"
-	tenantParamKey                     = "tenant"
 )
 
 type fetcher struct {

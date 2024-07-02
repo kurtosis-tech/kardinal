@@ -60,12 +60,6 @@ paths:
   /tenant/{uuid}/topology:
     get:
       parameters:
-        - in: query
-          name: namespace
-          schema:
-            type: string
-          required: false
-          description: The namespace for which to retrieve the topology
         - $ref: "#/components/parameters/uuid"
       responses:
         "200":
