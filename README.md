@@ -102,9 +102,8 @@ minikube tunnel
 Configure it by setting the following environment variables:
 
 ```bash
-KARDINAL_MANAGER_CLUSTER_CONFIG_ENDPOINT=http://localhost:8080/cluster-resources
+KARDINAL_MANAGER_CLUSTER_CONFIG_ENDPOINT=http://localhost:8080/tenant/{36e22127-3c9e-4110-aa83-af552cd94b88}/cluster-resources
 KARDINAL_MANAGER_FETCHER_JOB_DURATION_SECONDS=10
-KARDINAL_MANAGER_TENANT_UUID=36e22127-3c9e-4110-aa83-af552cd94b88
 ```
 
 or in the `kardinal-manager/deployment/k8s.yaml`:
@@ -113,11 +112,9 @@ or in the `kardinal-manager/deployment/k8s.yaml`:
   env:
     - name: KARDINAL_MANAGER_CLUSTER_CONFIG_ENDPOINT
       # This is valid for reaching out the Kardinal Kontrol if this is running on the host
-     value: "http://host.minikube.internal:8080/cluster-resources"
+     value: "http://localhost:8080/tenant/{36e22127-3c9e-4110-aa83-af552cd94b88}/cluster-resources"
     - name: KARDINAL_MANAGER_FETCHER_JOB_DURATION_SECONDS
     value: "10"
-    - name: KARDINAL_MANAGER_TENANT_UUID
-    value: "36e22127-3c9e-4110-aa83-af552cd94b88"
 ```
 
 NOTE: you can get your tenant UUID by running any CLI command

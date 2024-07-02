@@ -90,27 +90,27 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
-	// PostDeployWithBody request with any body
-	PostDeployWithBody(ctx context.Context, params *PostDeployParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// PostTenantUuidDeployWithBody request with any body
+	PostTenantUuidDeployWithBody(ctx context.Context, uuid Uuid, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostDeploy(ctx context.Context, params *PostDeployParams, body PostDeployJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PostTenantUuidDeploy(ctx context.Context, uuid Uuid, body PostTenantUuidDeployJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostFlowCreateWithBody request with any body
-	PostFlowCreateWithBody(ctx context.Context, params *PostFlowCreateParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// PostTenantUuidFlowCreateWithBody request with any body
+	PostTenantUuidFlowCreateWithBody(ctx context.Context, uuid Uuid, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostFlowCreate(ctx context.Context, params *PostFlowCreateParams, body PostFlowCreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PostTenantUuidFlowCreate(ctx context.Context, uuid Uuid, body PostTenantUuidFlowCreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostFlowDeleteWithBody request with any body
-	PostFlowDeleteWithBody(ctx context.Context, params *PostFlowDeleteParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// PostTenantUuidFlowDeleteWithBody request with any body
+	PostTenantUuidFlowDeleteWithBody(ctx context.Context, uuid Uuid, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostFlowDelete(ctx context.Context, params *PostFlowDeleteParams, body PostFlowDeleteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PostTenantUuidFlowDelete(ctx context.Context, uuid Uuid, body PostTenantUuidFlowDeleteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetTopology request
-	GetTopology(ctx context.Context, params *GetTopologyParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetTenantUuidTopology request
+	GetTenantUuidTopology(ctx context.Context, uuid Uuid, params *GetTenantUuidTopologyParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
-func (c *Client) PostDeployWithBody(ctx context.Context, params *PostDeployParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostDeployRequestWithBody(c.Server, params, contentType, body)
+func (c *Client) PostTenantUuidDeployWithBody(ctx context.Context, uuid Uuid, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostTenantUuidDeployRequestWithBody(c.Server, uuid, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -121,8 +121,8 @@ func (c *Client) PostDeployWithBody(ctx context.Context, params *PostDeployParam
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostDeploy(ctx context.Context, params *PostDeployParams, body PostDeployJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostDeployRequest(c.Server, params, body)
+func (c *Client) PostTenantUuidDeploy(ctx context.Context, uuid Uuid, body PostTenantUuidDeployJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostTenantUuidDeployRequest(c.Server, uuid, body)
 	if err != nil {
 		return nil, err
 	}
@@ -133,8 +133,8 @@ func (c *Client) PostDeploy(ctx context.Context, params *PostDeployParams, body 
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostFlowCreateWithBody(ctx context.Context, params *PostFlowCreateParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostFlowCreateRequestWithBody(c.Server, params, contentType, body)
+func (c *Client) PostTenantUuidFlowCreateWithBody(ctx context.Context, uuid Uuid, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostTenantUuidFlowCreateRequestWithBody(c.Server, uuid, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -145,8 +145,8 @@ func (c *Client) PostFlowCreateWithBody(ctx context.Context, params *PostFlowCre
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostFlowCreate(ctx context.Context, params *PostFlowCreateParams, body PostFlowCreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostFlowCreateRequest(c.Server, params, body)
+func (c *Client) PostTenantUuidFlowCreate(ctx context.Context, uuid Uuid, body PostTenantUuidFlowCreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostTenantUuidFlowCreateRequest(c.Server, uuid, body)
 	if err != nil {
 		return nil, err
 	}
@@ -157,8 +157,8 @@ func (c *Client) PostFlowCreate(ctx context.Context, params *PostFlowCreateParam
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostFlowDeleteWithBody(ctx context.Context, params *PostFlowDeleteParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostFlowDeleteRequestWithBody(c.Server, params, contentType, body)
+func (c *Client) PostTenantUuidFlowDeleteWithBody(ctx context.Context, uuid Uuid, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostTenantUuidFlowDeleteRequestWithBody(c.Server, uuid, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -169,8 +169,8 @@ func (c *Client) PostFlowDeleteWithBody(ctx context.Context, params *PostFlowDel
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostFlowDelete(ctx context.Context, params *PostFlowDeleteParams, body PostFlowDeleteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostFlowDeleteRequest(c.Server, params, body)
+func (c *Client) PostTenantUuidFlowDelete(ctx context.Context, uuid Uuid, body PostTenantUuidFlowDeleteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostTenantUuidFlowDeleteRequest(c.Server, uuid, body)
 	if err != nil {
 		return nil, err
 	}
@@ -181,8 +181,8 @@ func (c *Client) PostFlowDelete(ctx context.Context, params *PostFlowDeleteParam
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetTopology(ctx context.Context, params *GetTopologyParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetTopologyRequest(c.Server, params)
+func (c *Client) GetTenantUuidTopology(ctx context.Context, uuid Uuid, params *GetTenantUuidTopologyParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetTenantUuidTopologyRequest(c.Server, uuid, params)
 	if err != nil {
 		return nil, err
 	}
@@ -193,27 +193,34 @@ func (c *Client) GetTopology(ctx context.Context, params *GetTopologyParams, req
 	return c.Client.Do(req)
 }
 
-// NewPostDeployRequest calls the generic PostDeploy builder with application/json body
-func NewPostDeployRequest(server string, params *PostDeployParams, body PostDeployJSONRequestBody) (*http.Request, error) {
+// NewPostTenantUuidDeployRequest calls the generic PostTenantUuidDeploy builder with application/json body
+func NewPostTenantUuidDeployRequest(server string, uuid Uuid, body PostTenantUuidDeployJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewPostDeployRequestWithBody(server, params, "application/json", bodyReader)
+	return NewPostTenantUuidDeployRequestWithBody(server, uuid, "application/json", bodyReader)
 }
 
-// NewPostDeployRequestWithBody generates requests for PostDeploy with any type of body
-func NewPostDeployRequestWithBody(server string, params *PostDeployParams, contentType string, body io.Reader) (*http.Request, error) {
+// NewPostTenantUuidDeployRequestWithBody generates requests for PostTenantUuidDeploy with any type of body
+func NewPostTenantUuidDeployRequestWithBody(server string, uuid Uuid, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "uuid", runtime.ParamLocationPath, uuid)
+	if err != nil {
+		return nil, err
+	}
 
 	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/deploy")
+	operationPath := fmt.Sprintf("/tenant/%s/deploy", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -221,24 +228,6 @@ func NewPostDeployRequestWithBody(server string, params *PostDeployParams, conte
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
-	}
-
-	if params != nil {
-		queryValues := queryURL.Query()
-
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tenant", runtime.ParamLocationQuery, params.Tenant); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
-			}
-		}
-
-		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("POST", queryURL.String(), body)
@@ -251,27 +240,34 @@ func NewPostDeployRequestWithBody(server string, params *PostDeployParams, conte
 	return req, nil
 }
 
-// NewPostFlowCreateRequest calls the generic PostFlowCreate builder with application/json body
-func NewPostFlowCreateRequest(server string, params *PostFlowCreateParams, body PostFlowCreateJSONRequestBody) (*http.Request, error) {
+// NewPostTenantUuidFlowCreateRequest calls the generic PostTenantUuidFlowCreate builder with application/json body
+func NewPostTenantUuidFlowCreateRequest(server string, uuid Uuid, body PostTenantUuidFlowCreateJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewPostFlowCreateRequestWithBody(server, params, "application/json", bodyReader)
+	return NewPostTenantUuidFlowCreateRequestWithBody(server, uuid, "application/json", bodyReader)
 }
 
-// NewPostFlowCreateRequestWithBody generates requests for PostFlowCreate with any type of body
-func NewPostFlowCreateRequestWithBody(server string, params *PostFlowCreateParams, contentType string, body io.Reader) (*http.Request, error) {
+// NewPostTenantUuidFlowCreateRequestWithBody generates requests for PostTenantUuidFlowCreate with any type of body
+func NewPostTenantUuidFlowCreateRequestWithBody(server string, uuid Uuid, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "uuid", runtime.ParamLocationPath, uuid)
+	if err != nil {
+		return nil, err
+	}
 
 	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/flow/create")
+	operationPath := fmt.Sprintf("/tenant/%s/flow/create", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -279,24 +275,6 @@ func NewPostFlowCreateRequestWithBody(server string, params *PostFlowCreateParam
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
-	}
-
-	if params != nil {
-		queryValues := queryURL.Query()
-
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tenant", runtime.ParamLocationQuery, params.Tenant); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
-			}
-		}
-
-		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("POST", queryURL.String(), body)
@@ -309,27 +287,34 @@ func NewPostFlowCreateRequestWithBody(server string, params *PostFlowCreateParam
 	return req, nil
 }
 
-// NewPostFlowDeleteRequest calls the generic PostFlowDelete builder with application/json body
-func NewPostFlowDeleteRequest(server string, params *PostFlowDeleteParams, body PostFlowDeleteJSONRequestBody) (*http.Request, error) {
+// NewPostTenantUuidFlowDeleteRequest calls the generic PostTenantUuidFlowDelete builder with application/json body
+func NewPostTenantUuidFlowDeleteRequest(server string, uuid Uuid, body PostTenantUuidFlowDeleteJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewPostFlowDeleteRequestWithBody(server, params, "application/json", bodyReader)
+	return NewPostTenantUuidFlowDeleteRequestWithBody(server, uuid, "application/json", bodyReader)
 }
 
-// NewPostFlowDeleteRequestWithBody generates requests for PostFlowDelete with any type of body
-func NewPostFlowDeleteRequestWithBody(server string, params *PostFlowDeleteParams, contentType string, body io.Reader) (*http.Request, error) {
+// NewPostTenantUuidFlowDeleteRequestWithBody generates requests for PostTenantUuidFlowDelete with any type of body
+func NewPostTenantUuidFlowDeleteRequestWithBody(server string, uuid Uuid, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "uuid", runtime.ParamLocationPath, uuid)
+	if err != nil {
+		return nil, err
+	}
 
 	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/flow/delete")
+	operationPath := fmt.Sprintf("/tenant/%s/flow/delete", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -337,24 +322,6 @@ func NewPostFlowDeleteRequestWithBody(server string, params *PostFlowDeleteParam
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
-	}
-
-	if params != nil {
-		queryValues := queryURL.Query()
-
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tenant", runtime.ParamLocationQuery, params.Tenant); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
-			}
-		}
-
-		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("POST", queryURL.String(), body)
@@ -367,16 +334,23 @@ func NewPostFlowDeleteRequestWithBody(server string, params *PostFlowDeleteParam
 	return req, nil
 }
 
-// NewGetTopologyRequest generates requests for GetTopology
-func NewGetTopologyRequest(server string, params *GetTopologyParams) (*http.Request, error) {
+// NewGetTenantUuidTopologyRequest generates requests for GetTenantUuidTopology
+func NewGetTenantUuidTopologyRequest(server string, uuid Uuid, params *GetTenantUuidTopologyParams) (*http.Request, error) {
 	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "uuid", runtime.ParamLocationPath, uuid)
+	if err != nil {
+		return nil, err
+	}
 
 	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/topology")
+	operationPath := fmt.Sprintf("/tenant/%s/topology", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -403,18 +377,6 @@ func NewGetTopologyRequest(server string, params *GetTopologyParams) (*http.Requ
 				}
 			}
 
-		}
-
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "tenant", runtime.ParamLocationQuery, params.Tenant); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
-			}
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
@@ -471,33 +433,33 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
-	// PostDeployWithBodyWithResponse request with any body
-	PostDeployWithBodyWithResponse(ctx context.Context, params *PostDeployParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostDeployResponse, error)
+	// PostTenantUuidDeployWithBodyWithResponse request with any body
+	PostTenantUuidDeployWithBodyWithResponse(ctx context.Context, uuid Uuid, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostTenantUuidDeployResponse, error)
 
-	PostDeployWithResponse(ctx context.Context, params *PostDeployParams, body PostDeployJSONRequestBody, reqEditors ...RequestEditorFn) (*PostDeployResponse, error)
+	PostTenantUuidDeployWithResponse(ctx context.Context, uuid Uuid, body PostTenantUuidDeployJSONRequestBody, reqEditors ...RequestEditorFn) (*PostTenantUuidDeployResponse, error)
 
-	// PostFlowCreateWithBodyWithResponse request with any body
-	PostFlowCreateWithBodyWithResponse(ctx context.Context, params *PostFlowCreateParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostFlowCreateResponse, error)
+	// PostTenantUuidFlowCreateWithBodyWithResponse request with any body
+	PostTenantUuidFlowCreateWithBodyWithResponse(ctx context.Context, uuid Uuid, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostTenantUuidFlowCreateResponse, error)
 
-	PostFlowCreateWithResponse(ctx context.Context, params *PostFlowCreateParams, body PostFlowCreateJSONRequestBody, reqEditors ...RequestEditorFn) (*PostFlowCreateResponse, error)
+	PostTenantUuidFlowCreateWithResponse(ctx context.Context, uuid Uuid, body PostTenantUuidFlowCreateJSONRequestBody, reqEditors ...RequestEditorFn) (*PostTenantUuidFlowCreateResponse, error)
 
-	// PostFlowDeleteWithBodyWithResponse request with any body
-	PostFlowDeleteWithBodyWithResponse(ctx context.Context, params *PostFlowDeleteParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostFlowDeleteResponse, error)
+	// PostTenantUuidFlowDeleteWithBodyWithResponse request with any body
+	PostTenantUuidFlowDeleteWithBodyWithResponse(ctx context.Context, uuid Uuid, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostTenantUuidFlowDeleteResponse, error)
 
-	PostFlowDeleteWithResponse(ctx context.Context, params *PostFlowDeleteParams, body PostFlowDeleteJSONRequestBody, reqEditors ...RequestEditorFn) (*PostFlowDeleteResponse, error)
+	PostTenantUuidFlowDeleteWithResponse(ctx context.Context, uuid Uuid, body PostTenantUuidFlowDeleteJSONRequestBody, reqEditors ...RequestEditorFn) (*PostTenantUuidFlowDeleteResponse, error)
 
-	// GetTopologyWithResponse request
-	GetTopologyWithResponse(ctx context.Context, params *GetTopologyParams, reqEditors ...RequestEditorFn) (*GetTopologyResponse, error)
+	// GetTenantUuidTopologyWithResponse request
+	GetTenantUuidTopologyWithResponse(ctx context.Context, uuid Uuid, params *GetTenantUuidTopologyParams, reqEditors ...RequestEditorFn) (*GetTenantUuidTopologyResponse, error)
 }
 
-type PostDeployResponse struct {
+type PostTenantUuidDeployResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *string
 }
 
 // Status returns HTTPResponse.Status
-func (r PostDeployResponse) Status() string {
+func (r PostTenantUuidDeployResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -505,21 +467,21 @@ func (r PostDeployResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostDeployResponse) StatusCode() int {
+func (r PostTenantUuidDeployResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type PostFlowCreateResponse struct {
+type PostTenantUuidFlowCreateResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *string
 }
 
 // Status returns HTTPResponse.Status
-func (r PostFlowCreateResponse) Status() string {
+func (r PostTenantUuidFlowCreateResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -527,21 +489,21 @@ func (r PostFlowCreateResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostFlowCreateResponse) StatusCode() int {
+func (r PostTenantUuidFlowCreateResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type PostFlowDeleteResponse struct {
+type PostTenantUuidFlowDeleteResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *string
 }
 
 // Status returns HTTPResponse.Status
-func (r PostFlowDeleteResponse) Status() string {
+func (r PostTenantUuidFlowDeleteResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -549,21 +511,21 @@ func (r PostFlowDeleteResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostFlowDeleteResponse) StatusCode() int {
+func (r PostTenantUuidFlowDeleteResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type GetTopologyResponse struct {
+type GetTenantUuidTopologyResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *ClusterTopology
 }
 
 // Status returns HTTPResponse.Status
-func (r GetTopologyResponse) Status() string {
+func (r GetTenantUuidTopologyResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -571,82 +533,82 @@ func (r GetTopologyResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetTopologyResponse) StatusCode() int {
+func (r GetTenantUuidTopologyResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-// PostDeployWithBodyWithResponse request with arbitrary body returning *PostDeployResponse
-func (c *ClientWithResponses) PostDeployWithBodyWithResponse(ctx context.Context, params *PostDeployParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostDeployResponse, error) {
-	rsp, err := c.PostDeployWithBody(ctx, params, contentType, body, reqEditors...)
+// PostTenantUuidDeployWithBodyWithResponse request with arbitrary body returning *PostTenantUuidDeployResponse
+func (c *ClientWithResponses) PostTenantUuidDeployWithBodyWithResponse(ctx context.Context, uuid Uuid, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostTenantUuidDeployResponse, error) {
+	rsp, err := c.PostTenantUuidDeployWithBody(ctx, uuid, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostDeployResponse(rsp)
+	return ParsePostTenantUuidDeployResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostDeployWithResponse(ctx context.Context, params *PostDeployParams, body PostDeployJSONRequestBody, reqEditors ...RequestEditorFn) (*PostDeployResponse, error) {
-	rsp, err := c.PostDeploy(ctx, params, body, reqEditors...)
+func (c *ClientWithResponses) PostTenantUuidDeployWithResponse(ctx context.Context, uuid Uuid, body PostTenantUuidDeployJSONRequestBody, reqEditors ...RequestEditorFn) (*PostTenantUuidDeployResponse, error) {
+	rsp, err := c.PostTenantUuidDeploy(ctx, uuid, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostDeployResponse(rsp)
+	return ParsePostTenantUuidDeployResponse(rsp)
 }
 
-// PostFlowCreateWithBodyWithResponse request with arbitrary body returning *PostFlowCreateResponse
-func (c *ClientWithResponses) PostFlowCreateWithBodyWithResponse(ctx context.Context, params *PostFlowCreateParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostFlowCreateResponse, error) {
-	rsp, err := c.PostFlowCreateWithBody(ctx, params, contentType, body, reqEditors...)
+// PostTenantUuidFlowCreateWithBodyWithResponse request with arbitrary body returning *PostTenantUuidFlowCreateResponse
+func (c *ClientWithResponses) PostTenantUuidFlowCreateWithBodyWithResponse(ctx context.Context, uuid Uuid, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostTenantUuidFlowCreateResponse, error) {
+	rsp, err := c.PostTenantUuidFlowCreateWithBody(ctx, uuid, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostFlowCreateResponse(rsp)
+	return ParsePostTenantUuidFlowCreateResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostFlowCreateWithResponse(ctx context.Context, params *PostFlowCreateParams, body PostFlowCreateJSONRequestBody, reqEditors ...RequestEditorFn) (*PostFlowCreateResponse, error) {
-	rsp, err := c.PostFlowCreate(ctx, params, body, reqEditors...)
+func (c *ClientWithResponses) PostTenantUuidFlowCreateWithResponse(ctx context.Context, uuid Uuid, body PostTenantUuidFlowCreateJSONRequestBody, reqEditors ...RequestEditorFn) (*PostTenantUuidFlowCreateResponse, error) {
+	rsp, err := c.PostTenantUuidFlowCreate(ctx, uuid, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostFlowCreateResponse(rsp)
+	return ParsePostTenantUuidFlowCreateResponse(rsp)
 }
 
-// PostFlowDeleteWithBodyWithResponse request with arbitrary body returning *PostFlowDeleteResponse
-func (c *ClientWithResponses) PostFlowDeleteWithBodyWithResponse(ctx context.Context, params *PostFlowDeleteParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostFlowDeleteResponse, error) {
-	rsp, err := c.PostFlowDeleteWithBody(ctx, params, contentType, body, reqEditors...)
+// PostTenantUuidFlowDeleteWithBodyWithResponse request with arbitrary body returning *PostTenantUuidFlowDeleteResponse
+func (c *ClientWithResponses) PostTenantUuidFlowDeleteWithBodyWithResponse(ctx context.Context, uuid Uuid, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostTenantUuidFlowDeleteResponse, error) {
+	rsp, err := c.PostTenantUuidFlowDeleteWithBody(ctx, uuid, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostFlowDeleteResponse(rsp)
+	return ParsePostTenantUuidFlowDeleteResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostFlowDeleteWithResponse(ctx context.Context, params *PostFlowDeleteParams, body PostFlowDeleteJSONRequestBody, reqEditors ...RequestEditorFn) (*PostFlowDeleteResponse, error) {
-	rsp, err := c.PostFlowDelete(ctx, params, body, reqEditors...)
+func (c *ClientWithResponses) PostTenantUuidFlowDeleteWithResponse(ctx context.Context, uuid Uuid, body PostTenantUuidFlowDeleteJSONRequestBody, reqEditors ...RequestEditorFn) (*PostTenantUuidFlowDeleteResponse, error) {
+	rsp, err := c.PostTenantUuidFlowDelete(ctx, uuid, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostFlowDeleteResponse(rsp)
+	return ParsePostTenantUuidFlowDeleteResponse(rsp)
 }
 
-// GetTopologyWithResponse request returning *GetTopologyResponse
-func (c *ClientWithResponses) GetTopologyWithResponse(ctx context.Context, params *GetTopologyParams, reqEditors ...RequestEditorFn) (*GetTopologyResponse, error) {
-	rsp, err := c.GetTopology(ctx, params, reqEditors...)
+// GetTenantUuidTopologyWithResponse request returning *GetTenantUuidTopologyResponse
+func (c *ClientWithResponses) GetTenantUuidTopologyWithResponse(ctx context.Context, uuid Uuid, params *GetTenantUuidTopologyParams, reqEditors ...RequestEditorFn) (*GetTenantUuidTopologyResponse, error) {
+	rsp, err := c.GetTenantUuidTopology(ctx, uuid, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetTopologyResponse(rsp)
+	return ParseGetTenantUuidTopologyResponse(rsp)
 }
 
-// ParsePostDeployResponse parses an HTTP response from a PostDeployWithResponse call
-func ParsePostDeployResponse(rsp *http.Response) (*PostDeployResponse, error) {
+// ParsePostTenantUuidDeployResponse parses an HTTP response from a PostTenantUuidDeployWithResponse call
+func ParsePostTenantUuidDeployResponse(rsp *http.Response) (*PostTenantUuidDeployResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostDeployResponse{
+	response := &PostTenantUuidDeployResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -664,15 +626,15 @@ func ParsePostDeployResponse(rsp *http.Response) (*PostDeployResponse, error) {
 	return response, nil
 }
 
-// ParsePostFlowCreateResponse parses an HTTP response from a PostFlowCreateWithResponse call
-func ParsePostFlowCreateResponse(rsp *http.Response) (*PostFlowCreateResponse, error) {
+// ParsePostTenantUuidFlowCreateResponse parses an HTTP response from a PostTenantUuidFlowCreateWithResponse call
+func ParsePostTenantUuidFlowCreateResponse(rsp *http.Response) (*PostTenantUuidFlowCreateResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostFlowCreateResponse{
+	response := &PostTenantUuidFlowCreateResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -690,15 +652,15 @@ func ParsePostFlowCreateResponse(rsp *http.Response) (*PostFlowCreateResponse, e
 	return response, nil
 }
 
-// ParsePostFlowDeleteResponse parses an HTTP response from a PostFlowDeleteWithResponse call
-func ParsePostFlowDeleteResponse(rsp *http.Response) (*PostFlowDeleteResponse, error) {
+// ParsePostTenantUuidFlowDeleteResponse parses an HTTP response from a PostTenantUuidFlowDeleteWithResponse call
+func ParsePostTenantUuidFlowDeleteResponse(rsp *http.Response) (*PostTenantUuidFlowDeleteResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostFlowDeleteResponse{
+	response := &PostTenantUuidFlowDeleteResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -716,15 +678,15 @@ func ParsePostFlowDeleteResponse(rsp *http.Response) (*PostFlowDeleteResponse, e
 	return response, nil
 }
 
-// ParseGetTopologyResponse parses an HTTP response from a GetTopologyWithResponse call
-func ParseGetTopologyResponse(rsp *http.Response) (*GetTopologyResponse, error) {
+// ParseGetTenantUuidTopologyResponse parses an HTTP response from a GetTenantUuidTopologyWithResponse call
+func ParseGetTenantUuidTopologyResponse(rsp *http.Response) (*GetTenantUuidTopologyResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetTopologyResponse{
+	response := &GetTenantUuidTopologyResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}

@@ -5,11 +5,11 @@
 
 
 export interface paths {
-  "/flow/create": {
+  "/tenant/{uuid}/flow/create": {
     post: {
       parameters: {
-        query: {
-          tenant: components["parameters"]["tenant"];
+        path: {
+          uuid: components["parameters"]["uuid"];
         };
       };
       /** @description Create a dev flow */
@@ -28,11 +28,11 @@ export interface paths {
       };
     };
   };
-  "/flow/delete": {
+  "/tenant/{uuid}/flow/delete": {
     post: {
       parameters: {
-        query: {
-          tenant: components["parameters"]["tenant"];
+        path: {
+          uuid: components["parameters"]["uuid"];
         };
       };
       /** @description Delete dev flow (revert back to prod only) */
@@ -51,11 +51,11 @@ export interface paths {
       };
     };
   };
-  "/deploy": {
+  "/tenant/{uuid}/deploy": {
     post: {
       parameters: {
-        query: {
-          tenant: components["parameters"]["tenant"];
+        path: {
+          uuid: components["parameters"]["uuid"];
         };
       };
       /** @description Deploy a prod only cluster */
@@ -74,13 +74,15 @@ export interface paths {
       };
     };
   };
-  "/topology": {
+  "/tenant/{uuid}/topology": {
     get: {
       parameters: {
-        query: {
+        query?: {
           /** @description The namespace for which to retrieve the topology */
           namespace?: string;
-          tenant: components["parameters"]["tenant"];
+        };
+        path: {
+          uuid: components["parameters"]["uuid"];
         };
       };
       responses: {
@@ -130,8 +132,8 @@ export interface components {
   };
   responses: never;
   parameters: {
-    /** @description UUID of the tenant */
-    tenant: string;
+    /** @description UUID of the resource */
+    uuid: string;
   };
   requestBodies: never;
   headers: never;

@@ -46,41 +46,20 @@ type ProdFlowSpec struct {
 	DockerCompose *[]compose.ServiceConfig `json:"docker-compose,omitempty"`
 }
 
-// Tenant defines model for tenant.
-type Tenant = string
+// Uuid defines model for uuid.
+type Uuid = string
 
-// PostDeployParams defines parameters for PostDeploy.
-type PostDeployParams struct {
-	// Tenant UUID of the tenant
-	Tenant Tenant `form:"tenant" json:"tenant"`
-}
-
-// PostFlowCreateParams defines parameters for PostFlowCreate.
-type PostFlowCreateParams struct {
-	// Tenant UUID of the tenant
-	Tenant Tenant `form:"tenant" json:"tenant"`
-}
-
-// PostFlowDeleteParams defines parameters for PostFlowDelete.
-type PostFlowDeleteParams struct {
-	// Tenant UUID of the tenant
-	Tenant Tenant `form:"tenant" json:"tenant"`
-}
-
-// GetTopologyParams defines parameters for GetTopology.
-type GetTopologyParams struct {
+// GetTenantUuidTopologyParams defines parameters for GetTenantUuidTopology.
+type GetTenantUuidTopologyParams struct {
 	// Namespace The namespace for which to retrieve the topology
 	Namespace *string `form:"namespace,omitempty" json:"namespace,omitempty"`
-
-	// Tenant UUID of the tenant
-	Tenant Tenant `form:"tenant" json:"tenant"`
 }
 
-// PostDeployJSONRequestBody defines body for PostDeploy for application/json ContentType.
-type PostDeployJSONRequestBody = ProdFlowSpec
+// PostTenantUuidDeployJSONRequestBody defines body for PostTenantUuidDeploy for application/json ContentType.
+type PostTenantUuidDeployJSONRequestBody = ProdFlowSpec
 
-// PostFlowCreateJSONRequestBody defines body for PostFlowCreate for application/json ContentType.
-type PostFlowCreateJSONRequestBody = DevFlowSpec
+// PostTenantUuidFlowCreateJSONRequestBody defines body for PostTenantUuidFlowCreate for application/json ContentType.
+type PostTenantUuidFlowCreateJSONRequestBody = DevFlowSpec
 
-// PostFlowDeleteJSONRequestBody defines body for PostFlowDelete for application/json ContentType.
-type PostFlowDeleteJSONRequestBody = ProdFlowSpec
+// PostTenantUuidFlowDeleteJSONRequestBody defines body for PostTenantUuidFlowDelete for application/json ContentType.
+type PostTenantUuidFlowDeleteJSONRequestBody = ProdFlowSpec

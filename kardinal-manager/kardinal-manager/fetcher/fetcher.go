@@ -23,11 +23,10 @@ const (
 type fetcher struct {
 	clusterManager *cluster_manager.ClusterManager
 	configEndpoint string
-	tenantUuidStr  string
 }
 
-func NewFetcher(clusterManager *cluster_manager.ClusterManager, configEndpoint string, tenantUuidStr string) *fetcher {
-	return &fetcher{clusterManager: clusterManager, configEndpoint: configEndpoint, tenantUuidStr: tenantUuidStr}
+func NewFetcher(clusterManager *cluster_manager.ClusterManager, configEndpoint string) *fetcher {
+	return &fetcher{clusterManager: clusterManager, configEndpoint: configEndpoint}
 }
 
 func (fetcher *fetcher) Run(ctx context.Context) error {
@@ -78,18 +77,10 @@ func (fetcher *fetcher) getClusterResourcesFromCloud() (*types.ClusterResources,
 
 	configEndpointURL, err := url.Parse(fetcher.configEndpoint)
 	if err != nil {
-		return nil, err
+		return nil, stacktrace.Propagate(err, "An error occurred parsing the config endpoint '%s'", fetcher.configEndpoint)
 	}
 
-	queryValues := configEndpointURL.Query()
-
-	queryValues.Add(tenantParamKey, fetcher.tenantUuidStr)
-
-	configEndpointURL.RawQuery = queryValues.Encode()
-
-	configEndpointURLStr := configEndpointURL.String()
-
-	resp, err := http.Get(configEndpointURLStr)
+	resp, err := http.Get(configEndpointURL.String())
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "Error fetching cluster resources from endpoint '%s'", fetcher.configEndpoint)
 	}

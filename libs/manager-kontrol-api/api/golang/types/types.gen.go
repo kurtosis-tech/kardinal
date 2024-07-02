@@ -35,17 +35,14 @@ type ResponseInfo struct {
 // ResponseType defines model for ResponseType.
 type ResponseType string
 
-// Tenant defines model for tenant.
-type Tenant = string
+// Uuid defines model for uuid.
+type Uuid = string
 
 // NotOk defines model for NotOk.
 type NotOk = ResponseInfo
 
-// GetClusterResourcesParams defines parameters for GetClusterResources.
-type GetClusterResourcesParams struct {
+// GetTenantUuidClusterResourcesParams defines parameters for GetTenantUuidClusterResources.
+type GetTenantUuidClusterResourcesParams struct {
 	// Namespace The namespace for which to retrieve the cluster resources
 	Namespace *string `form:"namespace,omitempty" json:"namespace,omitempty"`
-
-	// Tenant UUID of the tenant
-	Tenant Tenant `form:"tenant" json:"tenant"`
 }

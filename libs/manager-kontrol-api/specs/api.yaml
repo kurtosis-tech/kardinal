@@ -3,7 +3,7 @@ info:
   title: Manager/Kontrol API
   version: 1.0.0
 paths:
-  /cluster-resources:
+  /tenant/{uuid}/cluster-resources:
     get:
       tags:
         - cluster-resources
@@ -15,7 +15,7 @@ paths:
             type: string
           required: false
           description: The namespace for which to retrieve the cluster resources
-        - $ref: "#/components/parameters/tenant"
+        - $ref: "#/components/parameters/uuid"
       responses:
         default:
           $ref: "#/components/responses/NotOk"
@@ -28,11 +28,11 @@ paths:
 
 components:
   parameters:
-    tenant:
-      name: tenant
-      in: query
+    uuid:
+      name: uuid
+      in: path
       required: true
-      description: UUID of the tenant
+      description: UUID of the resource
       schema:
         type: string
 

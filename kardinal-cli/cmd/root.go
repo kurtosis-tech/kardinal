@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/google/uuid"
 	"kardinal.cli/tenant"
 	"log"
 	"net/http"
@@ -49,7 +48,8 @@ var deployCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal("Error getting or creating user tenant UUID", err)
 		}
-		deploy(tenantUuid, services)
+
+		deploy(tenantUuid.String(), services)
 	},
 }
 
@@ -70,7 +70,7 @@ var createCmd = &cobra.Command{
 		}
 
 		fmt.Printf("Creating service %s with image %s in development mode...\n", serviceName, imageName)
-		createDevFlow(tenantUuid, services, imageName, serviceName)
+		createDevFlow(tenantUuid.String(), services, imageName, serviceName)
 	},
 }
 
@@ -88,7 +88,7 @@ var deleteCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal("Error getting or creating user tenant UUID", err)
 		}
-		deleteFlow(tenantUuid, services)
+		deleteFlow(tenantUuid.String(), services)
 
 		fmt.Print("Deleting dev flow")
 	},
@@ -155,24 +155,17 @@ func parseComposeFile(composeFile string) ([]types.ServiceConfig, error) {
 	return project.Services, nil
 }
 
-func createDevFlow(tenantUuid uuid.UUID, services []types.ServiceConfig, imageLocator, serviceName string) {
+func createDevFlow(tenantUuid api_types.Uuid, services []types.ServiceConfig, imageLocator, serviceName string) {
 	ctx := context.Background()
 
-	params := &api_types.PostFlowCreateParams{
-		Tenant: tenantUuid.String(),
-	}
-
-	// fmt.Printf("Services:\n%v", services)
-	// fmt.Printf("%v", serviceName)
-	// fmt.Printf("%v", imageLocator)
-	body := api_types.PostFlowCreateJSONRequestBody{
+	body := api_types.PostTenantUuidFlowCreateJSONRequestBody{
 		DockerCompose: &services,
 		ServiceName:   &serviceName,
 		ImageLocator:  &imageLocator,
 	}
 	client := getKontrolServiceClient()
 
-	resp, err := client.PostFlowCreateWithResponse(ctx, params, body)
+	resp, err := client.PostTenantUuidFlowCreateWithResponse(ctx, tenantUuid, body)
 	if err != nil {
 		log.Fatalf("Failed to create dev flow: %v", err)
 	}
@@ -181,19 +174,15 @@ func createDevFlow(tenantUuid uuid.UUID, services []types.ServiceConfig, imageLo
 	fmt.Printf("Response: %s\n", resp)
 }
 
-func deploy(tenantUuid uuid.UUID, services []types.ServiceConfig) {
+func deploy(tenantUuid api_types.Uuid, services []types.ServiceConfig) {
 	ctx := context.Background()
 
-	params := &api_types.PostDeployParams{
-		Tenant: tenantUuid.String(),
-	}
-
-	body := api_types.PostDeployJSONRequestBody{
+	body := api_types.PostTenantUuidDeployJSONRequestBody{
 		DockerCompose: &services,
 	}
 	client := getKontrolServiceClient()
 
-	resp, err := client.PostDeployWithResponse(ctx, params, body)
+	resp, err := client.PostTenantUuidDeployWithResponse(ctx, tenantUuid, body)
 	if err != nil {
 		log.Fatalf("Failed to deploy: %v", err)
 	}
@@ -201,19 +190,15 @@ func deploy(tenantUuid uuid.UUID, services []types.ServiceConfig) {
 	fmt.Printf("Response: %s\n", string(resp.Body))
 }
 
-func deleteFlow(tenantUuid uuid.UUID, services []types.ServiceConfig) {
+func deleteFlow(tenantUuid api_types.Uuid, services []types.ServiceConfig) {
 	ctx := context.Background()
 
-	params := &api_types.PostFlowDeleteParams{
-		Tenant: tenantUuid.String(),
-	}
-
-	body := api_types.PostFlowDeleteJSONRequestBody{
+	body := api_types.PostTenantUuidFlowDeleteJSONRequestBody{
 		DockerCompose: &services,
 	}
 	client := getKontrolServiceClient()
 
-	resp, err := client.PostFlowDeleteWithResponse(ctx, params, body)
+	resp, err := client.PostTenantUuidFlowDeleteWithResponse(ctx, tenantUuid, body)
 	if err != nil {
 		log.Fatalf("Failed to delete flow: %v", err)
 	}
