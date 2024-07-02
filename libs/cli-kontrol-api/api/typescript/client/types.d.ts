@@ -112,6 +112,13 @@ export interface components {
       id: string;
       /** @description Label for the node. */
       label?: string;
+      /**
+       * @description Type of the node
+       * @enum {string}
+       */
+      type: "gateway" | "service" | "service-version" | "redis";
+      /** @description Parent node */
+      parent?: string;
     };
     Edge: {
       /** @description The identifier of the source node of the edge. */
