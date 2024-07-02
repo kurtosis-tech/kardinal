@@ -99,6 +99,26 @@ minikube tunnel
 
 ## Deploying Kardinal Manager to local cluster
 
+Configure it by setting the following environment variables:
+
+```bash
+KARDINAL_MANAGER_CLUSTER_CONFIG_ENDPOINT=http://localhost:8080/tenant/{36e22127-3c9e-4110-aa83-af552cd94b88}/cluster-resources
+KARDINAL_MANAGER_FETCHER_JOB_DURATION_SECONDS=10
+```
+
+or in the `kardinal-manager/deployment/k8s.yaml`:
+
+```yaml
+  env:
+    - name: KARDINAL_MANAGER_CLUSTER_CONFIG_ENDPOINT
+      # This is valid for reaching out the Kardinal Kontrol if this is running on the host
+     value: "http://localhost:8080/tenant/{36e22127-3c9e-4110-aa83-af552cd94b88}/cluster-resources"
+    - name: KARDINAL_MANAGER_FETCHER_JOB_DURATION_SECONDS
+    value: "10"
+```
+
+NOTE: you can get your tenant UUID by running any CLI command
+
 You can use tilt deploy and keeping the image hot-reloading:
 
 ```bash

@@ -25,8 +25,8 @@ import (
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Cluster resource definition
-	// (GET /cluster-resources)
-	GetClusterResources(ctx echo.Context, params GetClusterResourcesParams) error
+	// (GET /tenant/{uuid}/cluster-resources)
+	GetTenantUuidClusterResources(ctx echo.Context, uuid Uuid) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -34,21 +34,19 @@ type ServerInterfaceWrapper struct {
 	Handler ServerInterface
 }
 
-// GetClusterResources converts echo context to params.
-func (w *ServerInterfaceWrapper) GetClusterResources(ctx echo.Context) error {
+// GetTenantUuidClusterResources converts echo context to params.
+func (w *ServerInterfaceWrapper) GetTenantUuidClusterResources(ctx echo.Context) error {
 	var err error
+	// ------------- Path parameter "uuid" -------------
+	var uuid Uuid
 
-	// Parameter object where we will unmarshal all parameters from the context
-	var params GetClusterResourcesParams
-	// ------------- Optional query parameter "namespace" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "namespace", ctx.QueryParams(), &params.Namespace)
+	err = runtime.BindStyledParameterWithOptions("simple", "uuid", ctx.Param("uuid"), &uuid, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespace: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter uuid: %s", err))
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetClusterResources(ctx, params)
+	err = w.Handler.GetTenantUuidClusterResources(ctx, uuid)
 	return err
 }
 
@@ -80,35 +78,35 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
-	router.GET(baseURL+"/cluster-resources", wrapper.GetClusterResources)
+	router.GET(baseURL+"/tenant/:uuid/cluster-resources", wrapper.GetTenantUuidClusterResources)
 
 }
 
 type NotOkJSONResponse ResponseInfo
 
-type GetClusterResourcesRequestObject struct {
-	Params GetClusterResourcesParams
+type GetTenantUuidClusterResourcesRequestObject struct {
+	Uuid Uuid `json:"uuid"`
 }
 
-type GetClusterResourcesResponseObject interface {
-	VisitGetClusterResourcesResponse(w http.ResponseWriter) error
+type GetTenantUuidClusterResourcesResponseObject interface {
+	VisitGetTenantUuidClusterResourcesResponse(w http.ResponseWriter) error
 }
 
-type GetClusterResources200JSONResponse ClusterResources
+type GetTenantUuidClusterResources200JSONResponse ClusterResources
 
-func (response GetClusterResources200JSONResponse) VisitGetClusterResourcesResponse(w http.ResponseWriter) error {
+func (response GetTenantUuidClusterResources200JSONResponse) VisitGetTenantUuidClusterResourcesResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
 	return json.NewEncoder(w).Encode(response)
 }
 
-type GetClusterResourcesdefaultJSONResponse struct {
+type GetTenantUuidClusterResourcesdefaultJSONResponse struct {
 	Body       ResponseInfo
 	StatusCode int
 }
 
-func (response GetClusterResourcesdefaultJSONResponse) VisitGetClusterResourcesResponse(w http.ResponseWriter) error {
+func (response GetTenantUuidClusterResourcesdefaultJSONResponse) VisitGetTenantUuidClusterResourcesResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(response.StatusCode)
 
@@ -118,8 +116,8 @@ func (response GetClusterResourcesdefaultJSONResponse) VisitGetClusterResourcesR
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 	// Cluster resource definition
-	// (GET /cluster-resources)
-	GetClusterResources(ctx context.Context, request GetClusterResourcesRequestObject) (GetClusterResourcesResponseObject, error)
+	// (GET /tenant/{uuid}/cluster-resources)
+	GetTenantUuidClusterResources(ctx context.Context, request GetTenantUuidClusterResourcesRequestObject) (GetTenantUuidClusterResourcesResponseObject, error)
 }
 
 type StrictHandlerFunc = strictecho.StrictEchoHandlerFunc
@@ -134,25 +132,25 @@ type strictHandler struct {
 	middlewares []StrictMiddlewareFunc
 }
 
-// GetClusterResources operation middleware
-func (sh *strictHandler) GetClusterResources(ctx echo.Context, params GetClusterResourcesParams) error {
-	var request GetClusterResourcesRequestObject
+// GetTenantUuidClusterResources operation middleware
+func (sh *strictHandler) GetTenantUuidClusterResources(ctx echo.Context, uuid Uuid) error {
+	var request GetTenantUuidClusterResourcesRequestObject
 
-	request.Params = params
+	request.Uuid = uuid
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.GetClusterResources(ctx.Request().Context(), request.(GetClusterResourcesRequestObject))
+		return sh.ssi.GetTenantUuidClusterResources(ctx.Request().Context(), request.(GetTenantUuidClusterResourcesRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "GetClusterResources")
+		handler = middleware(handler, "GetTenantUuidClusterResources")
 	}
 
 	response, err := handler(ctx, request)
 
 	if err != nil {
 		return err
-	} else if validResponse, ok := response.(GetClusterResourcesResponseObject); ok {
-		return validResponse.VisitGetClusterResourcesResponse(ctx.Response())
+	} else if validResponse, ok := response.(GetTenantUuidClusterResourcesResponseObject); ok {
+		return validResponse.VisitGetTenantUuidClusterResourcesResponse(ctx.Response())
 	} else if response != nil {
 		return fmt.Errorf("unexpected response type: %T", response)
 	}
@@ -162,18 +160,18 @@ func (sh *strictHandler) GetClusterResources(ctx echo.Context, params GetCluster
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/7yVQW/bOgzHv4rB945OnLSXB9+K1/eKoFg6pN12KIpCkxlHjS2qFO02KPLdB9mOkzZN",
-	"1sO2UxSR+vMn0iJfQFPpyKIVD+kLMHpH1mPzZ0pytQwLTVbQSlgq5wqjlRiyyYMnG/a8XmCpwupvxjmk",
-	"8FeyVU1aq09mnfTEzgnW63UMGXrNxgUtSOGLxWeHWjCLkJkYgkt3OGj/W1RekGfoqWLdEjomhyym/Zeh",
-	"K2hVbu5iBMtm8TzIaSArh5AGfl+Ph+e9K8Rb+8CUjri5p1Xl1h1icEoWkMLyHz80lChnkmBK6nGDuRFn",
-	"VitobybGNlm656rAwzz1WBVuoU6H59sjs6rA41ibU1sw48VQQNOFQSuDnBK3zAOoTyzKE/HS2DzpD75H",
-	"nSvBJ7U6iHjR2f8AmkeujT6SN02M9Xh43fodR2p93y1iMB0qYm1YKlXc/5SlT9DX9sSHoH5HCbcb9P0B",
-	"tYRbvHp2e09GU4bhd05cKoEUKmPl9AR6IWMFc+SgVKL3Km/cO6MXNjaHPuzHGsBN8A2sjI+VYcwgvW0F",
-	"tjHiluzuyIVuupBoqzIo/DebXc0ghsn0/yuI4dvZbDqZXuxIbGhDaNNlQ4wUwfZJWZUjJ5cFVdngkqww",
-	"FdHZ5wnEUCP7tkWNh6PhKDCQQ6ucgRROm622hk1GE932qQHvNqocm9qH1DdPfJJBChcoe00tKLEqUZA9",
-	"pLcvb5rkzQKj8AF5pzRGc+LoaWH0IhKKGIUN1hjJAqMOIuIdYRMEHivk8IK7r7DXgninjb9N2F38ejCc",
-	"jEa/bCzsZeCd0XBdaY3ez6si2nC0XXauqkIOReiRk3aQNX2lKkvFK0g346TPUJTh3FjTRIxBVB7SD/vF",
-	"vFuv1+sfAQAA//+4aAzDNwcAAA==",
+	"H4sIAAAAAAAC/7xVTW/jNhD9K8a0R9m0k0uhW9C0gVHUKZykPQRBwFJjmbFEcodDJ4ah/76gKH8k/tgc",
+	"dvckSjPz5s2j+LgGZWtnDRr2kK/BSZI1MlL7FoIu4rNAr0g71tZADg8P4+uenfV4jj1CbwMphAx0jDnJ",
+	"c8jAyBohT/UZEH4JmrCAnClgBl7NsZYRmFcu5nkmbUpomiYme2eNx5bAxPLtIi6UNYyG41I6V2klIxnx",
+	"4iOj9R7ir4QzyOEXsZtLpKgX0w56bGY2NfswmME3h4qx6CGRJYgpXXHE/r0KnpGm3cxJMLIOiXV6K9BV",
+	"dlVv1NSMdbt465e23w0rnfPL0eB6mwrZLt7XtbPUztlpmNIhS9LmsPjND7QV0mkRQ2I5amluwInkCtJk",
+	"rE2r0jOFCk/zWY5k5ebycnC9K5mGCs/T2lTtiGnP2kZqqtJouF9a4RZlJOqFQX61tNCmFNvCY6xLyfgq",
+	"Vycp3nTxn0DNIy21OqObsoTL0eAu5Z2nlHKPbmIMndrEpSYOsnr+JpetQP+mik+R+hFbuPtg/39BxXGK",
+	"d8fu4MgoW2B8zizVkqNpaMOXF7AF0oaxRIpINXovSzziHJvszxnAfcxNZrNxpscEsOuRJWZPZwa671qi",
+	"CXVE+GM6vZ1CBuPJn7eQwX9X08l4crMHse9zulODNVcx9rc0skQSf1nDZKve1T9jyGCJ5JM5jQbDwTB2",
+	"tw6NdBpyuGw/pd1rtRSMRhoW62i8jVDJr/q0b1gltv9A3IL2qI8LyOEG+b4tfQi6OLC57N218Hhc412K",
+	"aG2/efrg5RfD4Xdz8gOKR9z8LiiF3s9C1dvwSMY4k6HiUx22lEW6e1orCHUtaQX55gbYXnu9Amfa6LZj",
+	"BizLqA8c6v7UNE3zNQAA//+CQLzCbAcAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

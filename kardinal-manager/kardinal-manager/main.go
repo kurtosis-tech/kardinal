@@ -12,7 +12,8 @@ import (
 
 const (
 	successExitCode                = 0
-	clusterConfigEndpointEnvVarKey = "CLUSTER_CONFIG_ENDPOINT"
+	clusterConfigEndpointEnvVarKey = "KARDINAL_MANAGER_CLUSTER_CONFIG_ENDPOINT"
+	tenantUuidEnvVarKey            = "KARDINAL_MANAGER_TENANT_UUID"
 )
 
 func main() {

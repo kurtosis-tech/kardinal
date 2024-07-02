@@ -182,8 +182,8 @@ func (manager *ClusterManager) GetTopologyForNameSpace(namespace string) (map[st
 
 func (manager *ClusterManager) ApplyClusterResources(ctx context.Context, clusterResources *types.ClusterResources) error {
 
-	if clusterResources == nil {
-		logrus.Debugf("the received cluster resources is nil, nothing to apply.")
+	if !isValid(clusterResources) {
+		logrus.Debugf("the received cluster resources is not valid, nothing to apply.")
 		return nil
 	}
 
@@ -235,6 +235,11 @@ func (manager *ClusterManager) ApplyClusterResources(ctx context.Context, cluste
 }
 
 func (manager *ClusterManager) CleanUpClusterResources(ctx context.Context, clusterResources *types.ClusterResources) error {
+
+	if !isValid(clusterResources) {
+		logrus.Debugf("the received cluster resources is not valid, nothing to clean up.")
+		return nil
+	}
 
 	// Clean up services
 	servicesByNS := lo.GroupBy(*clusterResources.Services, func(item corev1.Service) string {
@@ -511,3 +516,21 @@ func (manager *ClusterManager) cleanUpGatewaysInNamespace(ctx context.Context, n
 }
 
 func int64Ptr(i int64) *int64 { return &i }
+
+func isValid(clusterResources *types.ClusterResources) bool {
+	if clusterResources == nil {
+		logrus.Debugf("cluster resources is nil.")
+		return false
+	}
+
+	if clusterResources.Gateway == nil &&
+		clusterResources.Deployments == nil &&
+		clusterResources.DestinationRules == nil &&
+		clusterResources.Services == nil &&
+		clusterResources.VirtualServices == nil {
+		logrus.Debugf("cluster resources is empty.")
+		return false
+	}
+
+	return true
+}

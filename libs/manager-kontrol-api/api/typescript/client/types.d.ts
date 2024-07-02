@@ -5,13 +5,12 @@
 
 
 export interface paths {
-  "/cluster-resources": {
+  "/tenant/{uuid}/cluster-resources": {
     /** Cluster resource definition */
     get: {
       parameters: {
-        query?: {
-          /** @description The namespace for which to retrieve the cluster resources */
-          namespace?: string;
+        path: {
+          uuid: components["parameters"]["uuid"];
         };
       };
       responses: {
@@ -55,7 +54,10 @@ export interface components {
       };
     };
   };
-  parameters: never;
+  parameters: {
+    /** @description UUID of the resource */
+    uuid: string;
+  };
   requestBodies: never;
   headers: never;
   pathItems: never;

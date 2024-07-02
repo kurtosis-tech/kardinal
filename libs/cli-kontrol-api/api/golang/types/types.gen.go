@@ -46,17 +46,14 @@ type ProdFlowSpec struct {
 	DockerCompose *[]compose.ServiceConfig `json:"docker-compose,omitempty"`
 }
 
-// GetTopologyParams defines parameters for GetTopology.
-type GetTopologyParams struct {
-	// Namespace The namespace for which to retrieve the topology
-	Namespace *string `form:"namespace,omitempty" json:"namespace,omitempty"`
-}
+// Uuid defines model for uuid.
+type Uuid = string
 
-// PostDeployJSONRequestBody defines body for PostDeploy for application/json ContentType.
-type PostDeployJSONRequestBody = ProdFlowSpec
+// PostTenantUuidDeployJSONRequestBody defines body for PostTenantUuidDeploy for application/json ContentType.
+type PostTenantUuidDeployJSONRequestBody = ProdFlowSpec
 
-// PostFlowCreateJSONRequestBody defines body for PostFlowCreate for application/json ContentType.
-type PostFlowCreateJSONRequestBody = DevFlowSpec
+// PostTenantUuidFlowCreateJSONRequestBody defines body for PostTenantUuidFlowCreate for application/json ContentType.
+type PostTenantUuidFlowCreateJSONRequestBody = DevFlowSpec
 
-// PostFlowDeleteJSONRequestBody defines body for PostFlowDelete for application/json ContentType.
-type PostFlowDeleteJSONRequestBody = ProdFlowSpec
+// PostTenantUuidFlowDeleteJSONRequestBody defines body for PostTenantUuidFlowDelete for application/json ContentType.
+type PostTenantUuidFlowDeleteJSONRequestBody = ProdFlowSpec

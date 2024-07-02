@@ -3,8 +3,10 @@ info:
   title: CLI/Kontrol API
   version: 1.0.0
 paths:
-  /flow/create:
+  /tenant/{uuid}/flow/create:
     post:
+      parameters:
+        - $ref: "#/components/parameters/uuid"
       requestBody:
         description: Create a dev flow
         required: true
@@ -19,8 +21,10 @@ paths:
             application/json:
               schema:
                 type: string
-  /flow/delete:
+  /tenant/{uuid}/flow/delete:
     post:
+      parameters:
+        - $ref: "#/components/parameters/uuid"
       requestBody:
         description: Delete dev flow (revert back to prod only)
         required: true
@@ -35,8 +39,10 @@ paths:
             application/json:
               schema:
                 type: string
-  /deploy:
+  /tenant/{uuid}/deploy:
     post:
+      parameters:
+        - $ref: "#/components/parameters/uuid"
       requestBody:
         description: Deploy a prod only cluster
         required: true
@@ -51,15 +57,10 @@ paths:
             application/json:
               schema:
                 type: string
-  /topology:
+  /tenant/{uuid}/topology:
     get:
       parameters:
-        - in: query
-          name: namespace
-          schema:
-            type: string
-          required: false
-          description: The namespace for which to retrieve the topology
+        - $ref: "#/components/parameters/uuid"
       responses:
         "200":
           description: Topology information
@@ -69,6 +70,15 @@ paths:
                 $ref: "#/components/schemas/ClusterTopology"
 
 components:
+  parameters:
+    uuid:
+      name: uuid
+      in: path
+      required: true
+      description: UUID of the resource
+      schema:
+        type: string
+
   schemas:
     ProdFlowSpec:
       type: object

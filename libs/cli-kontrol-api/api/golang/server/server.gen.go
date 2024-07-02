@@ -25,17 +25,17 @@ import (
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
-	// (POST /deploy)
-	PostDeploy(ctx echo.Context) error
+	// (POST /tenant/{uuid}/deploy)
+	PostTenantUuidDeploy(ctx echo.Context, uuid Uuid) error
 
-	// (POST /flow/create)
-	PostFlowCreate(ctx echo.Context) error
+	// (POST /tenant/{uuid}/flow/create)
+	PostTenantUuidFlowCreate(ctx echo.Context, uuid Uuid) error
 
-	// (POST /flow/delete)
-	PostFlowDelete(ctx echo.Context) error
+	// (POST /tenant/{uuid}/flow/delete)
+	PostTenantUuidFlowDelete(ctx echo.Context, uuid Uuid) error
 
-	// (GET /topology)
-	GetTopology(ctx echo.Context, params GetTopologyParams) error
+	// (GET /tenant/{uuid}/topology)
+	GetTenantUuidTopology(ctx echo.Context, uuid Uuid) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -43,48 +43,67 @@ type ServerInterfaceWrapper struct {
 	Handler ServerInterface
 }
 
-// PostDeploy converts echo context to params.
-func (w *ServerInterfaceWrapper) PostDeploy(ctx echo.Context) error {
+// PostTenantUuidDeploy converts echo context to params.
+func (w *ServerInterfaceWrapper) PostTenantUuidDeploy(ctx echo.Context) error {
 	var err error
+	// ------------- Path parameter "uuid" -------------
+	var uuid Uuid
 
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PostDeploy(ctx)
-	return err
-}
-
-// PostFlowCreate converts echo context to params.
-func (w *ServerInterfaceWrapper) PostFlowCreate(ctx echo.Context) error {
-	var err error
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PostFlowCreate(ctx)
-	return err
-}
-
-// PostFlowDelete converts echo context to params.
-func (w *ServerInterfaceWrapper) PostFlowDelete(ctx echo.Context) error {
-	var err error
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PostFlowDelete(ctx)
-	return err
-}
-
-// GetTopology converts echo context to params.
-func (w *ServerInterfaceWrapper) GetTopology(ctx echo.Context) error {
-	var err error
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params GetTopologyParams
-	// ------------- Optional query parameter "namespace" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "namespace", ctx.QueryParams(), &params.Namespace)
+	err = runtime.BindStyledParameterWithOptions("simple", "uuid", ctx.Param("uuid"), &uuid, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter namespace: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter uuid: %s", err))
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetTopology(ctx, params)
+	err = w.Handler.PostTenantUuidDeploy(ctx, uuid)
+	return err
+}
+
+// PostTenantUuidFlowCreate converts echo context to params.
+func (w *ServerInterfaceWrapper) PostTenantUuidFlowCreate(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "uuid" -------------
+	var uuid Uuid
+
+	err = runtime.BindStyledParameterWithOptions("simple", "uuid", ctx.Param("uuid"), &uuid, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter uuid: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.PostTenantUuidFlowCreate(ctx, uuid)
+	return err
+}
+
+// PostTenantUuidFlowDelete converts echo context to params.
+func (w *ServerInterfaceWrapper) PostTenantUuidFlowDelete(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "uuid" -------------
+	var uuid Uuid
+
+	err = runtime.BindStyledParameterWithOptions("simple", "uuid", ctx.Param("uuid"), &uuid, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter uuid: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.PostTenantUuidFlowDelete(ctx, uuid)
+	return err
+}
+
+// GetTenantUuidTopology converts echo context to params.
+func (w *ServerInterfaceWrapper) GetTenantUuidTopology(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "uuid" -------------
+	var uuid Uuid
+
+	err = runtime.BindStyledParameterWithOptions("simple", "uuid", ctx.Param("uuid"), &uuid, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter uuid: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetTenantUuidTopology(ctx, uuid)
 	return err
 }
 
@@ -116,75 +135,78 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
-	router.POST(baseURL+"/deploy", wrapper.PostDeploy)
-	router.POST(baseURL+"/flow/create", wrapper.PostFlowCreate)
-	router.POST(baseURL+"/flow/delete", wrapper.PostFlowDelete)
-	router.GET(baseURL+"/topology", wrapper.GetTopology)
+	router.POST(baseURL+"/tenant/:uuid/deploy", wrapper.PostTenantUuidDeploy)
+	router.POST(baseURL+"/tenant/:uuid/flow/create", wrapper.PostTenantUuidFlowCreate)
+	router.POST(baseURL+"/tenant/:uuid/flow/delete", wrapper.PostTenantUuidFlowDelete)
+	router.GET(baseURL+"/tenant/:uuid/topology", wrapper.GetTenantUuidTopology)
 
 }
 
-type PostDeployRequestObject struct {
-	Body *PostDeployJSONRequestBody
+type PostTenantUuidDeployRequestObject struct {
+	Uuid Uuid `json:"uuid"`
+	Body *PostTenantUuidDeployJSONRequestBody
 }
 
-type PostDeployResponseObject interface {
-	VisitPostDeployResponse(w http.ResponseWriter) error
+type PostTenantUuidDeployResponseObject interface {
+	VisitPostTenantUuidDeployResponse(w http.ResponseWriter) error
 }
 
-type PostDeploy200JSONResponse string
+type PostTenantUuidDeploy200JSONResponse string
 
-func (response PostDeploy200JSONResponse) VisitPostDeployResponse(w http.ResponseWriter) error {
+func (response PostTenantUuidDeploy200JSONResponse) VisitPostTenantUuidDeployResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
 	return json.NewEncoder(w).Encode(response)
 }
 
-type PostFlowCreateRequestObject struct {
-	Body *PostFlowCreateJSONRequestBody
+type PostTenantUuidFlowCreateRequestObject struct {
+	Uuid Uuid `json:"uuid"`
+	Body *PostTenantUuidFlowCreateJSONRequestBody
 }
 
-type PostFlowCreateResponseObject interface {
-	VisitPostFlowCreateResponse(w http.ResponseWriter) error
+type PostTenantUuidFlowCreateResponseObject interface {
+	VisitPostTenantUuidFlowCreateResponse(w http.ResponseWriter) error
 }
 
-type PostFlowCreate200JSONResponse string
+type PostTenantUuidFlowCreate200JSONResponse string
 
-func (response PostFlowCreate200JSONResponse) VisitPostFlowCreateResponse(w http.ResponseWriter) error {
+func (response PostTenantUuidFlowCreate200JSONResponse) VisitPostTenantUuidFlowCreateResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
 	return json.NewEncoder(w).Encode(response)
 }
 
-type PostFlowDeleteRequestObject struct {
-	Body *PostFlowDeleteJSONRequestBody
+type PostTenantUuidFlowDeleteRequestObject struct {
+	Uuid Uuid `json:"uuid"`
+	Body *PostTenantUuidFlowDeleteJSONRequestBody
 }
 
-type PostFlowDeleteResponseObject interface {
-	VisitPostFlowDeleteResponse(w http.ResponseWriter) error
+type PostTenantUuidFlowDeleteResponseObject interface {
+	VisitPostTenantUuidFlowDeleteResponse(w http.ResponseWriter) error
 }
 
-type PostFlowDelete200JSONResponse string
+type PostTenantUuidFlowDelete200JSONResponse string
 
-func (response PostFlowDelete200JSONResponse) VisitPostFlowDeleteResponse(w http.ResponseWriter) error {
+func (response PostTenantUuidFlowDelete200JSONResponse) VisitPostTenantUuidFlowDeleteResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
 	return json.NewEncoder(w).Encode(response)
 }
 
-type GetTopologyRequestObject struct {
-	Params GetTopologyParams
+type GetTenantUuidTopologyRequestObject struct {
+	Uuid Uuid `json:"uuid"`
 }
 
-type GetTopologyResponseObject interface {
-	VisitGetTopologyResponse(w http.ResponseWriter) error
+type GetTenantUuidTopologyResponseObject interface {
+	VisitGetTenantUuidTopologyResponse(w http.ResponseWriter) error
 }
 
-type GetTopology200JSONResponse ClusterTopology
+type GetTenantUuidTopology200JSONResponse ClusterTopology
 
-func (response GetTopology200JSONResponse) VisitGetTopologyResponse(w http.ResponseWriter) error {
+func (response GetTenantUuidTopology200JSONResponse) VisitGetTenantUuidTopologyResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
@@ -194,17 +216,17 @@ func (response GetTopology200JSONResponse) VisitGetTopologyResponse(w http.Respo
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 
-	// (POST /deploy)
-	PostDeploy(ctx context.Context, request PostDeployRequestObject) (PostDeployResponseObject, error)
+	// (POST /tenant/{uuid}/deploy)
+	PostTenantUuidDeploy(ctx context.Context, request PostTenantUuidDeployRequestObject) (PostTenantUuidDeployResponseObject, error)
 
-	// (POST /flow/create)
-	PostFlowCreate(ctx context.Context, request PostFlowCreateRequestObject) (PostFlowCreateResponseObject, error)
+	// (POST /tenant/{uuid}/flow/create)
+	PostTenantUuidFlowCreate(ctx context.Context, request PostTenantUuidFlowCreateRequestObject) (PostTenantUuidFlowCreateResponseObject, error)
 
-	// (POST /flow/delete)
-	PostFlowDelete(ctx context.Context, request PostFlowDeleteRequestObject) (PostFlowDeleteResponseObject, error)
+	// (POST /tenant/{uuid}/flow/delete)
+	PostTenantUuidFlowDelete(ctx context.Context, request PostTenantUuidFlowDeleteRequestObject) (PostTenantUuidFlowDeleteResponseObject, error)
 
-	// (GET /topology)
-	GetTopology(ctx context.Context, request GetTopologyRequestObject) (GetTopologyResponseObject, error)
+	// (GET /tenant/{uuid}/topology)
+	GetTenantUuidTopology(ctx context.Context, request GetTenantUuidTopologyRequestObject) (GetTenantUuidTopologyResponseObject, error)
 }
 
 type StrictHandlerFunc = strictecho.StrictEchoHandlerFunc
@@ -219,112 +241,118 @@ type strictHandler struct {
 	middlewares []StrictMiddlewareFunc
 }
 
-// PostDeploy operation middleware
-func (sh *strictHandler) PostDeploy(ctx echo.Context) error {
-	var request PostDeployRequestObject
+// PostTenantUuidDeploy operation middleware
+func (sh *strictHandler) PostTenantUuidDeploy(ctx echo.Context, uuid Uuid) error {
+	var request PostTenantUuidDeployRequestObject
 
-	var body PostDeployJSONRequestBody
+	request.Uuid = uuid
+
+	var body PostTenantUuidDeployJSONRequestBody
 	if err := ctx.Bind(&body); err != nil {
 		return err
 	}
 	request.Body = &body
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.PostDeploy(ctx.Request().Context(), request.(PostDeployRequestObject))
+		return sh.ssi.PostTenantUuidDeploy(ctx.Request().Context(), request.(PostTenantUuidDeployRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "PostDeploy")
+		handler = middleware(handler, "PostTenantUuidDeploy")
 	}
 
 	response, err := handler(ctx, request)
 
 	if err != nil {
 		return err
-	} else if validResponse, ok := response.(PostDeployResponseObject); ok {
-		return validResponse.VisitPostDeployResponse(ctx.Response())
+	} else if validResponse, ok := response.(PostTenantUuidDeployResponseObject); ok {
+		return validResponse.VisitPostTenantUuidDeployResponse(ctx.Response())
 	} else if response != nil {
 		return fmt.Errorf("unexpected response type: %T", response)
 	}
 	return nil
 }
 
-// PostFlowCreate operation middleware
-func (sh *strictHandler) PostFlowCreate(ctx echo.Context) error {
-	var request PostFlowCreateRequestObject
+// PostTenantUuidFlowCreate operation middleware
+func (sh *strictHandler) PostTenantUuidFlowCreate(ctx echo.Context, uuid Uuid) error {
+	var request PostTenantUuidFlowCreateRequestObject
 
-	var body PostFlowCreateJSONRequestBody
+	request.Uuid = uuid
+
+	var body PostTenantUuidFlowCreateJSONRequestBody
 	if err := ctx.Bind(&body); err != nil {
 		return err
 	}
 	request.Body = &body
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.PostFlowCreate(ctx.Request().Context(), request.(PostFlowCreateRequestObject))
+		return sh.ssi.PostTenantUuidFlowCreate(ctx.Request().Context(), request.(PostTenantUuidFlowCreateRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "PostFlowCreate")
+		handler = middleware(handler, "PostTenantUuidFlowCreate")
 	}
 
 	response, err := handler(ctx, request)
 
 	if err != nil {
 		return err
-	} else if validResponse, ok := response.(PostFlowCreateResponseObject); ok {
-		return validResponse.VisitPostFlowCreateResponse(ctx.Response())
+	} else if validResponse, ok := response.(PostTenantUuidFlowCreateResponseObject); ok {
+		return validResponse.VisitPostTenantUuidFlowCreateResponse(ctx.Response())
 	} else if response != nil {
 		return fmt.Errorf("unexpected response type: %T", response)
 	}
 	return nil
 }
 
-// PostFlowDelete operation middleware
-func (sh *strictHandler) PostFlowDelete(ctx echo.Context) error {
-	var request PostFlowDeleteRequestObject
+// PostTenantUuidFlowDelete operation middleware
+func (sh *strictHandler) PostTenantUuidFlowDelete(ctx echo.Context, uuid Uuid) error {
+	var request PostTenantUuidFlowDeleteRequestObject
 
-	var body PostFlowDeleteJSONRequestBody
+	request.Uuid = uuid
+
+	var body PostTenantUuidFlowDeleteJSONRequestBody
 	if err := ctx.Bind(&body); err != nil {
 		return err
 	}
 	request.Body = &body
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.PostFlowDelete(ctx.Request().Context(), request.(PostFlowDeleteRequestObject))
+		return sh.ssi.PostTenantUuidFlowDelete(ctx.Request().Context(), request.(PostTenantUuidFlowDeleteRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "PostFlowDelete")
+		handler = middleware(handler, "PostTenantUuidFlowDelete")
 	}
 
 	response, err := handler(ctx, request)
 
 	if err != nil {
 		return err
-	} else if validResponse, ok := response.(PostFlowDeleteResponseObject); ok {
-		return validResponse.VisitPostFlowDeleteResponse(ctx.Response())
+	} else if validResponse, ok := response.(PostTenantUuidFlowDeleteResponseObject); ok {
+		return validResponse.VisitPostTenantUuidFlowDeleteResponse(ctx.Response())
 	} else if response != nil {
 		return fmt.Errorf("unexpected response type: %T", response)
 	}
 	return nil
 }
 
-// GetTopology operation middleware
-func (sh *strictHandler) GetTopology(ctx echo.Context, params GetTopologyParams) error {
-	var request GetTopologyRequestObject
+// GetTenantUuidTopology operation middleware
+func (sh *strictHandler) GetTenantUuidTopology(ctx echo.Context, uuid Uuid) error {
+	var request GetTenantUuidTopologyRequestObject
 
-	request.Params = params
+	request.Uuid = uuid
 
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.GetTopology(ctx.Request().Context(), request.(GetTopologyRequestObject))
+		return sh.ssi.GetTenantUuidTopology(ctx.Request().Context(), request.(GetTenantUuidTopologyRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "GetTopology")
+		handler = middleware(handler, "GetTenantUuidTopology")
 	}
 
 	response, err := handler(ctx, request)
 
 	if err != nil {
 		return err
-	} else if validResponse, ok := response.(GetTopologyResponseObject); ok {
-		return validResponse.VisitGetTopologyResponse(ctx.Response())
+	} else if validResponse, ok := response.(GetTenantUuidTopologyResponseObject); ok {
+		return validResponse.VisitGetTenantUuidTopologyResponse(ctx.Response())
 	} else if response != nil {
 		return fmt.Errorf("unexpected response type: %T", response)
 	}
@@ -334,19 +362,19 @@ func (sh *strictHandler) GetTopology(ctx echo.Context, params GetTopologyParams)
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/9RWTW/DNgz9K4K2wwbEcbbdfNvSbShaDAXanYoeFIlx1NqiStFpgyL/fZDkfLtdimFY",
-	"d7MlvkfykSb9JjW2Hh04DrJ6k0EvoFXpcdp0gYHu0GOD9SoeeUIPxBaSAZg6P1iGNj18SzCXlfym3JGW",
-	"PWP5q6lBrkeSVx5kJRWRWsV3h+YTLH+gGWBZjyTBc2cJjKzue8pRH+DD1hpnj6A5wi9g+VuDL7ce9Gle",
-	"BvUTUJG8BzgI7bWosejZ+vvxLdDSapiim9tajnY2hW09EkecU+0eRI6kV7yQlawtL7rZWGNb9ndF8KC3",
-	"LzWWkSmkFI+Vs62qoWhQK0ZKBXlVrW+izUzpJ3CmUFWjGALLLTowWVdHeMhxFzm2IfTGQp3C1wOipgqf",
-	"qNmoGTRJVgiarGeLTlbyOh6LOZLgBYhYqfFgkNiRhlP43QKENeDYzi2QwHmiydYi1n9z9C4zK6qBz2XO",
-	"1ucwH/Vin8DW31A3pqY+Ec6a0+D+dPa5O4hvo2CMbDDPs/R/B32UizWD4d8Qmv/713Taz/HIujlGh2w5",
-	"fRjT68vyqsHOFFfomLARP99cypFcAoUs6w/jyXgSRUEPTnkrK/lTOspBprRLA77BPFAxpIyiYCpW5tLI",
-	"St5g4ItskwsAgX9BkxAaHYNLIOV9Y3WClY8hut/M77+bogcVS5keNkd2LpTwhEaga1ZC520g9zuCqYPU",
-	"IsGjC7ncP04mnwrzuOMGYlmKeYMvQhMkEhFYcReLGI3LeFemO/hY0ZjwNNv9O6ruL5WBRLJvoYTpM/qi",
-	"Whpo4BwtL7Ldf9Wh0flWSvEdwRKIRVxdgnHXuN9/PZV574+qX0GHCv8OvP3rinODVAsMFGR1P7St4jgM",
-	"XmlI4/xlYfUiSkDAZGEJeX/t+GzEPXdA8aUfpVsKOfog04d/qNxHBT/+2xzQdXMn4limNnlJmq7XfwUA",
-	"AP//eCMynscKAAA=",
+	"H4sIAAAAAAAC/9RWTW/jNhD9KwTbQwtIltvedGvttjC6KAJsclrsgSbHMnclDpcceWMY+u8LkpK/pAQO",
+	"cklOtsT5ePPeDEcHLrGxaMCQ5+WBW+FEAwQuPrWtVuFXgZdOW9JoeMkfHlZLhhtGW2AOPLZOAs+4DmdW",
+	"0JZn3IgGeJn8M+7gW6sdKF6SayHjXm6hESEw7W2w8+S0qXjXdcNhTL+oW0/g7tFijdU+4nNowZGGaACq",
+	"Sn80QRP//Oxgw0v+U3Eqq+gjFn+rCniXDUmFc2Ifng2qF0T5H9VElO68yk99yKwH+PlojesvICm4L2H3",
+	"T43fP1qQ47oUyq/g8pjdwwW0x7zCvI/Wn88+gttpCQs0G13x7GST68aio+DXKzKEzJJSJa80bdv1TGJT",
+	"9Ge5tyCPDxUWIZKPJV4zpxtRQV6jFIQuCvIoGlsHm7WQX8GoXJS1IPDEs2uxM+4T7jxhm/IeLMTYvZsg",
+	"NSo8YrMWa6jHbfwhvGYbdLGRg1KzSZCpv0fu91tgWoEhvdHghnlI1izoP7x6MjIJVwHdGjlZ3xL5qheP",
+	"A9rnm+rG2NQj4iaH3+hv7QW+gcGAbLLOm/h/wvuqFq0m4d85VO99msb9HF5ps8F4UWqKg7H4sCr+Q0MO",
+	"a/bn3YpnfAfOJ0J/m81n80AHWjDCal7yP+KrBC8WXBAYYag4hKu5KxTYGtPFij5WFogTQaGV4iW/Q0/3",
+	"0eOh1WqZrLOLLfFp+ro8mRRxC3Sfk5Lg6S9UMaVEQ2BiVmFtrWXMW3zxoZrD2ZZ47jq+kD5SdtllCTMT",
+	"zDpUDE29ZzKtldFiir3mLRqf+ub3+fxFMCeW2TWWHdvU+J1JBzEI8ySoDd0QjK+0CZZFtIRbBQpELJLH",
+	"mxLpfNlN8JIgM8FUT9C7kEZBDS+TZpk83tn8BMxHZdgvDnbgiIUNzQhPY/XrWxeNzj4j+717Kdi/cKbX",
+	"8aPzFWq9ovbnJLv+LJ5gZjhjYX+4JmaJrHTdjwAAAP//BT6DjfILAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

@@ -3,18 +3,13 @@ info:
   title: Manager/Kontrol API
   version: 1.0.0
 paths:
-  /cluster-resources:
+  /tenant/{uuid}/cluster-resources:
     get:
       tags:
         - cluster-resources
       summary: Cluster resource definition
       parameters:
-        - in: query
-          name: namespace
-          schema:
-            type: string
-          required: false
-          description: The namespace for which to retrieve the cluster resources
+        - $ref: "#/components/parameters/uuid"
       responses:
         default:
           $ref: "#/components/responses/NotOk"
@@ -26,6 +21,15 @@ paths:
                 $ref: "#/components/schemas/ClusterResources"
 
 components:
+  parameters:
+    uuid:
+      name: uuid
+      in: path
+      required: true
+      description: UUID of the resource
+      schema:
+        type: string
+
   responses:
     NotOk:
       description: Unexpected error

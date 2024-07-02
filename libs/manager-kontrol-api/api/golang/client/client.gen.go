@@ -89,12 +89,12 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
-	// GetClusterResources request
-	GetClusterResources(ctx context.Context, params *GetClusterResourcesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetTenantUuidClusterResources request
+	GetTenantUuidClusterResources(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
-func (c *Client) GetClusterResources(ctx context.Context, params *GetClusterResourcesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetClusterResourcesRequest(c.Server, params)
+func (c *Client) GetTenantUuidClusterResources(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetTenantUuidClusterResourcesRequest(c.Server, uuid)
 	if err != nil {
 		return nil, err
 	}
@@ -105,16 +105,23 @@ func (c *Client) GetClusterResources(ctx context.Context, params *GetClusterReso
 	return c.Client.Do(req)
 }
 
-// NewGetClusterResourcesRequest generates requests for GetClusterResources
-func NewGetClusterResourcesRequest(server string, params *GetClusterResourcesParams) (*http.Request, error) {
+// NewGetTenantUuidClusterResourcesRequest generates requests for GetTenantUuidClusterResources
+func NewGetTenantUuidClusterResourcesRequest(server string, uuid Uuid) (*http.Request, error) {
 	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "uuid", runtime.ParamLocationPath, uuid)
+	if err != nil {
+		return nil, err
+	}
 
 	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/cluster-resources")
+	operationPath := fmt.Sprintf("/tenant/%s/cluster-resources", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -122,28 +129,6 @@ func NewGetClusterResourcesRequest(server string, params *GetClusterResourcesPar
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
-	}
-
-	if params != nil {
-		queryValues := queryURL.Query()
-
-		if params.Namespace != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "namespace", runtime.ParamLocationQuery, *params.Namespace); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -197,11 +182,11 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
-	// GetClusterResourcesWithResponse request
-	GetClusterResourcesWithResponse(ctx context.Context, params *GetClusterResourcesParams, reqEditors ...RequestEditorFn) (*GetClusterResourcesResponse, error)
+	// GetTenantUuidClusterResourcesWithResponse request
+	GetTenantUuidClusterResourcesWithResponse(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*GetTenantUuidClusterResourcesResponse, error)
 }
 
-type GetClusterResourcesResponse struct {
+type GetTenantUuidClusterResourcesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *ClusterResources
@@ -209,7 +194,7 @@ type GetClusterResourcesResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetClusterResourcesResponse) Status() string {
+func (r GetTenantUuidClusterResourcesResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -217,31 +202,31 @@ func (r GetClusterResourcesResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetClusterResourcesResponse) StatusCode() int {
+func (r GetTenantUuidClusterResourcesResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-// GetClusterResourcesWithResponse request returning *GetClusterResourcesResponse
-func (c *ClientWithResponses) GetClusterResourcesWithResponse(ctx context.Context, params *GetClusterResourcesParams, reqEditors ...RequestEditorFn) (*GetClusterResourcesResponse, error) {
-	rsp, err := c.GetClusterResources(ctx, params, reqEditors...)
+// GetTenantUuidClusterResourcesWithResponse request returning *GetTenantUuidClusterResourcesResponse
+func (c *ClientWithResponses) GetTenantUuidClusterResourcesWithResponse(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*GetTenantUuidClusterResourcesResponse, error) {
+	rsp, err := c.GetTenantUuidClusterResources(ctx, uuid, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetClusterResourcesResponse(rsp)
+	return ParseGetTenantUuidClusterResourcesResponse(rsp)
 }
 
-// ParseGetClusterResourcesResponse parses an HTTP response from a GetClusterResourcesWithResponse call
-func ParseGetClusterResourcesResponse(rsp *http.Response) (*GetClusterResourcesResponse, error) {
+// ParseGetTenantUuidClusterResourcesResponse parses an HTTP response from a GetTenantUuidClusterResourcesWithResponse call
+func ParseGetTenantUuidClusterResourcesResponse(rsp *http.Response) (*GetTenantUuidClusterResourcesResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetClusterResourcesResponse{
+	response := &GetTenantUuidClusterResourcesResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}

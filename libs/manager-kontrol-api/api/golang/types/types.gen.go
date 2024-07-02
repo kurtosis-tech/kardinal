@@ -35,11 +35,8 @@ type ResponseInfo struct {
 // ResponseType defines model for ResponseType.
 type ResponseType string
 
+// Uuid defines model for uuid.
+type Uuid = string
+
 // NotOk defines model for NotOk.
 type NotOk = ResponseInfo
-
-// GetClusterResourcesParams defines parameters for GetClusterResources.
-type GetClusterResourcesParams struct {
-	// Namespace The namespace for which to retrieve the cluster resources
-	Namespace *string `form:"namespace,omitempty" json:"namespace,omitempty"`
-}

@@ -5,8 +5,13 @@
 
 
 export interface paths {
-  "/flow/create": {
+  "/tenant/{uuid}/flow/create": {
     post: {
+      parameters: {
+        path: {
+          uuid: components["parameters"]["uuid"];
+        };
+      };
       /** @description Create a dev flow */
       requestBody: {
         content: {
@@ -23,8 +28,13 @@ export interface paths {
       };
     };
   };
-  "/flow/delete": {
+  "/tenant/{uuid}/flow/delete": {
     post: {
+      parameters: {
+        path: {
+          uuid: components["parameters"]["uuid"];
+        };
+      };
       /** @description Delete dev flow (revert back to prod only) */
       requestBody: {
         content: {
@@ -41,8 +51,13 @@ export interface paths {
       };
     };
   };
-  "/deploy": {
+  "/tenant/{uuid}/deploy": {
     post: {
+      parameters: {
+        path: {
+          uuid: components["parameters"]["uuid"];
+        };
+      };
       /** @description Deploy a prod only cluster */
       requestBody: {
         content: {
@@ -59,12 +74,11 @@ export interface paths {
       };
     };
   };
-  "/topology": {
+  "/tenant/{uuid}/topology": {
     get: {
       parameters: {
-        query?: {
-          /** @description The namespace for which to retrieve the topology */
-          namespace?: string;
+        path: {
+          uuid: components["parameters"]["uuid"];
         };
       };
       responses: {
@@ -113,7 +127,10 @@ export interface components {
     };
   };
   responses: never;
-  parameters: never;
+  parameters: {
+    /** @description UUID of the resource */
+    uuid: string;
+  };
   requestBodies: never;
   headers: never;
   pathItems: never;
