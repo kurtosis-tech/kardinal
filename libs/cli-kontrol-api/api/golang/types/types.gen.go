@@ -7,6 +7,14 @@ import (
 	compose "github.com/compose-spec/compose-go/types"
 )
 
+// Defines values for NodeType.
+const (
+	Gateway        NodeType = "gateway"
+	Redis          NodeType = "redis"
+	Service        NodeType = "service"
+	ServiceVersion NodeType = "service-version"
+)
+
 // ClusterTopology defines model for ClusterTopology.
 type ClusterTopology struct {
 	Edges []Edge `json:"edges"`
@@ -39,7 +47,16 @@ type Node struct {
 
 	// Label Label for the node.
 	Label *string `json:"label,omitempty"`
+
+	// Parent Parent node
+	Parent *string `json:"parent,omitempty"`
+
+	// Type Type of the node
+	Type NodeType `json:"type"`
 }
+
+// NodeType Type of the node
+type NodeType string
 
 // ProdFlowSpec defines model for ProdFlowSpec.
 type ProdFlowSpec struct {

@@ -117,8 +117,16 @@ components:
         label:
           type: string
           description: Label for the node.
+        type:
+          type: string
+          enum: [gateway, service, service-version, redis]
+          description: Type of the node
+        parent:
+          type: string
+          description: Parent node
       required:
         - id
+        - type
 
     Edge:
       type: object
