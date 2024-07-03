@@ -4,15 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/compose-spec/compose-go/cli"
+	"github.com/compose-spec/compose-go/types"
 	"github.com/kurtosis-tech/stacktrace"
+	"github.com/spf13/cobra"
 	"kardinal.cli/deployment"
 	"kardinal.cli/tenant"
 	"log"
 	"net/http"
-
-	"github.com/compose-spec/compose-go/cli"
-	"github.com/compose-spec/compose-go/types"
-	"github.com/spf13/cobra"
 
 	api "github.com/kurtosis-tech/kardinal/libs/cli-kontrol-api/api/golang/client"
 	api_types "github.com/kurtosis-tech/kardinal/libs/cli-kontrol-api/api/golang/types"
@@ -23,6 +22,17 @@ const (
 	devMode              = true
 	kontrolServiceApiUrl = "ad718d90d54d54dd084dea50a9f011af-1140086995.us-east-1.elb.amazonaws.com"
 	kontrolServicePort   = 8080
+
+	kontrolLocationLocalMinikube = "local-minikube"
+	kontrolLocationKloudKontrol  = "kloud-kontrol"
+
+	kontrolClusterResourcesEndpointTmpl = "%s://%s/tenant/%s/cluster-resources"
+
+	localMinikubeKontrolAPIHost = "host.minikube.internal:8080"
+	kloudKontrolAPIHost         = "app.kardinal.dev/api"
+
+	httpSchme   = "http"
+	httpsScheme = httpSchme + "s"
 )
 
 var composeFile string
@@ -102,12 +112,12 @@ var deleteCmd = &cobra.Command{
 }
 
 var deployManagerCmd = &cobra.Command{
-	Use:   "deploy [kontrol location]",
-	Short: "Deploy Kardinal manager into the cluster",
-	Args:  cobra.ExactArgs(1),
+	Use:       fmt.Sprintf("deploy [kontrol location] accepted values: %s and %s ", kontrolLocationLocalMinikube, kontrolLocationKloudKontrol),
+	Short:     "Deploy Kardinal manager into the cluster",
+	ValidArgs: []string{kontrolLocationLocalMinikube, kontrolLocationKloudKontrol},
+	Args:      cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
 	Run: func(cmd *cobra.Command, args []string) {
 
-		//TODO validate only accepted values
 		kontroLocation := args[0]
 
 		tenantUuid, err := tenant.GetOrCreateUserTenantUUID()
@@ -115,8 +125,7 @@ var deployManagerCmd = &cobra.Command{
 			log.Fatal("Error getting or creating user tenant UUID", err)
 		}
 
-		//TODO generate cluster URL depending on the kontrolLocation
-		if err := deployManager(tenantUuid.String()); err != nil {
+		if err := deployManager(tenantUuid.String(), kontroLocation); err != nil {
 			log.Fatal("Error deploying Kardinal manager", err)
 		}
 
@@ -133,7 +142,7 @@ var removeManagerCmd = &cobra.Command{
 			log.Fatal("Error removing Kardinal manager", err)
 		}
 
-		fmt.Print("Kardinal manager deployed")
+		fmt.Print("Kardinal manager removed from cluster")
 	},
 }
 
@@ -251,10 +260,25 @@ func deleteFlow(tenantUuid api_types.Uuid, services []types.ServiceConfig) {
 	fmt.Printf("Response: %s\n", string(resp.Body))
 }
 
-func deployManager(tenantUuid api_types.Uuid) error {
-	ctx := context.Background()
+func deployManager(tenantUuid api_types.Uuid, kontrolLocation string) error {
+	var (
+		ctx    = context.Background()
+		scheme string
+		host   string
+	)
 
-	clusterResourcesURL := fmt.Sprintf("http://host.minikube.internal:8080/tenant/%s/cluster-resources", tenantUuid)
+	switch kontrolLocation {
+	case kontrolLocationLocalMinikube:
+		scheme = httpSchme
+		host = localMinikubeKontrolAPIHost
+	case kontrolLocationKloudKontrol:
+		scheme = httpsScheme
+		host = kloudKontrolAPIHost
+	default:
+		return stacktrace.NewError("invalid kontrol location: %s", kontrolLocation)
+	}
+
+	clusterResourcesURL := fmt.Sprintf(kontrolClusterResourcesEndpointTmpl, scheme, host, tenantUuid)
 
 	if err := deployment.DeployKardinalManagerInCluster(ctx, clusterResourcesURL); err != nil {
 		return stacktrace.Propagate(err, "An error occurred deploying Kardinal manager into the cluster with cluster resources URL '%s'", clusterResourcesURL)
