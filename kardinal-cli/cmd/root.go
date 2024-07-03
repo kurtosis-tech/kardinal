@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/kurtosis-tech/stacktrace"
+	"kardinal.cli/deployment"
 	"kardinal.cli/tenant"
 	"log"
 	"net/http"
@@ -33,6 +35,11 @@ var rootCmd = &cobra.Command{
 var flowCmd = &cobra.Command{
 	Use:   "flow",
 	Short: "Manage deployment flows",
+}
+
+var managerCmd = &cobra.Command{
+	Use:   "manager",
+	Short: "Manage Kardinal manager",
 }
 
 var deployCmd = &cobra.Command{
@@ -94,10 +101,48 @@ var deleteCmd = &cobra.Command{
 	},
 }
 
+var deployManagerCmd = &cobra.Command{
+	Use:   "deploy [kontrol location]",
+	Short: "Deploy Kardinal manager into the cluster",
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+
+		//TODO validate only accepted values
+		kontroLocation := args[0]
+
+		tenantUuid, err := tenant.GetOrCreateUserTenantUUID()
+		if err != nil {
+			log.Fatal("Error getting or creating user tenant UUID", err)
+		}
+
+		//TODO generate cluster URL depending on the kontrolLocation
+		if err := deployManager(tenantUuid.String()); err != nil {
+			log.Fatal("Error deploying Kardinal manager", err)
+		}
+
+		fmt.Printf("Kardinal manager deployed using '%s' Kontrol", kontroLocation)
+	},
+}
+
+var removeManagerCmd = &cobra.Command{
+	Use:   "remove",
+	Short: "Remove Kardinal manager from the cluster",
+	Args:  cobra.ExactArgs(0),
+	Run: func(cmd *cobra.Command, args []string) {
+		if err := removeManager(); err != nil {
+			log.Fatal("Error removing Kardinal manager", err)
+		}
+
+		fmt.Print("Kardinal manager deployed")
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(flowCmd)
+	rootCmd.AddCommand(managerCmd)
 	rootCmd.AddCommand(deployCmd)
 	flowCmd.AddCommand(createCmd, deleteCmd)
+	managerCmd.AddCommand(deployManagerCmd, removeManagerCmd)
 
 	flowCmd.PersistentFlags().StringVarP(&composeFile, "docker-compose", "d", "", "Path to the Docker Compose file")
 	flowCmd.MarkPersistentFlagRequired("docker-compose")
@@ -204,6 +249,28 @@ func deleteFlow(tenantUuid api_types.Uuid, services []types.ServiceConfig) {
 	}
 
 	fmt.Printf("Response: %s\n", string(resp.Body))
+}
+
+func deployManager(tenantUuid api_types.Uuid) error {
+	ctx := context.Background()
+
+	clusterResourcesURL := fmt.Sprintf("http://host.minikube.internal:8080/tenant/%s/cluster-resources", tenantUuid)
+
+	if err := deployment.DeployKardinalManagerInCluster(ctx, clusterResourcesURL); err != nil {
+		return stacktrace.Propagate(err, "An error occurred deploying Kardinal manager into the cluster with cluster resources URL '%s'", clusterResourcesURL)
+	}
+
+	return nil
+}
+
+func removeManager() error {
+	ctx := context.Background()
+
+	if err := deployment.RemoveKardinalManagerFromCluster(ctx); err != nil {
+		return stacktrace.Propagate(err, "An error occurred removing Kardinal manager from the cluster")
+	}
+
+	return nil
 }
 
 func getKontrolServiceClient() *api.ClientWithResponses {

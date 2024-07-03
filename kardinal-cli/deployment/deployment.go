@@ -4,24 +4,30 @@ import (
 	"bytes"
 	"context"
 	"github.com/kurtosis-tech/stacktrace"
+	"kardinal.cli/consts"
 	"text/template"
 )
 
 const (
 	kardinalNamespace                 = "default"
 	kardinalManagerDeploymentTmplName = "kardinal-manager-deployment"
-	kardinalManagerDeploymentTmpl     = `
+
+	kardinalManagerDeploymentTmpl = `
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: kardinal-manager
   namespace: {{.Namespace}}
+  labels:
+    {{.KardinalAppIDLabelKey}}: {{.KardinalManagerAppIDLabelValue}}
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: kardinal-manager-role
+  labels:
+    {{.KardinalAppIDLabelKey}}: {{.KardinalManagerAppIDLabelValue}}
 rules:
   - apiGroups: ["*"]
     resources: ["namespaces", "pods", "services", "deployments", "virtualservices", "workloadgroups", "workloadentries", "sidecars", "serviceentries", "gateways", "envoyfilters", "destinationrules"]
@@ -32,6 +38,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: kardinal-manager-binding
+  labels:
+    {{.KardinalAppIDLabelKey}}: {{.KardinalManagerAppIDLabelValue}}
 subjects:
   - kind: ServiceAccount
     name: kardinal-manager
@@ -47,15 +55,17 @@ kind: Deployment
 metadata:
   name: kardinal-manager
   namespace: {{.Namespace}}
+  labels:
+    {{.KardinalAppIDLabelKey}}: {{.KardinalManagerAppIDLabelValue}}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: kardinal-manager
+      {{.KardinalAppIDLabelKey}}: {{.KardinalManagerAppIDLabelValue}}
   template:
     metadata:
       labels:
-        app: kardinal-manager
+        {{.KardinalAppIDLabelKey}}: {{.KardinalManagerAppIDLabelValue}}
     spec:
       serviceAccountName: kardinal-manager
       containers:
@@ -76,11 +86,13 @@ spec:
 )
 
 type templateData struct {
-	Namespace           string
-	ClusterResourcesURL string
+	Namespace                      string
+	ClusterResourcesURL            string
+	KardinalAppIDLabelKey          string
+	KardinalManagerAppIDLabelValue string
 }
 
-func DeployKardinalManager(ctx context.Context, clusterResourcesURL string) error {
+func DeployKardinalManagerInCluster(ctx context.Context, clusterResourcesURL string) error {
 	kubernetesClientObj, err := createKubernetesClient()
 	if err != nil {
 		return stacktrace.Propagate(err, "An error occurred while creating the Kubernetes client")
@@ -92,8 +104,10 @@ func DeployKardinalManager(ctx context.Context, clusterResourcesURL string) erro
 	}
 
 	templateDataObj := templateData{
-		Namespace:           kardinalNamespace,
-		ClusterResourcesURL: clusterResourcesURL,
+		Namespace:                      kardinalNamespace,
+		ClusterResourcesURL:            clusterResourcesURL,
+		KardinalAppIDLabelKey:          consts.KardinalAppIDLabelKey,
+		KardinalManagerAppIDLabelValue: consts.KardinalManagerAppIDLabelValue,
 	}
 
 	yamlFileContentsBuffer := &bytes.Buffer{}
@@ -104,6 +118,23 @@ func DeployKardinalManager(ctx context.Context, clusterResourcesURL string) erro
 
 	if err = kubernetesClientObj.ApplyYamlFileContentInNamespace(ctx, kardinalNamespace, yamlFileContentsBuffer.Bytes()); err != nil {
 		return stacktrace.Propagate(err, "An error occurred while applying the kardinal-manager deployment")
+	}
+
+	return nil
+}
+
+func RemoveKardinalManagerFromCluster(ctx context.Context) error {
+	kubernetesClientObj, err := createKubernetesClient()
+	if err != nil {
+		return stacktrace.Propagate(err, "An error occurred while creating the Kubernetes client")
+	}
+
+	labels := map[string]string{
+		consts.KardinalAppIDLabelKey: consts.KardinalManagerAppIDLabelValue,
+	}
+
+	if err = kubernetesClientObj.RemoveNamespaceResourcesByLabels(ctx, kardinalNamespace, labels); err != nil {
+		return stacktrace.Propagate(err, "An error occurred while removing the kardinal-manager from the cluster using labels '%+v'", labels)
 	}
 
 	return nil
