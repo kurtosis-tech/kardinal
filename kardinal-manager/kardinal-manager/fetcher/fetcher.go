@@ -84,6 +84,7 @@ func (fetcher *fetcher) getClusterResourcesFromCloud() (*types.ClusterResources,
 		return nil, stacktrace.Propagate(err, "Error fetching cluster resources from endpoint '%s'", fetcher.configEndpoint)
 	}
 	defer resp.Body.Close()
+	logrus.Debugf("Fetching cluster resources from endpoint '%s'", fetcher.configEndpoint)
 
 	responseBodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {

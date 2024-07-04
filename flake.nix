@@ -162,6 +162,7 @@
                           container_pkgs.nettools
                           container_pkgs.gnugrep
                           container_pkgs.coreutils
+                          container_pkgs.cacert
                         ];
                         pathsToLink = ["/bin"];
                       };
@@ -170,6 +171,7 @@
                         if !needsCrossCompilation
                         then ["${service}/bin/${service.pname}"]
                         else ["${service}/bin/${os}_${arch}/${service.pname}"];
+                      config.Env = ["SSL_CERT_FILE=${container_pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"];
                     };
                 };
               }) {
