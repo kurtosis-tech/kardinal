@@ -1,0 +1,19 @@
+{
+  "name": "cli-kontrol-api",
+  "version": "0.0.1",
+  "description": "Client API for Kardinal",
+  "main": "api/typescript/client/types.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kurtosis-tech/kardinal.git"
+  },
+  "author": "kurtosis-tech",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kurtosis-tech/kardinal/issues"
+  },
+  "homepage": "https://github.com/kurtosis-tech/kardinal#readme"
+}
