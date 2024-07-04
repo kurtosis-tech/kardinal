@@ -25,6 +25,9 @@ import (
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
+	// (GET /health)
+	GetHealth(ctx echo.Context) error
+
 	// (POST /tenant/{uuid}/deploy)
 	PostTenantUuidDeploy(ctx echo.Context, uuid Uuid) error
 
@@ -41,6 +44,15 @@ type ServerInterface interface {
 // ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
 	Handler ServerInterface
+}
+
+// GetHealth converts echo context to params.
+func (w *ServerInterfaceWrapper) GetHealth(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetHealth(ctx)
+	return err
 }
 
 // PostTenantUuidDeploy converts echo context to params.
@@ -135,11 +147,28 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
+	router.GET(baseURL+"/health", wrapper.GetHealth)
 	router.POST(baseURL+"/tenant/:uuid/deploy", wrapper.PostTenantUuidDeploy)
 	router.POST(baseURL+"/tenant/:uuid/flow/create", wrapper.PostTenantUuidFlowCreate)
 	router.POST(baseURL+"/tenant/:uuid/flow/delete", wrapper.PostTenantUuidFlowDelete)
 	router.GET(baseURL+"/tenant/:uuid/topology", wrapper.GetTenantUuidTopology)
 
+}
+
+type GetHealthRequestObject struct {
+}
+
+type GetHealthResponseObject interface {
+	VisitGetHealthResponse(w http.ResponseWriter) error
+}
+
+type GetHealth200JSONResponse string
+
+func (response GetHealth200JSONResponse) VisitGetHealthResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
 }
 
 type PostTenantUuidDeployRequestObject struct {
@@ -216,6 +245,9 @@ func (response GetTenantUuidTopology200JSONResponse) VisitGetTenantUuidTopologyR
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 
+	// (GET /health)
+	GetHealth(ctx context.Context, request GetHealthRequestObject) (GetHealthResponseObject, error)
+
 	// (POST /tenant/{uuid}/deploy)
 	PostTenantUuidDeploy(ctx context.Context, request PostTenantUuidDeployRequestObject) (PostTenantUuidDeployResponseObject, error)
 
@@ -239,6 +271,29 @@ func NewStrictHandler(ssi StrictServerInterface, middlewares []StrictMiddlewareF
 type strictHandler struct {
 	ssi         StrictServerInterface
 	middlewares []StrictMiddlewareFunc
+}
+
+// GetHealth operation middleware
+func (sh *strictHandler) GetHealth(ctx echo.Context) error {
+	var request GetHealthRequestObject
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetHealth(ctx.Request().Context(), request.(GetHealthRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetHealth")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(GetHealthResponseObject); ok {
+		return validResponse.VisitGetHealthResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
 }
 
 // PostTenantUuidDeploy operation middleware
@@ -362,20 +417,21 @@ func (sh *strictHandler) GetTenantUuidTopology(ctx echo.Context, uuid Uuid) erro
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/9RWTW/jNhD9KwTbQwtIltvedGvttjC6KAJsclrsgSbHMnclDpccOWsY+u8LkpK/pAQO",
-	"cklOksiZ4Zv3ZjQ8cImNRQOGPC8P3AonGiBw8atttQpPBV46bUmj4SV/eFgtGW4YbYE58Ng6CTzjOuxZ",
-	"QVuecSMa4GXyz7iDb612oHhJroWMe7mFRoTAtLfBzpPTpuJd1w2b8fhF3XoCd48Wa6z2EZ9DC440RANQ",
-	"VXrRBE18+dnBhpf8p+KUVtFHLP5WFfAuGw4Vzol9+DaoXhDlf1QTUbrzLD/1IbMe4OejNa6/gKTgvoTd",
-	"PzU+frQgx3kplF/B5fF0DxfQvucV5n20fn/2EdxOS1ig2eiKZyebXDcWHQW/XpEhZJaUKnmladuuZxKb",
-	"ot/LvQV5/KiwCJF8TPGaOd2ICvIapSB0UZDvorF1sFkL+RWMykVZCwJPPLsWO+M+4c4TtinvwUKM3bsJ",
-	"UqPCIzZrsYZ6XMYfwjLboIuFHJSaTYJM9T1yv98C0woM6Y0GN/RDsmZB/2HpycgkXAV0a+RkfUvkq1o8",
-	"Nmh/3lQ1xqIeETfZ/EZ/ay/wDQwGZJN53sT/k95WODATLN3F9eg3SW5cGFG7t0f2ek8wbRNoqgTBo9jz",
-	"Y1me3vIdOB8CBGKVPm/oJziPv71oMsX2nUP13pt/3H5hSZsNxv+6ptjHiw+r4j805LBmf96teMYHKkv+",
-	"22w+mwc60IIRVvOS/xGXEryYcEFghKHiECZJVyiwNaY5gD5mFogTQdyVCjWBnu6jx0Or1TJZZxdD7dP0",
-	"3/1kUsSh1X1OgoKnv1DFIyUa6itRWFtrGc8tvviQzeFsqD03PS6kj5RdFmjCzASzDhVDU++ZTFNwNEdj",
-	"yXmLxqe6+X0+fxHMidl7jWXHNjU+MukgBmGeBLWhGoLxlTbBsoiWcKtAgYhF8nhTIp3P5gleEmQmmOoJ",
-	"ehfSKKjhZdIsk8c765+A+agM+8XBDhyxcKFghKe2+vWti0Znt97+mnAp2L9wptfxjvwKtV6R+3OSXd/i",
-	"J5gZ9liYH66Jp0RWuu5HAAAA//8733XGoQwAAA==",
+	"H4sIAAAAAAAC/9RXwW7jNhD9FYLtoQUkK21vurVxtw26KAIkOS32wJAjmRuJwyVHzhqB/r0gKdmxxQQJ",
+	"FgWSkyVyZvjmvRkN/cAl9hYNGPK8fuBWONEDgYtvw6BV+FXgpdOWNBpe85ubizXDhtEGmAOPg5PAC67D",
+	"nhW04QU3ogdeJ/+CO/g6aAeK1+QGKLiXG+hFCEw7G+w8OW1aPo7jvBmPP+8GT+Cu0WKH7S7ic2jBkYZo",
+	"AKpND5qgjw8/Omh4zX+oDmlVU8TqT9UCH4v5UOGc2IV3g+oVUf5FlYkyPs7y0xSymAB+3lvj7ReQFNzX",
+	"sP3Q4f2VBbnMS6G8A1fG0z0cQftWtlhO0ab91RW4rZZwjqbRLS8ONqXuLToKfpMic8giKVXzVtNmuF1J",
+	"7Ktpr/QW5P6lxSpE8jHFU+Z0L1ooO5SC0EVBvonedsHmVsg7MKoUdScIPPHiVOyC+4S7TNhy3rOFWLqP",
+	"GVKjwgs2O3EL3bKMP4Zl1qCLhRyUWmVBpvpeuF9vgGkFhnSjwc39kKxZ0H9eejIyCdcCvTRysn5J5JNa",
+	"3DfodF6uGmNRL4jLNr/RX4cjfDODAVk2zxfx/6S3FQ5MhqXLuB79suTGhQW1O7tnb/IEM/SBplYQ3Isd",
+	"35fl4ancgvMhQCBW6ccN/QTn8bMXTXJsXzpU7735l+0XlrRpMH7XNcU+Pv94Uf2Dhhx27PfLC17wmcqa",
+	"/7I6W50FOtCCEVbzmv8WlxK8mHC1AdEFqKdCfkDH0h6TG5B3TKZTeMGnngqUimB9oXjN/wL6O4UKQnmL",
+	"xie2fz07Cz/BfSozYW2nZXStvvhw2sPzE+sY2dUgJXjfDB2bDwpmY8ErAiMMVQ9hLI6VAtthGmroM5Av",
+	"0dN19LgZtFon6+JoQn/Kj6qDSRUn8Pg5VSd4+gPV7lX5PjcKj+o4Q0XCzASzDhVD0+2YTCN9cSkY/29Z",
+	"1rBlTYf3TDqIQZgnQYPPaxMsq2gJLxUoEHGePN6USI8vGhleEmQmmJoIehfSKOjgddKsk8c765+Aea8M",
+	"+8nBFhyxcDtihIe2+vmti0aPrvBPfZ8Peu0v/N+h1nfk/pxkp39JMszMeywMQ9fHUyIr4/hfAAAA///a",
+	"yX/Ibg0AAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

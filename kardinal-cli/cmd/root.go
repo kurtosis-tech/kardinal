@@ -19,7 +19,7 @@ import (
 
 const (
 	projectName          = "kardinal"
-	devMode              = true
+	devMode              = false
 	kontrolServiceApiUrl = "ad718d90d54d54dd084dea50a9f011af-1140086995.us-east-1.elb.amazonaws.com"
 	kontrolServicePort   = 8080
 
@@ -305,7 +305,7 @@ func getKontrolServiceClient() *api.ClientWithResponses {
 		}
 		return client
 	} else {
-		client, err := api.NewClientWithResponses(fmt.Sprintf("http://%s:%v", kontrolServiceApiUrl, kontrolServicePort))
+		client, err := api.NewClientWithResponses(fmt.Sprintf("https://%s", kloudKontrolAPIHost))
 		if err != nil {
 			log.Fatalf("Failed to create client: %v", err)
 		}

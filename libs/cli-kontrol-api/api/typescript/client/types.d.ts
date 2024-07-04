@@ -5,6 +5,18 @@
 
 
 export interface paths {
+  "/health": {
+    get: {
+      responses: {
+        /** @description Successful response */
+        200: {
+          content: {
+            "application/json": string;
+          };
+        };
+      };
+    };
+  };
   "/tenant/{uuid}/flow/create": {
     post: {
       parameters: {
