@@ -106,6 +106,10 @@
             inherit pkgs;
           };
 
+          packages.cli-kontrol-api = pkgs.callPackage ./libs/cli-kontrol-api/default.nix {
+            inherit pkgs;
+          };
+
           containers = let
             os = "linux";
             all =
