@@ -18,7 +18,7 @@ jobs:
       - name: Run Release Please
         uses: googleapis/release-please-action@v3
         with:
-          token: ${{ secrets.KURTOSIS_BOT_TOKEN }}
+          token: ${{ secrets.RELEASER_TOKEN }}
           release-type: simple
           package-name: kardinal
           bump-minor-pre-major: true
