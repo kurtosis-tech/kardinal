@@ -3,6 +3,16 @@ info:
   title: CLI/Kontrol API
   version: 1.0.0
 paths:
+  /health:
+    description: For health check control
+    get:
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: string
   /tenant/{uuid}/flow/create:
     post:
       parameters:
