@@ -2,10 +2,21 @@ name: Publish demo artifacts
 
 on:
   push:
+    branches:
+      - main
+    tags:
+      - "v*.*.*"
+  pull_request:
+    branches:
+      - main
+
+env:
+  MAIN_BRANCH: ${{ 'refs/heads/main' }}
 
 jobs:
   build-publish-demo:
     runs-on: ubuntu-latest
+    if: github.ref == env.MAIN_BRANCH
     steps:
       - name: git checkout
         uses: actions/checkout@v3
@@ -30,3 +41,12 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: kurtosistech/demo-voting-app-ui:latest
+
+      - name: Build and push voting app UI - v2
+        uses: docker/build-push-action@v6
+        with:
+          context: ./examples/voting-app/voting-app-ui/
+          file: ./examples/voting-app/voting-app-ui/Dockerfile-v2
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: kurtosistech/demo-voting-app-ui-v2:latest
