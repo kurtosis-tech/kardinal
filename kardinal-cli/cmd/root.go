@@ -225,7 +225,6 @@ func createDevFlow(tenantUuid api_types.Uuid, services []types.ServiceConfig, im
 	}
 
 	fmt.Printf("Response: %s\n", string(resp.Body))
-	fmt.Printf("Response: %s\n", resp)
 }
 
 func deploy(tenantUuid api_types.Uuid, services []types.ServiceConfig) {

@@ -72,6 +72,74 @@ The Kardinal CLI is a standalone tool interacting with the Kardinal Cloud to man
 
 The Kardinal Manager retrieves the latest user services topology from the Kardinal Cloud and applies the changes by interacting with the Istio client and K8S client. The Manager manages traffic using Istio objects such as virtual services and destination rules. The Manager also updates the K8S services and deployments.
 
+
+## Quickstart
+
+### How to run Kardinal and use the voting app example to test the dev flow
+
+#### Prerequisites
+
+- A local Kubernetes cluster ([Minikube](https://minikube.sigs.k8s.io/docs/start/?arch=%2Fmacos%2Fx86-64%2Fstable%2Fbinary+download used in this example)
+- Istio resources installed in the local cluster (use the [getting started doc](https://istio.io/latest/docs/setup/getting-started/#download))
+```bash
+# Install with istioctl and default profile
+istioctl install --set profile=default -y
+```
+- Both `prod.app.localhost` and `dev.app.localhost` defined in the host file
+```bash
+# Add these entries in the '/private/etc/hosts' file
+127.0.0.1 prod.app.localhost
+127.0.0.1 dev.app.localhost
+```
+
+#### Steps
+
+##### Deploy the production voting app
+1. Follow [this to build and run the cli][run-build-cli]
+2. Deploy `Kardinal Manager` in the local kubernetes cluster and set the `Kardinal Control` location (we are going to use the cloud version on these steps)
+```bash
+./kardinal manager deploy kloud-kontrol
+```
+3. Copy the tenant UUID generated while running this command
+```bash
+# This log line will be printed in the terminal, copy the generated UUID
+INFO[0000] Using tenant UUID 58d33536-3c9e-4110-aa83-bf112ae94a49
+```
+3. Deploy the voting-app application with Kardinal
+```bash
+./kardinal deploy --docker-compose ../examples/voting-app/docker-compose.yaml
+```
+4. Check the current topology in the cloud Kontrol FE using this URL: https://app.kardinal.dev/{use-your-tenant-UUID-here}/traffic-configuration
+5. Open the [production page in the browser](http://prod.app.localhost/) to see the production `voting-app`
+
+##### Deploy the voting app development version in the same cluster
+1. Create a new flow to test a development `voting-app-ui-v2` version in production
+```bash
+./kardinal flow create voting-app-ui voting-app-ui-v2 --docker-compose ../examples/voting-app/docker-compose.yaml
+```
+2. Check how the topology has changed, to reflect both prod and the dev version, in the cloud Kontrol FE using this URL: https://app.kardinal.dev/{use-your-tenant-UUID-here}/traffic-configuration
+3. Open the [development voting-app-ui-v2 page in the browser](http://dev.app.localhost/) to see the development `voting-app-ui-v2`
+
+##### Remove the voting app development version from the same cluster
+1. Remove the flow created for the `voting-app-ui-v2`
+```bash
+./kardinal flow delete --docker-compose ../examples/voting-app/docker-compose.yaml
+```
+2. Check the topology again to, it's showing only the production version as the beginning, in the cloud Kontrol FE using this URL: https://app.kardinal.dev/{use-your-tenant-UUID-here}/traffic-configuration
+3. Open the [development voting-app-ui-v2 page in the browser](http://dev.app.localhost/) to check that it was successfully removed
+4. Open the [production page in the browser](http://prod.app.localhost/) to check that it didn't change
+
+##### Clean
+1. Remove `Kardinal Manager` from the cluster
+```bash
+./kardinal manager remove
+```
+2. Remove the `voting-app` application from the cluster
+```bash
+kubectl delete ns prod
+```
+
+
 ## Development instructions
 
 1. Enter the dev shell and start the local cluster:
@@ -177,3 +245,6 @@ You will need to do this every time a `go.mod` file is edited
 nix develop
 gomod2nix generate
 ```
+
+<!--------------- ONLY LINKS BELOW THIS POINT ---------------------->
+[run-build-cli]: #running-kardinal-cli
