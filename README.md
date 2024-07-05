@@ -104,11 +104,11 @@ minikube dashboard
 
 ##### Deploy the production voting app
 
-1. Follow [this to build and run the cli][run-build-cli]
+1. Use the `kardinal` provided by the Nix shell (enter using `nix develop`) or follow [this to build and run the cli][run-build-cli]
 2. Deploy `Kardinal Manager` in the local kubernetes cluster and set the `Kardinal Control` location (we are going to use the cloud version on these steps)
 
 ```bash
-./kardinal manager deploy kloud-kontrol
+kardinal manager deploy kloud-kontrol
 ```
 
 3. Copy the tenant UUID generated while running this command
@@ -121,18 +121,24 @@ INFO[0000] Using tenant UUID 58d33536-3c9e-4110-aa83-bf112ae94a49
 3. Deploy the voting-app application with Kardinal
 
 ```bash
-./kardinal deploy --docker-compose ../examples/voting-app/docker-compose.yaml
+kardinal deploy --docker-compose ../examples/voting-app/docker-compose.yaml
 ```
 
 4. Check the current topology in the cloud Kontrol FE using this URL: https://app.kardinal.dev/{use-your-tenant-UUID-here}/traffic-configuration
-5. Open the [production page in the browser](http://prod.app.localhost/) to see the production `voting-app`
+5. Start the tunnel to access the services (you may have to provide you password for the underlying sudo access)
+
+```bash
+minukube tunnel
+```
+
+6. Open the [production page in the browser](http://prod.app.localhost/) to see the production `voting-app`
 
 ##### Deploy the voting app development version in the same cluster
 
 1. Create a new flow to test a development `voting-app-ui-v2` version in production
 
 ```bash
-./kardinal flow create voting-app-ui voting-app-ui-v2 --docker-compose ../examples/voting-app/docker-compose.yaml
+kardinal flow create voting-app-ui voting-app-ui-v2 --docker-compose ../examples/voting-app/docker-compose.yaml
 ```
 
 2. Check how the topology has changed, to reflect both prod and the dev version, in the cloud Kontrol FE using this URL: https://app.kardinal.dev/{use-your-tenant-UUID-here}/traffic-configuration
@@ -143,7 +149,7 @@ INFO[0000] Using tenant UUID 58d33536-3c9e-4110-aa83-bf112ae94a49
 1. Remove the flow created for the `voting-app-ui-v2`
 
 ```bash
-./kardinal flow delete --docker-compose ../examples/voting-app/docker-compose.yaml
+kardinal flow delete --docker-compose ../examples/voting-app/docker-compose.yaml
 ```
 
 2. Check the topology again to, it's showing only the production version as the beginning, in the cloud Kontrol FE using this URL: https://app.kardinal.dev/{use-your-tenant-UUID-here}/traffic-configuration
@@ -155,7 +161,7 @@ INFO[0000] Using tenant UUID 58d33536-3c9e-4110-aa83-bf112ae94a49
 1. Remove `Kardinal Manager` from the cluster
 
 ```bash
-./kardinal manager remove
+kardinal manager remove
 ```
 
 2. Remove the `voting-app` application from the cluster
