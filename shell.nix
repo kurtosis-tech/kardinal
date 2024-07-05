@@ -6,17 +6,34 @@
       nativeBuildInputs = builtins.concatLists (map (s: s.nativeBuildInputs or []) shells);
       paths = builtins.concatLists (map (s: s.paths or []) shells);
     };
+
+  kardinal = pkgs.writeShellScriptBin "kardinal" ''
+    nix run .#kardinal-cli -- "$@"
+  '';
+
   manager_shell = pkgs.callPackage ./kardinal-manager/shell.nix {inherit pkgs;};
   cli_shell = pkgs.callPackage ./kardinal-cli/shell.nix {inherit pkgs;};
   cli_kontrol_api_shell = pkgs.callPackage ./libs/cli-kontrol-api/shell.nix {inherit pkgs;};
+  demo_shell = pkgs.callPackage ./examples/voting-app/shell.nix {inherit pkgs;};
+
   kardinal_shell = with pkgs;
     pkgs.mkShell {
       nativeBuildInputs = [bashInteractive bash-completion];
-      buildInputs = [kubectl kustomize kubernetes-helm minikube istioctl tilt reflex];
+      buildInputs = [
+        kardinal
+        kubectl
+        kustomize
+        kubernetes-helm
+        minikube
+        istioctl
+        tilt
+        reflex
+      ];
       shellHook = ''
         export SHELLNAME=$(basename $shell)
         source <(kubectl completion $SHELLNAME)
         source <(minikube completion $SHELLNAME)
+        source <(kardinal completion $SHELLNAME)
         printf '\u001b[31m
 
                                           :::::
@@ -49,4 +66,10 @@
       '';
     };
 in
-  mergeShells [manager_shell cli_shell kardinal_shell cli_kontrol_api_shell]
+  mergeShells [
+    manager_shell
+    cli_shell
+    kardinal_shell
+    cli_kontrol_api_shell
+    demo_shell
+  ]
