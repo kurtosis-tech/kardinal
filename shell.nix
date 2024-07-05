@@ -14,6 +14,8 @@
   manager_shell = pkgs.callPackage ./kardinal-manager/shell.nix {inherit pkgs;};
   cli_shell = pkgs.callPackage ./kardinal-cli/shell.nix {inherit pkgs;};
   cli_kontrol_api_shell = pkgs.callPackage ./libs/cli-kontrol-api/shell.nix {inherit pkgs;};
+  demo_shell = pkgs.callPackage ./examples/voting-app/shell.nix {inherit pkgs;};
+
   kardinal_shell = with pkgs;
     pkgs.mkShell {
       nativeBuildInputs = [bashInteractive bash-completion];
@@ -64,4 +66,10 @@
       '';
     };
 in
-  mergeShells [manager_shell cli_shell kardinal_shell cli_kontrol_api_shell]
+  mergeShells [
+    manager_shell
+    cli_shell
+    kardinal_shell
+    cli_kontrol_api_shell
+    demo_shell
+  ]
