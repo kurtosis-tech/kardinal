@@ -7,6 +7,7 @@ import (
 	"github.com/compose-spec/compose-go/cli"
 	"github.com/compose-spec/compose-go/types"
 	"github.com/kurtosis-tech/stacktrace"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"kardinal.cli/deployment"
 	"kardinal.cli/tenant"
@@ -67,6 +68,7 @@ var deployCmd = &cobra.Command{
 		}
 
 		deploy(tenantUuid.String(), services)
+		logrus.Infof("Visit: ")
 	},
 }
 

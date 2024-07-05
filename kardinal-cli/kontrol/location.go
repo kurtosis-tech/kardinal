@@ -1,4 +1,4 @@
-package tenant
+package kontrol
 
 import (
 	"github.com/google/uuid"
@@ -9,17 +9,30 @@ import (
 )
 
 const (
-	tenantUuidFilePermissions os.FileMode = 0644
+	kontrolLocationFilePermissions os.FileMode = 0644
 )
 
-func GetOrCreateUserTenantUUID() (uuid.UUID, error) {
-
-	kardinalFkTenantUuidFilepath, err := host_machine_directories.GetKardinalFkTenantUuidFilepath()
+func SaveKontrolLocation(kontrolLocation string) error {
+	kontrolLocationFilepath, err := host_machine_directories.GetKontrolLocation()
 	if err != nil {
-		return uuid.UUID{}, stacktrace.Propagate(err, "An error occurred getting the tenant UUID filepath")
+		return stacktrace.Propagate(err, "An error occurred getting the Kontrol location filepath")
 	}
 
-	_, err = os.Stat(kardinalFkTenantUuidFilepath)
+	if err := os.WriteFile(kontrolLocationFilepath, []byte(kontrolLocation), kontrolLocationFilePermissions); err != nil {
+		return stacktrace.Propagate(err, "An error occurred writing Kontrol location file '%v'", kontrolLocationFilepath)
+	}
+
+	return nil
+}
+
+func GetKontrolLocation() (string, error) {
+
+	kontrolLocationFilepath, err := host_machine_directories.GetKontrolLocation()
+	if err != nil {
+		return stacktrace.Propagate(err, "An error occurred getting the Kontrol location filepath")
+	}
+
+	_, err := os.Stat(kardinalFkTenantUuidFilepath)
 	if err != nil {
 		if os.IsNotExist(err) {
 
