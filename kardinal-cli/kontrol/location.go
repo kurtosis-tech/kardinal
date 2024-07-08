@@ -8,6 +8,8 @@ import (
 )
 
 const (
+	KontrolLocationLocalMinikube               = "local-minikube"
+	KontrolLocationKloudKontrol                = "kloud-kontrol"
 	kontrolLocationFilePermissions os.FileMode = 0644
 )
 

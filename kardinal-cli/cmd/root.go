@@ -25,9 +25,6 @@ const (
 	kontrolServiceApiUrl = "ad718d90d54d54dd084dea50a9f011af-1140086995.us-east-1.elb.amazonaws.com"
 	kontrolServicePort   = 8080
 
-	kontrolLocationLocalMinikube = "local-minikube"
-	kontrolLocationKloudKontrol  = "kloud-kontrol"
-
 	kontrolBaseURLTmpl                  = "%s://%s/"
 	kontrolClusterResourcesEndpointTmpl = "%s/tenant/%s/cluster-resources"
 
@@ -117,9 +114,9 @@ var deleteCmd = &cobra.Command{
 }
 
 var deployManagerCmd = &cobra.Command{
-	Use:       fmt.Sprintf("deploy [kontrol location] accepted values: %s and %s ", kontrolLocationLocalMinikube, kontrolLocationKloudKontrol),
+	Use:       fmt.Sprintf("deploy [kontrol location] accepted values: %s and %s ", kontrol.KontrolLocationLocalMinikube, kontrol.KontrolLocationKloudKontrol),
 	Short:     "Deploy Kardinal manager into the cluster",
-	ValidArgs: []string{kontrolLocationLocalMinikube, kontrolLocationKloudKontrol},
+	ValidArgs: []string{kontrol.KontrolLocationLocalMinikube, kontrol.KontrolLocationKloudKontrol},
 	Args:      cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
 	Run: func(cmd *cobra.Command, args []string) {
 
@@ -329,14 +326,14 @@ func getKontrolBaseURL() (string, error) {
 	)
 
 	switch kontrolLocation {
-	case kontrolLocationLocalMinikube:
+	case kontrol.KontrolLocationLocalMinikube:
 		scheme = httpSchme
 		host = localMinikubeKontrolAPIHost
-	case kontrolLocationKloudKontrol:
+	case kontrol.KontrolLocationKloudKontrol:
 		scheme = httpsScheme
 		host = kloudKontrolAPIHost
 	default:
-		return "", stacktrace.NewError("invalid kontrol location: %s", kontrolLocation)
+		return "", stacktrace.NewError("invalid Kontrol location: %s", kontrolLocation)
 	}
 
 	baseURL := fmt.Sprintf(kontrolBaseURLTmpl, scheme, host)
