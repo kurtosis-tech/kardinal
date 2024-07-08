@@ -42,8 +42,8 @@ jobs:
         run: |
           nix develop --command test -z $(gofmt -l .)
 
-  build_and_test_nix:
-    name: Test and build
+  build_publish_images:
+    name: Test, build and publish images
     needs: check_nix
     runs-on: ubuntu-22.04
     steps:
@@ -83,3 +83,26 @@ jobs:
           nix run ./#publish-kardinal-manager-container
           nix run ./#publish-kardinal-cli-container
           nix run ./#publish-redis-proxy-overlay-container
+
+  build_clis:
+    name: Test and build cross-compiled clis
+    needs: check_nix
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        os: [linux, darwin, windows]
+        arch: [amd64, arm64]
+
+    steps:
+      - name: git checkout
+        uses: actions/checkout@v3
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Magic cache
+        uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Build Kardinal CLI images
+        run: |
+          nix build ./#cross-compiled-cli.x86_64-linux.${{ matrix.os }}.${{ matrix.arch }} --no-link --print-out-paths
