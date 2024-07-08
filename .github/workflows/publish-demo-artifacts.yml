@@ -10,13 +10,10 @@ on:
     branches:
       - main
 
-env:
-  MAIN_BRANCH: ${{ 'refs/heads/main' }}
-
 jobs:
   build-publish-demo:
     runs-on: ubuntu-latest
-    if: github.ref == env.MAIN_BRANCH
+    if: github.ref == 'refs/heads/main'
     steps:
       - name: git checkout
         uses: actions/checkout@v3
