@@ -81,7 +81,7 @@ The Kardinal Manager retrieves the latest user services topology from the Kardin
 
 You will need the following tools installed (they will be already available if you are using the nix shell provided by this repository):
 
-- A local Kubernetes cluster ([Minikube](https://minikube.sigs.k8s.io/docs/start/?arch=%2Fmacos%2Fx86-64%2Fstable%2Fbinary+download) used in this example
+- A local Kubernetes cluster ([Minikube](https://minikube.sigs.k8s.io/docs/start/?arch=%2Fmacos%2Fx86-64%2Fstable%2Fbinary+download) used in this example)
 - Istio resources installed in the local cluster (use the [getting started doc](https://istio.io/latest/docs/setup/getting-started/#download))
 
 ```bash
@@ -121,14 +121,14 @@ INFO[0000] Using tenant UUID 58d33536-3c9e-4110-aa83-bf112ae94a49
 3. Deploy the voting-app application with Kardinal
 
 ```bash
-kardinal deploy --docker-compose ../examples/voting-app/docker-compose.yaml
+kardinal deploy --docker-compose ./examples/voting-app/docker-compose.yaml
 ```
 
 4. Check the current topology in the cloud Kontrol FE using this URL: https://app.kardinal.dev/{use-your-tenant-UUID-here}/traffic-configuration
 5. Start the tunnel to access the services (you may have to provide you password for the underlying sudo access)
 
 ```bash
-minukube tunnel
+minikube tunnel
 ```
 
 6. Open the [production page in the browser](http://prod.app.localhost/) to see the production `voting-app`
@@ -138,7 +138,7 @@ minukube tunnel
 1. Create a new flow to test a development `voting-app-ui-v2` version in production
 
 ```bash
-kardinal flow create voting-app-ui voting-app-ui-v2 --docker-compose ../examples/voting-app/docker-compose.yaml
+kardinal flow create voting-app-ui voting-app-ui-v2 --docker-compose ./examples/voting-app/docker-compose.yaml
 ```
 
 2. Check how the topology has changed, to reflect both prod and the dev version, in the cloud Kontrol FE using this URL: https://app.kardinal.dev/{use-your-tenant-UUID-here}/traffic-configuration
@@ -149,7 +149,7 @@ kardinal flow create voting-app-ui voting-app-ui-v2 --docker-compose ../examples
 1. Remove the flow created for the `voting-app-ui-v2`
 
 ```bash
-kardinal flow delete --docker-compose ../examples/voting-app/docker-compose.yaml
+kardinal flow delete --docker-compose ./examples/voting-app/docker-compose.yaml
 ```
 
 2. Check the topology again to, it's showing only the production version as the beginning, in the cloud Kontrol FE using this URL: https://app.kardinal.dev/{use-your-tenant-UUID-here}/traffic-configuration
