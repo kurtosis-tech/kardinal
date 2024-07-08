@@ -1,0 +1,63 @@
+name: Publish Binaries
+
+on:
+  push:
+    # tags:
+    #   - "v*.*.*"
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        os: [linux, darwin, windows]
+        arch: [amd64, arm64]
+
+    steps:
+      - name: git checkout
+        uses: actions/checkout@v3
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Magic cache
+        uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Build Kardinal CLI images
+        id: build-cli
+        shell: bash
+        run: |
+          path=$(nix build ./#cross-compiled-cli.x86_64-linux.${{ matrix.os }}.${{ matrix.arch }} --no-link --print-out-paths)
+          echo "path=$path" >> $GITHUB_OUTPUT
+
+      - name: Access it
+        run: |
+          echo "the secret number is ${{ steps.build-cli.outputs.path }}"
+
+      - name: Upload release assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ${{ steps.build-cli.outputs.path }}/bin/${{ matrix.os }}_${{ matrix.arch }}/kardinal.cli
+          asset_name: kardinal-${{ matrix.os }}-${{ matrix.arch }}
+          asset_content_type: application/octet-stream
+
+  create-release:
+    needs: build-and-publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
