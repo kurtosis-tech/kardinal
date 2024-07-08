@@ -32,6 +32,7 @@ jobs:
   build-and-publish-clis:
     needs: release-please
     runs-on: ubuntu-22.04
+    if: ${{ needs.release-please.outputs.release_created }}
     strategy:
       matrix:
         os: [linux, darwin, windows]
@@ -48,7 +49,6 @@ jobs:
         uses: DeterminateSystems/magic-nix-cache-action@main
 
       - name: Upload Release CLI Artifact
-        if: ${{ needs.release-please.outputs.release_created }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
