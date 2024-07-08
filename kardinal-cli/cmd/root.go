@@ -25,13 +25,14 @@ const (
 	kontrolServiceApiUrl = "ad718d90d54d54dd084dea50a9f011af-1140086995.us-east-1.elb.amazonaws.com"
 	kontrolServicePort   = 8080
 
-	kontrolBaseURLTmpl                  = "%s://%s/"
+	kontrolBaseURLTmpl                  = "%s://%s"
 	kontrolClusterResourcesEndpointTmpl = "%s/tenant/%s/cluster-resources"
 
 	kontrolTrafficConfigurationURLTmpl = "%s/%s/traffic-configuration"
 
 	localMinikubeKontrolAPIHost = "host.minikube.internal:8080"
-	kloudKontrolAPIHost         = "app.kardinal.dev/api"
+	kloudKontrolHost            = "app.kardinal.dev"
+	kloudKontrolAPIHost         = kloudKontrolHost + "/api"
 
 	httpSchme   = "http"
 	httpsScheme = httpSchme + "s"
@@ -314,7 +315,7 @@ func getKontrolServiceClient() *api.ClientWithResponses {
 	}
 }
 
-func getKontrolBaseURL() (string, error) {
+func getKontrolBaseURL(useApiHost bool) (string, error) {
 	kontrolLocation, err := kontrol.GetKontrolLocation()
 	if err != nil {
 		return "", stacktrace.Propagate(err, "An error occurred getting the Kontrol location")
@@ -331,7 +332,11 @@ func getKontrolBaseURL() (string, error) {
 		host = localMinikubeKontrolAPIHost
 	case kontrol.KontrolLocationKloudKontrol:
 		scheme = httpsScheme
-		host = kloudKontrolAPIHost
+		if useApiHost {
+			host = kloudKontrolAPIHost
+		} else {
+			host = kloudKontrolHost
+		}
 	default:
 		return "", stacktrace.NewError("invalid Kontrol location: %s", kontrolLocation)
 	}
@@ -343,7 +348,7 @@ func getKontrolBaseURL() (string, error) {
 
 func getTrafficConfigurationURL(tenantUuid api_types.Uuid) (string, error) {
 
-	kontrolBaseURL, err := getKontrolBaseURL()
+	kontrolBaseURL, err := getKontrolBaseURL(false)
 	if err != nil {
 		return "", stacktrace.Propagate(err, "An error occurred getting the Kontrol base URL")
 	}
@@ -355,7 +360,7 @@ func getTrafficConfigurationURL(tenantUuid api_types.Uuid) (string, error) {
 
 func getClusterResourcesURL(tenantUuid api_types.Uuid) (string, error) {
 
-	kontrolBaseURL, err := getKontrolBaseURL()
+	kontrolBaseURL, err := getKontrolBaseURL(true)
 	if err != nil {
 		return "", stacktrace.Propagate(err, "An error occurred getting the Kontrol base URL")
 	}
