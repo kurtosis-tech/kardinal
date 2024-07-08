@@ -14,7 +14,7 @@ const (
 )
 
 func SaveKontrolLocation(kontrolLocation string) error {
-	kontrolLocationFilepath, err := host_machine_directories.GetKontrolLocation()
+	kontrolLocationFilepath, err := host_machine_directories.GetKontrolLocationFilepath()
 	if err != nil {
 		return stacktrace.Propagate(err, "An error occurred getting the Kontrol location filepath")
 	}
@@ -28,7 +28,7 @@ func SaveKontrolLocation(kontrolLocation string) error {
 
 func GetKontrolLocation() (string, error) {
 
-	kontrolLocationFilepath, err := host_machine_directories.GetKontrolLocation()
+	kontrolLocationFilepath, err := host_machine_directories.GetKontrolLocationFilepath()
 	if err != nil {
 		return "", stacktrace.Propagate(err, "An error occurred getting the Kontrol location filepath")
 	}

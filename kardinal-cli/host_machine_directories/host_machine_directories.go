@@ -21,7 +21,7 @@ func GetKardinalFkTenantUuidFilepath() (string, error) {
 	return fkTenantUuidFilepath, nil
 }
 
-func GetKontrolLocation() (string, error) {
+func GetKontrolLocationFilepath() (string, error) {
 	xdgRelFilepath := getRelativeFilepathForXDG(kontrolLocation)
 	kontrolLocationFilepath, err := xdg.DataFile(xdgRelFilepath)
 	if err != nil {
