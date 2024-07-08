@@ -1,0 +1,14 @@
+FROM python:3.9-slim
+
+WORKDIR /app
+
+COPY . .
+
+RUN pip install Flask redis
+
+ENV APP_VERSION v2
+
+EXPOSE 5000
+
+CMD ["python", "app.py"]
+
