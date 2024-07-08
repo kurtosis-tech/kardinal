@@ -251,7 +251,8 @@ func deploy(tenantUuid api_types.Uuid, services []types.ServiceConfig) {
 
 	trafficConfigurationURL, err := getTrafficConfigurationURL(tenantUuid)
 	if err != nil {
-		log.Fatalf("Failed to get the traffic configuration URL for tenant UUID: %s. Error:\n%v", tenantUuid, err)
+		logrus.Warningf("The command run successfully but it was impossible to print the traffic configuration URL because and error ocurred, please make sure to run the 'kardinal manager deploy' command first")
+		return
 	}
 
 	logrus.Infof("Visit: %s", trafficConfigurationURL)
