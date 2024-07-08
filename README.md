@@ -138,7 +138,7 @@ minikube tunnel
 1. Create a new flow to test a development `voting-app-ui-v2` version in production
 
 ```bash
-kardinal flow create voting-app-ui voting-app-ui-v2 --docker-compose ../examples/voting-app/docker-compose.yaml
+kardinal flow create voting-app-ui voting-app-ui-v2 --docker-compose ./examples/voting-app/docker-compose.yaml
 ```
 
 2. Check how the topology has changed, to reflect both prod and the dev version, in the cloud Kontrol FE using this URL: https://app.kardinal.dev/{use-your-tenant-UUID-here}/traffic-configuration
@@ -149,7 +149,7 @@ kardinal flow create voting-app-ui voting-app-ui-v2 --docker-compose ../examples
 1. Remove the flow created for the `voting-app-ui-v2`
 
 ```bash
-kardinal flow delete --docker-compose ../examples/voting-app/docker-compose.yaml
+kardinal flow delete --docker-compose ./examples/voting-app/docker-compose.yaml
 ```
 
 2. Check the topology again to, it's showing only the production version as the beginning, in the cloud Kontrol FE using this URL: https://app.kardinal.dev/{use-your-tenant-UUID-here}/traffic-configuration
