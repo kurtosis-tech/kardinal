@@ -210,7 +210,7 @@ or in the `kardinal-manager/deployment/k8s.yaml`:
   env:
     - name: KARDINAL_MANAGER_CLUSTER_CONFIG_ENDPOINT
       # This is valid for reaching out the Kardinal Kontrol if this is running on the host
-     value: "http://localhost:8080/tenant/{36e22127-3c9e-4110-aa83-af552cd94b88}/cluster-resources"
+     value: "http://localhost:8080/tenant/36e22127-3c9e-4110-aa83-af552cd94b88/cluster-resources"
     - name: KARDINAL_MANAGER_FETCHER_JOB_DURATION_SECONDS
     value: "10"
 ```
