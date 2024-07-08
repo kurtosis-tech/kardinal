@@ -10,6 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"kardinal.cli/deployment"
+	"kardinal.cli/kontrol"
 	"kardinal.cli/tenant"
 	"log"
 	"net/http"
@@ -27,7 +28,10 @@ const (
 	kontrolLocationLocalMinikube = "local-minikube"
 	kontrolLocationKloudKontrol  = "kloud-kontrol"
 
-	kontrolClusterResourcesEndpointTmpl = "%s://%s/tenant/%s/cluster-resources"
+	kontrolBaseURLTmpl                  = "%s://%s/"
+	kontrolClusterResourcesEndpointTmpl = "%s/tenant/%s/cluster-resources"
+
+	kontrolTrafficConfigurationURLTmpl = "%s/%s/traffic-configuration"
 
 	localMinikubeKontrolAPIHost = "host.minikube.internal:8080"
 	kloudKontrolAPIHost         = "app.kardinal.dev/api"
@@ -68,7 +72,6 @@ var deployCmd = &cobra.Command{
 		}
 
 		deploy(tenantUuid.String(), services)
-		logrus.Infof("Visit: ")
 	},
 }
 
@@ -122,12 +125,16 @@ var deployManagerCmd = &cobra.Command{
 
 		kontroLocation := args[0]
 
+		if err := kontrol.SaveKontrolLocation(kontroLocation); err != nil {
+			log.Fatal("Error saving the Kontrol location", err)
+		}
+
 		tenantUuid, err := tenant.GetOrCreateUserTenantUUID()
 		if err != nil {
 			log.Fatal("Error getting or creating user tenant UUID", err)
 		}
 
-		if err := deployManager(tenantUuid.String(), kontroLocation); err != nil {
+		if err := deployManager(tenantUuid.String()); err != nil {
 			log.Fatal("Error deploying Kardinal manager", err)
 		}
 
@@ -243,6 +250,13 @@ func deploy(tenantUuid api_types.Uuid, services []types.ServiceConfig) {
 	}
 
 	fmt.Printf("Response: %s\n", string(resp.Body))
+
+	trafficConfigurationURL, err := getTrafficConfigurationURL(tenantUuid)
+	if err != nil {
+		log.Fatalf("Failed to get the traffic configuration URL for tenant UUID: %s. Error:\n%v", tenantUuid, err)
+	}
+
+	logrus.Infof("Visit: %s", trafficConfigurationURL)
 }
 
 func deleteFlow(tenantUuid api_types.Uuid, services []types.ServiceConfig) {
@@ -261,25 +275,14 @@ func deleteFlow(tenantUuid api_types.Uuid, services []types.ServiceConfig) {
 	fmt.Printf("Response: %s\n", string(resp.Body))
 }
 
-func deployManager(tenantUuid api_types.Uuid, kontrolLocation string) error {
-	var (
-		ctx    = context.Background()
-		scheme string
-		host   string
-	)
+func deployManager(tenantUuid api_types.Uuid) error {
 
-	switch kontrolLocation {
-	case kontrolLocationLocalMinikube:
-		scheme = httpSchme
-		host = localMinikubeKontrolAPIHost
-	case kontrolLocationKloudKontrol:
-		scheme = httpsScheme
-		host = kloudKontrolAPIHost
-	default:
-		return stacktrace.NewError("invalid kontrol location: %s", kontrolLocation)
+	ctx := context.Background()
+
+	clusterResourcesURL, err := getClusterResourcesURL(tenantUuid)
+	if err != nil {
+		return stacktrace.Propagate(err, "Error getting cluster resources URL")
 	}
-
-	clusterResourcesURL := fmt.Sprintf(kontrolClusterResourcesEndpointTmpl, scheme, host, tenantUuid)
 
 	if err := deployment.DeployKardinalManagerInCluster(ctx, clusterResourcesURL); err != nil {
 		return stacktrace.Propagate(err, "An error occurred deploying Kardinal manager into the cluster with cluster resources URL '%s'", clusterResourcesURL)
@@ -312,4 +315,55 @@ func getKontrolServiceClient() *api.ClientWithResponses {
 		}
 		return client
 	}
+}
+
+func getKontrolBaseURL() (string, error) {
+	kontrolLocation, err := kontrol.GetKontrolLocation()
+	if err != nil {
+		return "", stacktrace.Propagate(err, "An error occurred getting the Kontrol location")
+	}
+
+	var (
+		scheme string
+		host   string
+	)
+
+	switch kontrolLocation {
+	case kontrolLocationLocalMinikube:
+		scheme = httpSchme
+		host = localMinikubeKontrolAPIHost
+	case kontrolLocationKloudKontrol:
+		scheme = httpsScheme
+		host = kloudKontrolAPIHost
+	default:
+		return "", stacktrace.NewError("invalid kontrol location: %s", kontrolLocation)
+	}
+
+	baseURL := fmt.Sprintf(kontrolBaseURLTmpl, scheme, host)
+
+	return baseURL, nil
+}
+
+func getTrafficConfigurationURL(tenantUuid api_types.Uuid) (string, error) {
+
+	kontrolBaseURL, err := getKontrolBaseURL()
+	if err != nil {
+		return "", stacktrace.Propagate(err, "An error occurred getting the Kontrol base URL")
+	}
+
+	trafficConfigurationURL := fmt.Sprintf(kontrolTrafficConfigurationURLTmpl, kontrolBaseURL, tenantUuid)
+
+	return trafficConfigurationURL, nil
+}
+
+func getClusterResourcesURL(tenantUuid api_types.Uuid) (string, error) {
+
+	kontrolBaseURL, err := getKontrolBaseURL()
+	if err != nil {
+		return "", stacktrace.Propagate(err, "An error occurred getting the Kontrol base URL")
+	}
+
+	clusterResourcesURL := fmt.Sprintf(kontrolClusterResourcesEndpointTmpl, kontrolBaseURL, tenantUuid)
+
+	return clusterResourcesURL, nil
 }

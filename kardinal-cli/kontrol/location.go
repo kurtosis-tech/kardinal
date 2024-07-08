@@ -1,7 +1,6 @@
 package kontrol
 
 import (
-	"github.com/google/uuid"
 	"github.com/kurtosis-tech/stacktrace"
 	"github.com/sirupsen/logrus"
 	"kardinal.cli/host_machine_directories"
@@ -29,41 +28,21 @@ func GetKontrolLocation() (string, error) {
 
 	kontrolLocationFilepath, err := host_machine_directories.GetKontrolLocation()
 	if err != nil {
-		return stacktrace.Propagate(err, "An error occurred getting the Kontrol location filepath")
+		return "", stacktrace.Propagate(err, "An error occurred getting the Kontrol location filepath")
 	}
 
-	_, err := os.Stat(kardinalFkTenantUuidFilepath)
+	_, err = os.Stat(kontrolLocationFilepath)
 	if err != nil {
-		if os.IsNotExist(err) {
-
-			newUUID, err := uuid.NewRandom()
-			if err != nil {
-				return uuid.UUID{}, stacktrace.Propagate(err, "An error occurred generating a new UUID")
-			}
-
-			if err := os.WriteFile(kardinalFkTenantUuidFilepath, []byte(newUUID.String()), tenantUuidFilePermissions); err != nil {
-				return uuid.UUID{}, stacktrace.Propagate(err, "An error occurred writing fk tenant UUID file '%v'", kardinalFkTenantUuidFilepath)
-			}
-			logrus.Debugf("Kardinal fk tenant UUID file saved to %v", kardinalFkTenantUuidFilepath)
-			logrus.Infof("Creating new tenant UUID %s", newUUID)
-			return newUUID, nil
-		} else {
-			return uuid.UUID{}, stacktrace.Propagate(err, "An error occurred getting fk tenant UUID file info")
-		}
+		return "", stacktrace.Propagate(err, "An error occurred getting the Kontrol location  file info")
 	}
 
-	kardinalFkTenantUuidFileBytes, err := os.ReadFile(kardinalFkTenantUuidFilepath)
+	kontrolLocationFileBytes, err := os.ReadFile(kontrolLocationFilepath)
 	if err != nil {
-		return uuid.UUID{}, stacktrace.Propagate(err, "attempted to read file fk tenant UUID with path '%s' but failed", kardinalFkTenantUuidFilepath)
+		return "", stacktrace.Propagate(err, "attempted to read file Kontrol location path '%s' but failed", kontrolLocationFilepath)
 	}
 
-	kardinalFkTenantUuidFileStr := string(kardinalFkTenantUuidFileBytes)
+	kontrolLocationFileStr := string(kontrolLocationFileBytes)
 
-	parsedUuid, err := uuid.Parse(kardinalFkTenantUuidFileStr)
-	if err != nil {
-		return uuid.UUID{}, stacktrace.Propagate(err, "An error occurred parsing the UUID str '%s' to UUID", kardinalFkTenantUuidFileStr)
-	}
-
-	logrus.Infof("Using tenant UUID %s", kardinalFkTenantUuidFileStr)
-	return parsedUuid, nil
+	logrus.Infof("Using Kontrol location %s", kontrolLocationFileStr)
+	return kontrolLocationFileStr, nil
 }
