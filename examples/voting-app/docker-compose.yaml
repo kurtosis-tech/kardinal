@@ -10,7 +10,7 @@ services:
       - "6379:6379"
 
   azure-vote-front:
-    image: voting-app-ui
+    image: kurtosistech/demo-voting-app-ui
     container_name: voting-app-ui
     environment:
       REDIS: redis-prod
