@@ -53,7 +53,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           path=$(nix build ./#cross-compiled-cli.x86_64-linux.${{ matrix.os }}.${{ matrix.arch }} --no-link --print-out-paths)
-          mkdir -p dist
-          binout="dist/kardinal-${{ matrix.os }}-${{ matrix.arch }}"
-          mv $path $binout
+          binout="/tmp/kardinal-${{ matrix.os }}-${{ matrix.arch }}"
+          ln -s $path $binout
           gh release upload ${{ needs.release-please.outputs.tag_name }} $binout
