@@ -47,20 +47,12 @@ jobs:
       - name: Magic cache
         uses: DeterminateSystems/magic-nix-cache-action@main
 
-      - name: Build Kardinal CLI images
-        id: build-cli
-        shell: bash
-        run: |
-          path=$(nix build ./#cross-compiled-cli.x86_64-linux.${{ matrix.os }}.${{ matrix.arch }} --no-link --print-out-paths)
-          mv $path /tmp/kardinal-${{ matrix.os }}-${{ matrix.arch }}
-          echo "path=/tmp/kardinal-${{ matrix.os }}-${{ matrix.arch }}" >> $GITHUB_OUTPUT
-
-      - name: Access it
-        run: |
-          echo "the secret number is ${{ steps.build-cli.outputs.path }}"
-
-      - name: Upload Release Artifact
+      - name: Upload Release CLI Artifact
         if: ${{ needs.release-please.outputs.release_created }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload ${{ needs.release-please.outputs.tag_name }} ${{ steps.build-cli.outputs.path }}
+        run: |
+          path=$(nix build ./#cross-compiled-cli.x86_64-linux.${{ matrix.os }}.${{ matrix.arch }} --no-link --print-out-paths)
+          binout="/tmp/kardinal-${{ matrix.os }}-${{ matrix.arch }}"
+          mv $path $binout
+          gh release upload ${{ needs.release-please.outputs.tag_name }} $binout

@@ -103,6 +103,9 @@ jobs:
       - name: Magic cache
         uses: DeterminateSystems/magic-nix-cache-action@main
 
-      - name: Build Kardinal CLI images
+      - name: Build cli
         run: |
-          nix build ./#cross-compiled-cli.x86_64-linux.${{ matrix.os }}.${{ matrix.arch }} --no-link --print-out-paths
+          path=$(nix build ./#cross-compiled-cli.x86_64-linux.${{ matrix.os }}.${{ matrix.arch }} --no-link --print-out-paths)
+          binout="/tmp/kardinal-${{ matrix.os }}-${{ matrix.arch }}"
+          mv $path $binout
+          ls -lah $binout
