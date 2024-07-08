@@ -3,9 +3,10 @@ package deployment
 import (
 	"bytes"
 	"context"
+	"text/template"
+
 	"github.com/kurtosis-tech/stacktrace"
 	"kardinal.cli/consts"
-	"text/template"
 )
 
 const (
@@ -71,8 +72,6 @@ spec:
       containers:
         - name: kardinal-manager
           image: kurtosistech/kardinal-manager:latest
-          # TODO: Policy to local dev only - figure a way to remove it
-          imagePullPolicy: Never
           env:
             - name: KUBERNETES_SERVICE_HOST
               value: "kubernetes.default.svc"
