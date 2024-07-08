@@ -94,7 +94,7 @@ type templateData struct {
 	KardinalManagerContainerImagePullPolicy string
 }
 
-func DeployKardinalManagerInCluster(ctx context.Context, clusterResourcesURL string) error {
+func DeployKardinalManagerInCluster(ctx context.Context, clusterResourcesURL string, kontrolLocation string) error {
 	kubernetesClientObj, err := createKubernetesClient()
 	if err != nil {
 		return stacktrace.Propagate(err, "An error occurred while creating the Kubernetes client")
@@ -103,11 +103,6 @@ func DeployKardinalManagerInCluster(ctx context.Context, clusterResourcesURL str
 	kardinalManagerDeploymentTemplate, err := template.New(kardinalManagerDeploymentTmplName).Parse(kardinalManagerDeploymentTmpl)
 	if err != nil {
 		return stacktrace.Propagate(err, "An error occurred while parsing the kardinal-manager deployment template")
-	}
-
-	kontrolLocation, err := kontrol.GetKontrolLocation()
-	if err != nil {
-		return stacktrace.Propagate(err, "An error occurred getting the Kontrol location")
 	}
 
 	var imagePullPolicy string

@@ -121,9 +121,9 @@ var deployManagerCmd = &cobra.Command{
 	Args:      cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
 	Run: func(cmd *cobra.Command, args []string) {
 
-		kontroLocation := args[0]
+		kontrolLocation := args[0]
 
-		if err := kontrol.SaveKontrolLocation(kontroLocation); err != nil {
+		if err := kontrol.SaveKontrolLocation(kontrolLocation); err != nil {
 			log.Fatal("Error saving the Kontrol location", err)
 		}
 
@@ -132,11 +132,11 @@ var deployManagerCmd = &cobra.Command{
 			log.Fatal("Error getting or creating user tenant UUID", err)
 		}
 
-		if err := deployManager(tenantUuid.String()); err != nil {
+		if err := deployManager(tenantUuid.String(), kontrolLocation); err != nil {
 			log.Fatal("Error deploying Kardinal manager", err)
 		}
 
-		fmt.Printf("Kardinal manager deployed using '%s' Kontrol", kontroLocation)
+		logrus.Infof("Kardinal manager deployed using '%s' Kontrol", kontrolLocation)
 	},
 }
 
@@ -273,7 +273,7 @@ func deleteFlow(tenantUuid api_types.Uuid, services []types.ServiceConfig) {
 	fmt.Printf("Response: %s\n", string(resp.Body))
 }
 
-func deployManager(tenantUuid api_types.Uuid) error {
+func deployManager(tenantUuid api_types.Uuid, kontrolLocation string) error {
 
 	ctx := context.Background()
 
@@ -282,7 +282,7 @@ func deployManager(tenantUuid api_types.Uuid) error {
 		return stacktrace.Propagate(err, "Error getting cluster resources URL")
 	}
 
-	if err := deployment.DeployKardinalManagerInCluster(ctx, clusterResourcesURL); err != nil {
+	if err := deployment.DeployKardinalManagerInCluster(ctx, clusterResourcesURL, kontrolLocation); err != nil {
 		return stacktrace.Propagate(err, "An error occurred deploying Kardinal manager into the cluster with cluster resources URL '%s'", clusterResourcesURL)
 	}
 
