@@ -81,7 +81,7 @@ The Kardinal Manager retrieves the latest user services topology from the Kardin
 
 You will need the following tools installed (they will be already available if you are using the nix shell provided by this repository):
 
-- A local Kubernetes cluster ([Minikube](https://minikube.sigs.k8s.io/docs/start/?arch=%2Fmacos%2Fx86-64%2Fstable%2Fbinary+download) used in this example
+- A local Kubernetes cluster ([Minikube](https://minikube.sigs.k8s.io/docs/start/?arch=%2Fmacos%2Fx86-64%2Fstable%2Fbinary+download) used in this example)
 - Istio resources installed in the local cluster (use the [getting started doc](https://istio.io/latest/docs/setup/getting-started/#download))
 
 ```bash
