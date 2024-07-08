@@ -54,5 +54,5 @@ jobs:
         run: |
           path=$(nix build ./#cross-compiled-cli.x86_64-linux.${{ matrix.os }}.${{ matrix.arch }} --no-link --print-out-paths)
           binout="/tmp/kardinal-${{ matrix.os }}-${{ matrix.arch }}"
-          ln -s $path $binout
+          ln -s $path/bin/${{ matrix.os }}_${{ matrix.arch }}/kardinal.cli $binout
           gh release upload ${{ needs.release-please.outputs.tag_name }} $binout
