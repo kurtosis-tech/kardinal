@@ -13,9 +13,13 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     # skip releases on forks
+    outputs:
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      release_created: ${{ steps.release.outputs.release_created }}
     if: github.repository == 'kurtosis-tech/kardinal'
     steps:
       - name: Run Release Please
+        id: release
         uses: googleapis/release-please-action@v3
         with:
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
@@ -24,3 +28,41 @@ jobs:
           bump-minor-pre-major: true
           bump-patch-for-minor-pre-major: true
           include-v-in-tag: false
+
+  build-and-publish-clis:
+    needs: release-please
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        os: [linux, darwin, windows]
+        arch: [amd64, arm64]
+
+    steps:
+      - name: git checkout
+        uses: actions/checkout@v3
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Magic cache
+        uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Build Kardinal CLI images
+        id: build-cli
+        shell: bash
+        run: |
+          path=$(nix build ./#cross-compiled-cli.x86_64-linux.${{ matrix.os }}.${{ matrix.arch }} --no-link --print-out-paths)
+          mv $path /tmp/kardinal-${{ matrix.os }}-${{ matrix.arch }}
+          echo "path=/tmp/kardinal-${{ matrix.os }}-${{ matrix.arch }}" >> $GITHUB_OUTPUT
+
+      - name: Access it
+        run: |
+          echo "the secret number is ${{ steps.build-cli.outputs.path }}"
+
+      - name: Upload Release Artifact
+        if: ${{ needs.release-please.outputs.release_created }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload ${{ needs.release-please.outputs.tag_name }} ${{ steps.build-cli.outputs.path }}
