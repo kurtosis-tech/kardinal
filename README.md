@@ -121,14 +121,14 @@ INFO[0000] Using tenant UUID 58d33536-3c9e-4110-aa83-bf112ae94a49
 3. Deploy the voting-app application with Kardinal
 
 ```bash
-kardinal deploy --docker-compose ../examples/voting-app/docker-compose.yaml
+kardinal deploy --docker-compose ./examples/voting-app/docker-compose.yaml
 ```
 
 4. Check the current topology in the cloud Kontrol FE using this URL: https://app.kardinal.dev/{use-your-tenant-UUID-here}/traffic-configuration
 5. Start the tunnel to access the services (you may have to provide you password for the underlying sudo access)
 
 ```bash
-minukube tunnel
+minikube tunnel
 ```
 
 6. Open the [production page in the browser](http://prod.app.localhost/) to see the production `voting-app`
