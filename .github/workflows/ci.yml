@@ -104,8 +104,6 @@ jobs:
         uses: DeterminateSystems/magic-nix-cache-action@main
 
       - name: Build cli
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           result=$(nix build ./#cross-compiled-cli.x86_64-linux.${{ matrix.os }}.${{ matrix.arch }} --no-link --print-out-paths)
           path=$(find $result -name 'kardinal.cli*' -type f | head -n 1)
@@ -117,4 +115,4 @@ jobs:
           ls -lah $path
           ln -s $path $binout
           ls -lah $binout
-          gh release upload '0.1.1' $binout --clobber
+          [ -s $binout ]
