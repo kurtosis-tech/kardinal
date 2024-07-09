@@ -176,6 +176,127 @@ kardinal manager remove
 kubectl delete ns prod
 ```
 
+## Deploying Kardinal on a Kubernetes Cluster
+
+These instructions provide a guide for deploying Kardinal on any Kubernetes cluster, whether it's a local setup like Minikube, a managed cloud service, or your own self-hosted cluster. We'll use kubectl port-forwarding to access the services, which works universally across different Kubernetes setups.
+
+### Prerequisites
+
+- A Kubernetes cluster (e.g., Minikube, EKS, GKE, AKS, or any other Kubernetes distribution)
+- kubectl installed and configured to access your cluster
+
+### Steps
+
+1. Install the Kardinal CLI:
+
+```bash
+curl https://raw.githubusercontent.com/kurtosis-tech/kardinal/main/scripts/install_cli.sh -s | sh
+```
+
+2. Install Istio (if not already installed):
+
+If you don't already have Istio installed in your cluster, follow these steps to install it:
+
+```bash
+curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.22.1 TARGET_ARCH=x86_64 sh -
+cd istio-1.22.1
+export PATH=$PWD/bin:$PATH
+echo 'export PATH=$PATH:'"$PWD/bin" >> ~/.bashrc
+istioctl install --set profile=demo -y
+cd ..
+```
+
+If you already have Istio installed, you can skip this step.
+
+3. Deploy the Kardinal Manager:
+
+```bash
+kardinal manager deploy kloud-kontrol
+```
+
+4. Note the tenant UUID generated during this process. You'll need this to check your traffic configuration.
+
+5. Clone the Kardinal Playground repository to get the voting app demo:
+
+```bash
+git clone https://github.com/kurtosis-tech/kardinal-playground.git
+cd kardinal-playground/voting-app-demo
+```
+
+6. Deploy the voting-app application with Kardinal:
+
+```bash
+kardinal deploy --docker-compose docker-compose.yaml
+```
+
+7. Check the initial Kardinal traffic configuration:
+   Visit https://app.kardinal.dev/{your-tenant-id} (replace {your-tenant-id} with the UUID from step 4)
+   You should see only the production version of your application in the traffic configuration.
+
+8. Download the port-forwarding script:
+
+```bash
+curl -o kardinal-port-forward.sh https://raw.githubusercontent.com/kurtosis-tech/kardinal/main/scripts/kardinal-port-forward.sh
+```
+
+This script sets up port-forwarding for accessing the services.
+
+9. Make the script executable:
+
+```bash
+chmod +x kardinal-port-forward.sh
+```
+
+10. Run the script to set up port-forwarding for the production version:
+
+```bash
+./kardinal-port-forward.sh prod
+```
+
+This will set up port-forwarding for the production version of the voting app.
+
+11. Access the production application:
+    - Production version: http://localhost:8090
+
+12. To create a new development flow:
+
+```bash
+kardinal flow create voting-app-ui voting-app-ui-dev -d compose.yml
+```
+
+13. After creating the development flow, check the Kardinal traffic configuration again:
+    Visit https://app.kardinal.dev/{your-tenant-id}
+    You should now see both the production and development versions of your application in the traffic configuration.
+
+14. Run the port-forwarding script again to include the new development version:
+
+```bash
+./kardinal-port-forward.sh all
+```
+
+Now you can access both the production and development versions:
+   - Production version: http://localhost:8090
+   - Development version: http://localhost:8091
+
+15. To remove the development flow:
+
+```bash
+kardinal flow delete -d compose.yml
+```
+
+16. After deleting the development flow, check the Kardinal traffic configuration once more:
+    Visit https://app.kardinal.dev/{your-tenant-id}
+    You should now see only the production version of your application in the traffic configuration, confirming that the development flow has been removed.
+
+17. Clean up:
+    - Stop the port-forwarding: `pkill -f "kubectl port-forward.*voting-app"`
+    - Remove Kardinal Manager: `kardinal manager remove`
+    - Remove the voting-app: `kubectl delete ns prod`
+
+By following these steps, you can deploy and manage Kardinal on any Kubernetes cluster, using kubectl port-forwarding to access the services. This method works universally across different Kubernetes setups, including Minikube, cloud-managed Kubernetes services, and self-hosted clusters. 
+
+Remember to check the Kardinal traffic configuration at https://app.kardinal.dev/{your-tenant-id} before and after creating or deleting development flows to verify the changes in your application's topology.
+
 ## Development instructions
 
 1. Enter the dev shell and start the local cluster:
