@@ -110,6 +110,7 @@ jobs:
           path=$(nix build ./#cross-compiled-cli.x86_64-linux.${{ matrix.os }}.${{ matrix.arch }} --no-link --print-out-paths)
           binout="/tmp/kardinal-${{ matrix.os }}-${{ matrix.arch }}"
           ls -lah $path/bin
+          ls -lah $path/bin/${{ matrix.os }}_${{ matrix.arch }}
           cp $path/bin/${{ matrix.os }}_${{ matrix.arch }}/kardinal.cli $binout
           ls -lah $binout
           gh release upload '0.1.1' $binout --clobber
