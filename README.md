@@ -9,7 +9,7 @@ Kardinal is a traffic control and data isolation layer that enables engineers to
 ## Quick install
 
 ```bash
-curl https://raw.githubusercontent.com/kurtosis-tech/kardinal/main/scripts/install_cli.sh -s | sh
+curl get.kardinal.dev -sL | sh
 ```
 
 ## What is Kardinal?
