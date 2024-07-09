@@ -111,26 +111,6 @@ istioctl install --set profile=demo -y
 cd ..
 ```
 
-This will download Istio, add it to your PATH, and install it in your cluster. The output should look similar to this:
-
-```
-✔ Istio core installed
-✔ Istiod installed
-✔ Egress gateways installed
-✔ Ingress gateways installed
-✔ Installation complete
-Making this installation the default for injection and validation.
-
-Thank you for installing Istio 1.22.1.
-
-To help improve the product, please consider participating in our survey at https://forms.gle/kWRLt3tAQLynXL5t9
-
-Next steps:
-  1. Ensure the following pods are running and ready:
-    kubectl get pods -n istio-system
-  2. Visit https://istio.io/latest/docs/setup/getting-started/ to learn about next steps.
-```
-
 If you already have Istio installed, you can skip this step.
 
 3. Deploy the Kardinal Manager:
