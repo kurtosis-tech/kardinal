@@ -6,6 +6,12 @@
 
 Kardinal is a traffic control and data isolation layer that enables engineers to safely do development and QA work directly in production. Say goodbye to maintaining multiple environments and hello to faster, more efficient development workflows.
 
+## Quick install
+
+```bash
+curl https://raw.githubusercontent.com/kurtosis-tech/kardinal/main/scripts/install_cli.sh -s | sh
+```
+
 ## What is Kardinal?
 
 Kardinal injects production data and service dependencies into your dev and test workflows safely and securely. Instead of spinning up ephemeral environments with mocked services, fake traffic, and fake data, developers using Kardinal can put their service directly into the production environment to see how it works... without risking the stability of that environment.
@@ -279,4 +285,3 @@ gomod2nix generate
 <!--------------- ONLY LINKS BELOW THIS POINT ---------------------->
 
 [run-build-cli]: #running-kardinal-cli
-
