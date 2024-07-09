@@ -81,6 +81,265 @@ The Kardinal Manager retrieves the latest user services topology from the Kardin
 
 ## Quickstart
 
+## Deploying Kardinal on a Kubernetes Cluster
+
+These instructions provide a guide for deploying Kardinal on any Kubernetes cluster, whether it's a local setup like Minikube, a managed cloud service, or your own self-hosted cluster. We'll use kubectl port-forwarding to access the services, which works universally across different Kubernetes setups.
+
+### Prerequisites
+
+- A Kubernetes cluster (e.g., Minikube, EKS, GKE, AKS, or any other Kubernetes distribution)
+- kubectl installed and configured to access your cluster
+
+### Steps
+
+1. Install the Kardinal CLI:
+
+```bash
+curl https://raw.githubusercontent.com/kurtosis-tech/kardinal/main/scripts/install_cli.sh -s | sh
+```
+
+2. Install Istio (if not already installed):
+
+If you don't already have Istio installed in your cluster, follow these steps to install it:
+
+```bash
+curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.22.1 TARGET_ARCH=x86_64 sh -
+cd istio-1.22.1
+export PATH=$PWD/bin:$PATH
+echo 'export PATH=$PATH:'"$PWD/bin" >> ~/.bashrc
+istioctl install --set profile=demo -y
+cd ..
+```
+
+This will download Istio, add it to your PATH, and install it in your cluster. The output should look similar to this:
+
+```
+✔ Istio core installed
+✔ Istiod installed
+✔ Egress gateways installed
+✔ Ingress gateways installed
+✔ Installation complete
+Making this installation the default for injection and validation.
+
+Thank you for installing Istio 1.22.1.
+
+To help improve the product, please consider participating in our survey at https://forms.gle/kWRLt3tAQLynXL5t9
+
+Next steps:
+  1. Ensure the following pods are running and ready:
+    kubectl get pods -n istio-system
+  2. Visit https://istio.io/latest/docs/setup/getting-started/ to learn about next steps.
+```
+
+If you already have Istio installed, you can skip this step.
+
+3. Deploy the Kardinal Manager:
+
+```bash
+kardinal manager deploy kloud-kontrol
+```
+
+4. Note the tenant UUID generated during this process. You'll need this to check your traffic configuration.
+
+5. Clone the Kardinal Playground repository to get the voting app demo:
+
+```bash
+git clone https://github.com/kurtosis-tech/kardinal-playground.git
+cd kardinal-playground/voting-app-demo
+```
+
+6. Deploy the voting-app application with Kardinal:
+
+```bash
+kardinal deploy --docker-compose docker-compose.yaml
+```
+
+7. Check the initial Kardinal traffic configuration:
+   Visit https://app.kardinal.dev/{your-tenant-id} (replace {your-tenant-id} with the UUID from step 4)
+   You should see only the production version of your application in the traffic configuration.
+
+8. Use the following script to set up port-forwarding for accessing the services. Save this script as `kardinal-port-forward.sh`:
+
+```bash
+#!/bin/bash
+
+set -euo pipefail
+
+MAX_RETRIES=5
+INITIAL_RETRY_DELAY=2
+
+check_pod_status() {
+    local resource_name=$1
+    local namespace=$2
+    local status
+    status=$(kubectl get pods -n "$namespace" | grep "^$resource_name" | awk '{print $3}')
+    if [ "$status" = "Running" ]; then
+        return 0
+    elif [ -z "$status" ]; then
+        echo "Resource $resource_name in namespace $namespace not found"
+        return 1
+    else
+        echo "Resource $resource_name in namespace $namespace is not running (status: $status)"
+        return 1
+    fi
+}
+
+retry_with_exponential_backoff() {
+    local cmd="$1"
+    local retry_delay=$INITIAL_RETRY_DELAY
+    local retries=0
+
+    while [ $retries -lt $MAX_RETRIES ]; do
+        if eval "$cmd"; then
+            return 0
+        fi
+        echo "Command failed. Retrying in $retry_delay seconds..."
+        sleep $retry_delay
+        retry_delay=$((retry_delay * 2))
+        ((retries++))
+    done
+
+    echo "Max retries reached. Command failed."
+    return 1
+}
+
+forward_dev() {
+    echo "🛠️ Forwarding dev version (voting-app-dev)..."
+    if retry_with_exponential_backoff "check_pod_status 'voting-app-ui-dev' 'prod'"; then
+        retry_with_exponential_backoff "kubectl port-forward -n prod deploy/voting-app-ui-dev 8091:80 > /dev/null 2>&1 &"
+        echo "✅ Dev version forwarded to port 8091"
+    else
+        echo "❌ Failed to forward dev version: pod is not running after retries"
+    fi
+}
+
+forward_prod() {
+    echo "🚀 Forwarding prod version (voting-app-prod)..."
+    if retry_with_exponential_backoff "check_pod_status 'voting-app-ui-prod' 'prod'"; then
+        retry_with_exponential_backoff "kubectl port-forward -n prod svc/voting-app-ui 8090:80 > /dev/null 2>&1 &"
+        echo "✅ Prod version forwarded to port 8090"
+    else
+        echo "❌ Failed to forward prod version: pod is not running after retries"
+    fi
+}
+
+kill_existing_forwards() {
+    echo "🔪 Killing existing port-forwards..."
+    pkill -f "kubectl port-forward.*voting-app" || true
+}
+
+forward_all() {
+    kill_existing_forwards
+    forward_prod
+    if kubectl get deploy -n prod voting-app-ui-dev &> /dev/null; then
+        forward_dev
+    else
+        echo "⚠️ Dev version not found. Skipping dev forwarding."
+    fi
+}
+
+print_usage() {
+    echo "Usage: $0 [dev|prod|all]"
+    echo "  dev  : Forward dev version (voting-app-dev) to port 8091 (if it exists)"
+    echo "  prod : Forward prod version (voting-app-prod) to port 8090"
+    echo "  all  : Forward all available versions (default if no argument is provided)"
+}
+
+main() {
+    local command=${1:-all}
+    
+    case $command in
+        dev)
+            kill_existing_forwards
+            if kubectl get deploy -n prod voting-app-ui-dev &> /dev/null; then
+                forward_dev
+                echo "🎉 Port forwarding complete!"
+                echo "🔗 Dev app: http://localhost:8091"
+            else
+                echo "⚠️ Dev version not found. No forwarding performed."
+            fi
+            ;;
+        prod)
+            kill_existing_forwards
+            forward_prod
+            echo "🎉 Port forwarding complete!"
+            echo "🔗 Prod app: http://localhost:8090"
+            ;;
+        all)
+            forward_all
+            echo "🎉 Port forwarding complete!"
+            echo "🔗 Prod app: http://localhost:8090"
+            if kubectl get deploy -n prod voting-app-ui-dev &> /dev/null; then
+                echo "🔗 Dev app: http://localhost:8091"
+            fi
+            ;;
+        *)
+            print_usage
+            exit 1
+            ;;
+    esac
+}
+
+# Call main function with all script arguments
+main "$@"
+```
+
+9. Make the script executable:
+
+```bash
+chmod +x kardinal-port-forward.sh
+```
+
+10. Run the script to set up port-forwarding for the production version:
+
+```bash
+./kardinal-port-forward.sh prod
+```
+
+This will set up port-forwarding for the production version of the voting app.
+
+11. Access the production application:
+    - Production version: http://localhost:8090
+
+12. To create a new development flow:
+
+```bash
+kardinal flow create voting-app-ui voting-app-ui-dev -d compose.yml
+```
+
+13. After creating the development flow, check the Kardinal traffic configuration again:
+    Visit https://app.kardinal.dev/{your-tenant-id}
+    You should now see both the production and development versions of your application in the traffic configuration.
+
+14. Run the port-forwarding script again to include the new development version:
+
+```bash
+./kardinal-port-forward.sh all
+```
+
+Now you can access both the production and development versions:
+   - Production version: http://localhost:8090
+   - Development version: http://localhost:8091
+
+15. To remove the development flow:
+
+```bash
+kardinal flow delete -d compose.yml
+```
+
+16. After deleting the development flow, check the Kardinal traffic configuration once more:
+    Visit https://app.kardinal.dev/{your-tenant-id}
+    You should now see only the production version of your application in the traffic configuration, confirming that the development flow has been removed.
+
+17. Clean up:
+    - Stop the port-forwarding: `pkill -f "kubectl port-forward.*voting-app"`
+    - Remove Kardinal Manager: `kardinal manager remove`
+    - Remove the voting-app: `kubectl delete ns prod`
+
+By following these steps, you can deploy and manage Kardinal on any Kubernetes cluster, using kubectl port-forwarding to access the services. This method works universally across different Kubernetes setups, including Minikube, cloud-managed Kubernetes services, and self-hosted clusters. 
+
+Remember to check the Kardinal traffic configuration at https://app.kardinal.dev/{your-tenant-id} before and after creating or deleting development flows to verify the changes in your application's topology.
+
 ### How to run Kardinal and use the voting app example to test the dev flow
 
 #### Prerequisites
