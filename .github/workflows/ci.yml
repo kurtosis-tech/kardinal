@@ -107,13 +107,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          path=$(nix build ./#cross-compiled-cli.x86_64-linux.${{ matrix.os }}.${{ matrix.arch }} --no-link --print-out-paths)
+          result=$(nix build ./#cross-compiled-cli.x86_64-linux.${{ matrix.os }}.${{ matrix.arch }} --no-link --print-out-paths)
+          path=$(find . -name 'kardinal.cli*' -type f | head -n 1)
           if [[ "${{ matrix.os }}" == "windows" ]]; then
             binout="/tmp/kardinal-${{ matrix.os }}-${{ matrix.arch }}.exe"
-            cp $path/bin/${{ matrix.os }}_${{ matrix.arch }}/kardinal.cli.exe $binout
           else
             binout="/tmp/kardinal-${{ matrix.os }}-${{ matrix.arch }}"
-            cp $path/bin/${{ matrix.os }}_${{ matrix.arch }}/kardinal.cli $binout
           fi
+          ls -lah $path
           ls -lah $binout
+          cp $path $binout
           gh release upload '0.1.1' $binout --clobber
