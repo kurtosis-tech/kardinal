@@ -268,13 +268,13 @@ retry_with_exponential_backoff() {
         if eval "$cmd"; then
             return 0
         fi
-        echo "Command failed. Retrying in $retry_delay seconds..."
+        echo "Port forwarding failed. Retrying in $retry_delay seconds..."
         sleep $retry_delay
         retry_delay=$((retry_delay * 2))
         ((retries++))
     done
 
-    echo "Max retries reached. Command failed."
+    echo "Max retries reached. Port forwarding failed."
     return 1
 }
 
