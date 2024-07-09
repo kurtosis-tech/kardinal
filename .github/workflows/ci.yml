@@ -108,7 +108,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           result=$(nix build ./#cross-compiled-cli.x86_64-linux.${{ matrix.os }}.${{ matrix.arch }} --no-link --print-out-paths)
-          path=$(find . -name 'kardinal.cli*' -type f | head -n 1)
+          path=$(find $result -name 'kardinal.cli*' -type f | head -n 1)
           if [[ "${{ matrix.os }}" == "windows" ]]; then
             binout="/tmp/kardinal-${{ matrix.os }}-${{ matrix.arch }}.exe"
           else
