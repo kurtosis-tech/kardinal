@@ -115,6 +115,6 @@ jobs:
             binout="/tmp/kardinal-${{ matrix.os }}-${{ matrix.arch }}"
           fi
           ls -lah $path
-          cp $path $binout
+          ln -s $path $binout
           ls -lah $binout
           gh release upload '0.1.1' $binout --clobber
