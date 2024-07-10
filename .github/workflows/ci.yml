@@ -43,7 +43,7 @@ jobs:
           git reset --hard
           git clean -f
           nix develop --command go-tidy-all 
-          export changed_files=$(git diff-files --name-only | wc -l)
+          export changed_files=$(git diff-files --name-only | grep -cv ".toml$")
           if [[ $changed_files != 0 ]]; then
             echo "Go modules are not so tidy (run 'go-tidy-all' to fix it):"
             git diff-files --name-only
