@@ -4,7 +4,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/kurtosis-tech/stacktrace"
 	"github.com/sirupsen/logrus"
-	"kardinal.cli/tenant/host_machine_directories"
+	"kardinal.cli/host_machine_directories"
 	"os"
 )
 

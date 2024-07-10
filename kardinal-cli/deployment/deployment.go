@@ -3,6 +3,7 @@ package deployment
 import (
 	"bytes"
 	"context"
+	"kardinal.cli/kontrol"
 	"text/template"
 
 	"github.com/kurtosis-tech/stacktrace"
@@ -72,6 +73,7 @@ spec:
       containers:
         - name: kardinal-manager
           image: kurtosistech/kardinal-manager:latest
+          imagePullPolicy: {{.KardinalManagerContainerImagePullPolicy}}
           env:
             - name: KUBERNETES_SERVICE_HOST
               value: "kubernetes.default.svc"
@@ -85,13 +87,14 @@ spec:
 )
 
 type templateData struct {
-	Namespace                      string
-	ClusterResourcesURL            string
-	KardinalAppIDLabelKey          string
-	KardinalManagerAppIDLabelValue string
+	Namespace                               string
+	ClusterResourcesURL                     string
+	KardinalAppIDLabelKey                   string
+	KardinalManagerAppIDLabelValue          string
+	KardinalManagerContainerImagePullPolicy string
 }
 
-func DeployKardinalManagerInCluster(ctx context.Context, clusterResourcesURL string) error {
+func DeployKardinalManagerInCluster(ctx context.Context, clusterResourcesURL string, kontrolLocation string) error {
 	kubernetesClientObj, err := createKubernetesClient()
 	if err != nil {
 		return stacktrace.Propagate(err, "An error occurred while creating the Kubernetes client")
@@ -102,11 +105,23 @@ func DeployKardinalManagerInCluster(ctx context.Context, clusterResourcesURL str
 		return stacktrace.Propagate(err, "An error occurred while parsing the kardinal-manager deployment template")
 	}
 
+	var imagePullPolicy string
+
+	switch kontrolLocation {
+	case kontrol.KontrolLocationLocalMinikube:
+		imagePullPolicy = "Never"
+	case kontrol.KontrolLocationKloudKontrol:
+		imagePullPolicy = "Always"
+	default:
+		stacktrace.NewError("invalid Kontrol location: %s", kontrolLocation)
+	}
+
 	templateDataObj := templateData{
-		Namespace:                      kardinalNamespace,
-		ClusterResourcesURL:            clusterResourcesURL,
-		KardinalAppIDLabelKey:          consts.KardinalAppIDLabelKey,
-		KardinalManagerAppIDLabelValue: consts.KardinalManagerAppIDLabelValue,
+		Namespace:                               kardinalNamespace,
+		ClusterResourcesURL:                     clusterResourcesURL,
+		KardinalAppIDLabelKey:                   consts.KardinalAppIDLabelKey,
+		KardinalManagerAppIDLabelValue:          consts.KardinalManagerAppIDLabelValue,
+		KardinalManagerContainerImagePullPolicy: imagePullPolicy,
 	}
 
 	yamlFileContentsBuffer := &bytes.Buffer{}

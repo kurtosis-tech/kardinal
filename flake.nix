@@ -181,6 +181,31 @@
           in
             pkgs.lib.foldl' (set: acc: pkgs.lib.recursiveUpdate acc set) {}
             all;
+
+          cross-compiled-cli = let
+            all =
+              pkgs.lib.mapCartesianProduct ({
+                arch,
+                os,
+              }: {
+                "${os}" = {
+                  "${toString arch}" = packages.kardinal-cli.overrideAttrs (old:
+                    old
+                    // {
+                      GOOS = os;
+                      GOARCH = arch;
+                      # CGO_ENABLED = disabled breaks the CLI compilation
+                      # CGO_ENABLED = 0;
+                      doCheck = false;
+                    });
+                };
+              }) {
+                arch = architectures;
+                os = ["linux" "darwin" "windows"];
+              };
+          in
+            pkgs.lib.foldl' (set: acc: pkgs.lib.recursiveUpdate acc set) {}
+            all;
         };
         # Add containers matching architecture with local system as toplevel packages
         # this means calling `nix build .#<SERVICE_NAME>-container` will build the container matching the local system.
