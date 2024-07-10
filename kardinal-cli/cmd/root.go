@@ -186,7 +186,10 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.Ser
 	manifest := string(fileBytes)
 	// TODO: Check format of manifest file
 	blocks := strings.Split(manifest, "---")
-	serviceConfigs := make([]api_types.ServiceConfig, len(blocks))
+	if len(blocks) % 2 != 0 {
+		return nil, stacktrace.NewError("The manifest should contain pairs of service / deployment specifications")
+	}
+	serviceConfigs := make([]api_types.ServiceConfig, len(blocks) / 2)
 	decode := scheme.Codecs.UniversalDeserializer().Decode
 	for index, spec := range strings.Split(manifest, "---") {
 		if len(spec) == 0 {
