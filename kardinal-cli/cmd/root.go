@@ -214,7 +214,7 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.Ser
 			deployment := obj
 			serviceConfigs[index/2].Deployment = *deployment
 		default:
-			return nil, stacktrace.NewError("An error occurred parsing the manifest because of an unsupported type")
+			return nil, stacktrace.NewError("An error occurred parsing the manifest because of an unsupported kubernetes type")
 		}
 	}
 
