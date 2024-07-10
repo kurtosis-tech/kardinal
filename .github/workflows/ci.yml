@@ -38,22 +38,23 @@ jobs:
         run: |
           nix flake check
 
-      - name: Check Go formatting
-        run: |
-          nix develop --command test -z $(gofmt -l .)
-
       - name: Check Go tidiness
         run: |
+          git reset --hard
+          git clean -f
           nix develop --command go-tidy-all 
-          git status
-          echo ">>>>>"
-          export changed_files=$(git diff-files --name-only | grep -cv ".toml$")
-          echo ">>>>> $changed_files"
+          export changed_files=$(git diff-files --name-only | wc -l)
           if [[ $changed_files != 0 ]]; then
             echo "Go modules are not so tidy (run 'go-tidy-all' to fix it):"
             git diff-files --name-only
             exit 1
           fi
+
+      - name: Check Go formatting
+        run: |
+          git reset --hard
+          git clean -f
+          nix develop --command test -z $(gofmt -l .)
 
   build_publish_images:
     name: Test, build and publish images
