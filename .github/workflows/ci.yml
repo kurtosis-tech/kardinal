@@ -45,7 +45,10 @@ jobs:
       - name: Check Go tidiness
         run: |
           nix develop --command go-tidy-all 
+          git status
+          echo ">>>>>"
           changed_files=$(git diff-files --name-only | grep -cv ".toml$")
+          echo ">>>>> $changed_files"
           if [[ $changed_gomods != 0 ]]; then
             echo "Go modules are not so tidy (run 'go-tidy-all' to fix it):"
             git diff-files --name-only
