@@ -44,7 +44,7 @@ jobs:
 
       - name: Check Go tidiness
         run: |
-          nix develop --command go-tidy-all && git diff-files --quiet
+          nix develop --command go-tidy-all && git diff-files --name-only && git diff-files --quiet
 
   build_publish_images:
     name: Test, build and publish images
