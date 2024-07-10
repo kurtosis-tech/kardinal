@@ -47,9 +47,9 @@ jobs:
           nix develop --command go-tidy-all 
           git status
           echo ">>>>>"
-          changed_files=$(git diff-files --name-only | grep -cv ".toml$")
+          export changed_files=$(git diff-files --name-only | grep -cv ".toml$")
           echo ">>>>> $changed_files"
-          if [[ $changed_gomods != 0 ]]; then
+          if [[ $changed_files != 0 ]]; then
             echo "Go modules are not so tidy (run 'go-tidy-all' to fix it):"
             git diff-files --name-only
             exit 1
