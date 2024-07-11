@@ -1,6 +1,9 @@
 schema = 3
 
 [mod]
+  [mod."cloud.google.com/go"]
+    version = "v0.110.2"
+    hash = "sha256-0IJ/EPUsG7JiFkJKw83hl+HLog1DIXPPvLPmvrXjDP0="
   [mod."cloud.google.com/go/compute"]
     version = "v1.20.1"
     hash = "sha256-HQvSLdoSagQsuqOb/D9+xMc8nE9Y44Z30rQgd2AGEr8="
@@ -67,6 +70,15 @@ schema = 3
   [mod."github.com/chenzhuoyu/iasm"]
     version = "v0.9.0"
     hash = "sha256-xlZIAcRAD9dufk7JZfyKyiBzw6Gzfj4oKh2wbjKukQg="
+  [mod."github.com/chzyer/logex"]
+    version = "v1.1.10"
+    hash = "sha256-BNOaV/CFAqOymWW3R2m1sCikdCwFZM/pVkylzoeU6yI="
+  [mod."github.com/chzyer/readline"]
+    version = "v0.0.0-20180603132655-2972be24d48e"
+    hash = "sha256-2Uj5LGpHEbLQG3d/7z9AL8DknUBZyoTAMs4j+VVDmIA="
+  [mod."github.com/chzyer/test"]
+    version = "v0.0.0-20180213035817-a1ea475d72b1"
+    hash = "sha256-U0irpUSqegh7Nzg1ErPuyjESOcIXXOWf7ikKMbES2mY="
   [mod."github.com/compose-spec/compose-go"]
     version = "v1.20.2"
     hash = "sha256-uICczxxRYLAW4jMHEsNxcOUBoCT5l5AMSrexHJ3xTcA="
@@ -187,9 +199,18 @@ schema = 3
   [mod."github.com/google/pprof"]
     version = "v0.0.0-20211214055906-6f57359322fd"
     hash = "sha256-Ju5Ke03QOM0YbubQT8jPPcjJq2mgpua8RmqB1UUSLAw="
+  [mod."github.com/google/s2a-go"]
+    version = "v0.1.4"
+    hash = "sha256-amTAj6SNERMPxAA43KrzwYgu6GMooayfHCsdkoTI17c="
   [mod."github.com/google/uuid"]
     version = "v1.6.0"
     hash = "sha256-VWl9sqUzdOuhW0KzQlv0gwwUQClYkmZwSydHG2sALYw="
+  [mod."github.com/googleapis/enterprise-certificate-proxy"]
+    version = "v0.2.3"
+    hash = "sha256-4yaBdpdRuv5vkGlwxKPlZ/IVSeHlcP9PJaLcyn4wNJk="
+  [mod."github.com/googleapis/gax-go/v2"]
+    version = "v2.11.0"
+    hash = "sha256-jWfuxmawmfPNTt7iWn9StsC5yofMupkr1IUZbjTxrgQ="
   [mod."github.com/gorilla/css"]
     version = "v1.0.0"
     hash = "sha256-Mmt/IqHpgrtWpbr/AKcJyf/USQTqEuv1HVivY4eHzoQ="
@@ -202,6 +223,9 @@ schema = 3
   [mod."github.com/gregjones/httpcache"]
     version = "v0.0.0-20180305231024-9cad4c3443a7"
     hash = "sha256-2ngFfFuSm8YSTNZWGQuN5yTpsXlwY2R8aaIzjDnjTXI="
+  [mod."github.com/ianlancetaylor/demangle"]
+    version = "v0.0.0-20210905161508-09a460cdf81d"
+    hash = "sha256-Kc79EqT4tPl8tf/iWg96TiJlYXalJBPS78XLTbatGhc="
   [mod."github.com/imdario/mergo"]
     version = "v0.3.16"
     hash = "sha256-gh2TEAq8YrZOEAf6SFW4AIcEEUguD68G+7/VUnBeWwM="
@@ -430,6 +454,9 @@ schema = 3
   [mod."github.com/yuin/goldmark"]
     version = "v1.4.13"
     hash = "sha256-GVwFKZY6moIS6I0ZGuio/WtDif+lkZRfqWS6b4AAJyI="
+  [mod."go.opencensus.io"]
+    version = "v0.24.0"
+    hash = "sha256-4H+mGZgG2c9I1y0m8avF4qmt8LUKxxVsTqR8mKgP4yo="
   [mod."golang.org/x/arch"]
     version = "v0.4.0"
     hash = "sha256-jKi0m79VwPy8XxGh1e5YRZX5jfb2drWfmLWxNR3HvAU="
@@ -472,9 +499,15 @@ schema = 3
   [mod."golang.org/x/xerrors"]
     version = "v0.0.0-20220907171357-04be3eba64a2"
     hash = "sha256-6+zueutgefIYmgXinOflz8qGDDDj0Zhv+2OkGhBTKno="
+  [mod."google.golang.org/api"]
+    version = "v0.126.0"
+    hash = "sha256-G/J0Aba+S35gE7VevU2WrrbwQRsJCSj14DVSLTqz0vE="
   [mod."google.golang.org/appengine"]
     version = "v1.6.8"
     hash = "sha256-decMa0MiWfW/Bzr8QPPzzpeya0YWGHhZAt4Cr/bD1wQ="
+  [mod."google.golang.org/genproto"]
+    version = "v0.0.0-20230530153820-e85fd2cbaebc"
+    hash = "sha256-xuUQD0+WiF+LGKhQCCwaA5WKlZz6EG9WhClfEonHedk="
   [mod."google.golang.org/genproto/googleapis/api"]
     version = "v0.0.0-20240318140521-94a12d6c2237"
     hash = "sha256-Tl2ABoESriYlPfeawE9xd5gPQYGzW4j/Il6gXEw33f0="
@@ -518,8 +551,8 @@ schema = 3
     version = "v0.30.2"
     hash = "sha256-EBWG9PlSfRwMed/u6oF8ME8n44/U5HGBCacH+Mns2UI="
   [mod."k8s.io/client-go"]
-    version = "v0.29.0"
-    hash = "sha256-GuY06sFi5YaQ4h925hCgdzfIMUjTcKxupKP6h7RWI78="
+    version = "v0.30.2"
+    hash = "sha256-KwgEXnowk01jImaHhOStbVWc3dDVZKF2nVvfsJAvtgo="
   [mod."k8s.io/gengo/v2"]
     version = "v2.0.0-20240228010128-51d4e06bde70"
     hash = "sha256-igAJQwUliynE2iDbBYc2HONd744+r7o3mQtFyYDYLb4="
