@@ -324,39 +324,32 @@ minikube tunnel
 
 ## Deploying Kardinal Manager to local cluster
 
-Configure it by setting the following environment variables:
-
-```bash
-KARDINAL_MANAGER_CLUSTER_CONFIG_ENDPOINT=http://localhost:8080/tenant/{36e22127-3c9e-4110-aa83-af552cd94b88}/cluster-resources
-KARDINAL_MANAGER_FETCHER_JOB_DURATION_SECONDS=10
-```
-
-or in the `kardinal-manager/deployment/k8s.yaml`:
-
-```yaml
-  env:
-    - name: KARDINAL_MANAGER_CLUSTER_CONFIG_ENDPOINT
-      # This is valid for reaching out the Kardinal Kontrol if this is running on the host
-     value: "http://localhost:8080/tenant/36e22127-3c9e-4110-aa83-af552cd94b88/cluster-resources"
-    - name: KARDINAL_MANAGER_FETCHER_JOB_DURATION_SECONDS
-    value: "10"
-```
-
-NOTE: you can get your tenant UUID by running any CLI command
-
 You can use tilt deploy and keeping the image hot-reloading:
 
 ```bash
 tilt up
 ```
 
-Or manually build it:
+Or you can use the Kardinal CLI to deploy it
+
+Option 1: Using Kloud Kardinal Kontrol
 
 ```bash
-# First set the docker context to minikube
+# the Kloud Kontrol will always pull the latest image version from Docker Hub
+kardinal manager deploy kloud-kontrol
+```
+
+Option 2: Using the local Kardinal Kontrol with Minikube (better for the dev flow)
+
+```bash
+# First build the image
+
+# set the docker context to minikube
 eval $(minikube docker-env)
 docker load < $(nix build ./#kardinal-manager-container --no-link --print-out-paths)
-kubectl apply -f kardinal-manager/deployment
+
+# the local-minikube Kontrol will use the image builded
+kardinal manager deploy local-minikube
 ```
 
 ## Deploying Redis Overlay Service to local cluster
