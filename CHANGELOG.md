@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.1.3](https://github.com/kurtosis-tech/kardinal/compare/0.1.2...0.1.3) (2024-07-12)
+
+
+### Features
+
+* remove old urls ([#21](https://github.com/kurtosis-tech/kardinal/issues/21)) ([2ce038f](https://github.com/kurtosis-tech/kardinal/commit/2ce038f8e7fb16979998d88c84d871b76596197b))
+* store Kontrol location ([#20](https://github.com/kurtosis-tech/kardinal/issues/20)) ([ad42d22](https://github.com/kurtosis-tech/kardinal/commit/ad42d22ef6b8c1332b9b0447f77b0af248b0948e))
+* Take k8s manifest as input instead of docker compose ([#30](https://github.com/kurtosis-tech/kardinal/issues/30)) ([4bcda1f](https://github.com/kurtosis-tech/kardinal/commit/4bcda1fd70349664cfcd552bb6b4c924cd0ec601))
+* use install link alias ([#28](https://github.com/kurtosis-tech/kardinal/issues/28)) ([40e9d75](https://github.com/kurtosis-tech/kardinal/commit/40e9d75a93f0309a6c89611818856d62f9f7ec71))
+
+
+### Bug Fixes
+
+* image for quick demo ([#32](https://github.com/kurtosis-tech/kardinal/issues/32)) ([76d3ff3](https://github.com/kurtosis-tech/kardinal/commit/76d3ff3a3178346ce5e25fd55d449032adfcd4bb))
+
 ## [0.1.2](https://github.com/kurtosis-tech/kardinal/compare/0.1.1...0.1.2) (2024-07-09)
 
 
