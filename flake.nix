@@ -109,6 +109,9 @@
           packages.cli-kontrol-api = pkgs.callPackage ./libs/cli-kontrol-api/default.nix {
             inherit pkgs;
           };
+          packages.go-tidy-all = pkgs.callPackage ./scripts/go-tidy-all.nix {
+            inherit pkgs;
+          };
 
           containers = let
             os = "linux";

@@ -23,10 +23,8 @@ import (
 )
 
 const (
-	projectName          = "kardinal"
-	devMode              = false
-	kontrolServiceApiUrl = "ad718d90d54d54dd084dea50a9f011af-1140086995.us-east-1.elb.amazonaws.com"
-	kontrolServicePort   = 8080
+	projectName = "kardinal"
+	devMode     = false
 
 	kontrolBaseURLTmpl                  = "%s://%s"
 	kontrolClusterResourcesEndpointTmpl = "%s/tenant/%s/cluster-resources"
