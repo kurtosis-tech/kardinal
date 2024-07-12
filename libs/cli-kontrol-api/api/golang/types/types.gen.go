@@ -4,7 +4,8 @@
 package types
 
 import (
-	compose "github.com/compose-spec/compose-go/types"
+	appv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 )
 
 // Defines values for NodeType.
@@ -23,9 +24,9 @@ type ClusterTopology struct {
 
 // DevFlowSpec defines model for DevFlowSpec.
 type DevFlowSpec struct {
-	DockerCompose *[]compose.ServiceConfig `json:"docker-compose,omitempty"`
-	ImageLocator  *string                  `json:"image-locator,omitempty"`
-	ServiceName   *string                  `json:"service-name,omitempty"`
+	ImageLocator   *string          `json:"image-locator,omitempty"`
+	ServiceConfigs *[]ServiceConfig `json:"service-configs,omitempty"`
+	ServiceName    *string          `json:"service-name,omitempty"`
 }
 
 // Edge defines model for Edge.
@@ -60,7 +61,13 @@ type NodeType string
 
 // ProdFlowSpec defines model for ProdFlowSpec.
 type ProdFlowSpec struct {
-	DockerCompose *[]compose.ServiceConfig `json:"docker-compose,omitempty"`
+	ServiceConfigs *[]ServiceConfig `json:"service-configs,omitempty"`
+}
+
+// ServiceConfig defines model for ServiceConfig.
+type ServiceConfig struct {
+	Deployment appv1.Deployment `json:"deployment"`
+	Service    corev1.Service   `json:"service"`
 }
 
 // Uuid defines model for uuid.

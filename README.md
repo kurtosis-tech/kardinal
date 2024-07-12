@@ -127,7 +127,7 @@ INFO[0000] Using tenant UUID 58d33536-3c9e-4110-aa83-bf112ae94a49
 3. Deploy the voting-app application with Kardinal
 
 ```bash
-kardinal deploy --docker-compose ./examples/voting-app/docker-compose.yaml
+kardinal deploy --k8s-manifest ./examples/voting-app/k8s-manifest.yaml
 ```
 
 4. Check the current topology in the cloud Kontrol FE using this URL: https://app.kardinal.dev/{use-your-tenant-UUID-here}/traffic-configuration
@@ -144,7 +144,7 @@ minikube tunnel
 1. Create a new flow to test a development `voting-app-ui-v2` version in production
 
 ```bash
-kardinal flow create voting-app-ui kurtosistech/demo-voting-app-ui-v2 --docker-compose ./examples/voting-app/docker-compose.yaml
+kardinal flow create voting-app-ui kurtosistech/demo-voting-app-ui-v2 --k8s-manifest ./examples/voting-app/k8s-manifest.yaml
 ```
 
 2. Check how the topology has changed, to reflect both prod and the dev version, in the cloud Kontrol FE using this URL: https://app.kardinal.dev/{use-your-tenant-UUID-here}/traffic-configuration
@@ -155,7 +155,7 @@ kardinal flow create voting-app-ui kurtosistech/demo-voting-app-ui-v2 --docker-c
 1. Remove the flow created for the `voting-app-ui-v2`
 
 ```bash
-kardinal flow delete --docker-compose ./examples/voting-app/docker-compose.yaml
+kardinal flow delete --k8s-manifest ./examples/voting-app/k8s-manifest.yaml
 ```
 
 2. Check the topology again to, it's showing only the production version as the beginning, in the cloud Kontrol FE using this URL: https://app.kardinal.dev/{use-your-tenant-UUID-here}/traffic-configuration
@@ -226,7 +226,7 @@ cd kardinal-playground/voting-app-demo
 6. Deploy the voting-app application with Kardinal:
 
 ```bash
-kardinal deploy --docker-compose docker-compose.yaml
+kardinal deploy --k8s-manifest k8s-manifest.yaml
 ```
 
 7. Check the initial Kardinal traffic configuration:
@@ -261,7 +261,7 @@ This will set up port-forwarding for the production version of the voting app.
 12. To create a new development flow:
 
 ```bash
-kardinal flow create voting-app-ui voting-app-ui-dev -d compose.yml
+kardinal flow create voting-app-ui voting-app-ui-dev --k8s-manifest k8s-manifest.yml
 ```
 
 13. After creating the development flow, check the Kardinal traffic configuration again:
@@ -281,7 +281,7 @@ Now you can access both the production and development versions:
 15. To remove the development flow:
 
 ```bash
-kardinal flow delete -d compose.yml
+kardinal flow delete --k8s-manifest k8s-manifest.yml
 ```
 
 16. After deleting the development flow, check the Kardinal traffic configuration once more:

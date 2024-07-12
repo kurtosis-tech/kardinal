@@ -2,13 +2,12 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"strings"
 
-	"github.com/compose-spec/compose-go/cli"
-	"github.com/compose-spec/compose-go/types"
 	"github.com/kurtosis-tech/stacktrace"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -18,6 +17,9 @@ import (
 
 	api "github.com/kurtosis-tech/kardinal/libs/cli-kontrol-api/api/golang/client"
 	api_types "github.com/kurtosis-tech/kardinal/libs/cli-kontrol-api/api/golang/types"
+	appv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/client-go/kubernetes/scheme"
 )
 
 const (
@@ -37,7 +39,7 @@ const (
 	httpsScheme = httpSchme + "s"
 )
 
-var composeFile string
+var kubernetesManifestFile string
 
 var rootCmd = &cobra.Command{
 	Use:   "kardinal",
@@ -59,16 +61,16 @@ var deployCmd = &cobra.Command{
 	Short: "Deploy services",
 	Args:  cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
-		services, err := parseComposeFile(composeFile)
+		serviceConfigs, err := parseKubernetesManifestFile(kubernetesManifestFile)
 		if err != nil {
-			log.Fatalf("Error loading compose file: %v", err)
+			log.Fatalf("Error loading k8s manifest file: %v", err)
 		}
 		tenantUuid, err := tenant.GetOrCreateUserTenantUUID()
 		if err != nil {
 			log.Fatal("Error getting or creating user tenant UUID", err)
 		}
 
-		deploy(tenantUuid.String(), services)
+		deploy(tenantUuid.String(), serviceConfigs)
 	},
 }
 
@@ -78,9 +80,9 @@ var createCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		serviceName, imageName := args[0], args[1]
-		services, err := parseComposeFile(composeFile)
+		serviceConfigs, err := parseKubernetesManifestFile(kubernetesManifestFile)
 		if err != nil {
-			log.Fatalf("Error loading compose file: %v", err)
+			log.Fatalf("Error loading k8s manifest file: %v", err)
 		}
 
 		tenantUuid, err := tenant.GetOrCreateUserTenantUUID()
@@ -89,7 +91,7 @@ var createCmd = &cobra.Command{
 		}
 
 		fmt.Printf("Creating service %s with image %s in development mode...\n", serviceName, imageName)
-		createDevFlow(tenantUuid.String(), services, imageName, serviceName)
+		createDevFlow(tenantUuid.String(), serviceConfigs, imageName, serviceName)
 	},
 }
 
@@ -98,16 +100,16 @@ var deleteCmd = &cobra.Command{
 	Short: "Delete services",
 	Args:  cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
-		services, err := parseComposeFile(composeFile)
+		serviceConfigs, err := parseKubernetesManifestFile(kubernetesManifestFile)
 		if err != nil {
-			log.Fatalf("Error loading compose file: %v", err)
+			log.Fatalf("Error loading k8s manifest file: %v", err)
 		}
 
 		tenantUuid, err := tenant.GetOrCreateUserTenantUUID()
 		if err != nil {
 			log.Fatal("Error getting or creating user tenant UUID", err)
 		}
-		deleteFlow(tenantUuid.String(), services)
+		deleteFlow(tenantUuid.String(), serviceConfigs)
 
 		fmt.Print("Deleting dev flow")
 	},
@@ -159,69 +161,71 @@ func init() {
 	flowCmd.AddCommand(createCmd, deleteCmd)
 	managerCmd.AddCommand(deployManagerCmd, removeManagerCmd)
 
-	flowCmd.PersistentFlags().StringVarP(&composeFile, "docker-compose", "d", "", "Path to the Docker Compose file")
-	flowCmd.MarkPersistentFlagRequired("docker-compose")
-	deployCmd.PersistentFlags().StringVarP(&composeFile, "docker-compose", "d", "", "Path to the Docker Compose file")
-	deployCmd.MarkPersistentFlagRequired("docker-compose")
+	flowCmd.PersistentFlags().StringVarP(&kubernetesManifestFile, "k8s-manifest", "k", "", "Path to the K8S manifest file")
+	flowCmd.MarkPersistentFlagRequired("k8s-manifest")
+	deployCmd.PersistentFlags().StringVarP(&kubernetesManifestFile, "k8s-manifest", "k", "", "Path to the K8S manifest file")
+	deployCmd.MarkPersistentFlagRequired("k8s-manifest")
 }
 
 func Execute() error {
 	return rootCmd.Execute()
 }
 
-func loadComposeFile(filename string) (*types.Project, error) {
-	opts, err := cli.NewProjectOptions([]string{filename},
-		cli.WithOsEnv,
-		cli.WithDotEnv,
-		cli.WithName(projectName),
-	)
+func loadKubernetesManifestFile(filename string) ([]byte, error) {
+
+	fileBytes, err := os.ReadFile(filename)
 	if err != nil {
-		return nil, err
+		return fileBytes, stacktrace.Propagate(err, "attempted to read kubernetes manifest file with path '%s' but failed", filename)
 	}
 
-	project, err := cli.ProjectFromOptions(opts)
-	if err != nil {
-		return nil, err
-	}
-
-	return project, nil
+	return fileBytes, nil
 }
 
-func parseComposeFile(composeFile string) ([]types.ServiceConfig, error) {
-	project, err := loadComposeFile(composeFile)
+func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.ServiceConfig, error) {
+	fileBytes, err := loadKubernetesManifestFile(kubernetesManifestFile)
 	if err != nil {
-		log.Fatalf("Error loading compose file: %v", err)
+		log.Fatalf("Error loading kubernetest manifest file: %v", err)
 		return nil, err
 	}
 
-	fmt.Println("Services in the Docker Compose file:")
-	for _, service := range project.Services {
-		fmt.Println(service.Name)
+	manifest := string(fileBytes)
+	// TODO: Check format of manifest file
+	blocks := strings.Split(manifest, "---")
+	if len(blocks)%2 != 0 {
+		return nil, stacktrace.NewError("The manifest should contain pairs of service / deployment specifications")
+	}
+	serviceConfigs := make([]api_types.ServiceConfig, len(blocks)/2)
+	decode := scheme.Codecs.UniversalDeserializer().Decode
+	for index, spec := range strings.Split(manifest, "---") {
+		if len(spec) == 0 {
+			continue
+		}
+		obj, _, err := decode([]byte(spec), nil, nil)
+		if err != nil {
+			continue
+		}
+		switch obj := obj.(type) {
+		case *corev1.Service:
+			service := obj
+			serviceConfigs[index/2].Service = *service
+		case *appv1.Deployment:
+			deployment := obj
+			serviceConfigs[index/2].Deployment = *deployment
+		default:
+			return nil, stacktrace.NewError("An error occurred parsing the manifest because of an unsupported kubernetes type")
+		}
 	}
 
-	projectYAML, err := project.MarshalJSON()
-	if err != nil {
-		log.Fatal(err)
-		return nil, err
-	}
-
-	var dockerCompose map[string]interface{}
-	err = json.Unmarshal(projectYAML, &dockerCompose)
-	if err != nil {
-		log.Fatalf("error: %v", err)
-		return nil, err
-	}
-
-	return project.Services, nil
+	return serviceConfigs, nil
 }
 
-func createDevFlow(tenantUuid api_types.Uuid, services []types.ServiceConfig, imageLocator, serviceName string) {
+func createDevFlow(tenantUuid api_types.Uuid, serviceConfigs []api_types.ServiceConfig, imageLocator, serviceName string) {
 	ctx := context.Background()
 
 	body := api_types.PostTenantUuidFlowCreateJSONRequestBody{
-		DockerCompose: &services,
-		ServiceName:   &serviceName,
-		ImageLocator:  &imageLocator,
+		ServiceConfigs: &serviceConfigs,
+		ServiceName:    &serviceName,
+		ImageLocator:   &imageLocator,
 	}
 	client := getKontrolServiceClient()
 
@@ -233,11 +237,11 @@ func createDevFlow(tenantUuid api_types.Uuid, services []types.ServiceConfig, im
 	fmt.Printf("Response: %s\n", string(resp.Body))
 }
 
-func deploy(tenantUuid api_types.Uuid, services []types.ServiceConfig) {
+func deploy(tenantUuid api_types.Uuid, serviceConfigs []api_types.ServiceConfig) {
 	ctx := context.Background()
 
 	body := api_types.PostTenantUuidDeployJSONRequestBody{
-		DockerCompose: &services,
+		ServiceConfigs: &serviceConfigs,
 	}
 	client := getKontrolServiceClient()
 
@@ -257,11 +261,11 @@ func deploy(tenantUuid api_types.Uuid, services []types.ServiceConfig) {
 	logrus.Infof("Visit: %s", trafficConfigurationURL)
 }
 
-func deleteFlow(tenantUuid api_types.Uuid, services []types.ServiceConfig) {
+func deleteFlow(tenantUuid api_types.Uuid, serviceConfigs []api_types.ServiceConfig) {
 	ctx := context.Background()
 
 	body := api_types.PostTenantUuidFlowDeleteJSONRequestBody{
-		DockerCompose: &services,
+		ServiceConfigs: &serviceConfigs,
 	}
 	client := getKontrolServiceClient()
 
