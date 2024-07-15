@@ -14,9 +14,13 @@ curl get.kardinal.dev -sL | sh
 
 ## What is Kardinal?
 
-Kardinal is a traffic control and data isolation layer for Kubernetes that enables engineers to efficiently do development and QA work within a single stable cluster. Instead of implementing isolation at the cluster level, Kardinal implements isolation by deploying development versions of services side-by-side with their "staging" versions, and defining isolated traffic routes through the cluster. These traffic routes connect development versions to their appropriate dependencies, and to development versions of any databases, queues, caches, and external APIs that you may need.
+Kardinal is a traffic control and data isolation layer for Kubernetes that enables engineers to efficiently do development and QA work within a single stable cluster. Instead of implementing isolation at the cluster level, Kardinal implements isolation by deploying development versions of services side-by-side with their "staging" versions, and defining isolated traffic routes through the cluster.
 
-These traffic routes are effectively "logical environments" or "views" on top of a single cluster. In Kardinal, these are called "flows". Flows enable isolation for the purpose of development, testing, and QA with the lowest possible resource footprint. It all happens in one cluster, with the absolute minimum duplication of resources necessary.
+These traffic routes connect development versions to their appropriate dependencies, and to development versions of any databases, queues, caches, and external APIs that you may need.
+
+These traffic routes are effectively "logical environments" or "views" on top of a single cluster. In Kardinal, these are called "flows". Flows enable isolation for the purpose of development, testing, and QA with the lowest possible resource footprint. 
+
+It all happens in one cluster, with the absolute minimum duplication of resources necessary.
 
 ## How it Works
 
