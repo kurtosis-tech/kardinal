@@ -168,7 +168,7 @@ var dashboardCmd = &cobra.Command{
 		}
 		tenantUuidStr := tenantUuid.String()
 		if err := multi_os_cmd_executor.OpenFile(path.Join(consts.KardinalDevURL, tenantUuidStr)); err != nil {
-			log.Fatal("Error occurred opening the dashboard", err)
+			log.Fatal("Error occurred opening the Kardinal dashboard", err)
 		}
 	},
 }
