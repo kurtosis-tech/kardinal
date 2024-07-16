@@ -3,9 +3,12 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"kardinal.cli/consts"
+	"kardinal.cli/multi_os_cmd_executor"
 	"log"
 	"net/http"
 	"os"
+	"path"
 	"strings"
 
 	"github.com/kurtosis-tech/stacktrace"
@@ -154,10 +157,27 @@ var removeManagerCmd = &cobra.Command{
 	},
 }
 
+var dashboardCmd = &cobra.Command{
+	Use:   "dashboard",
+	Short: "Open your Kardinal Dashboard",
+	Args:  cobra.ExactArgs(0),
+	Run: func(cmr *cobra.Command, args []string) {
+		tenantUuid, err := tenant.GetOrCreateUserTenantUUID()
+		if err != nil {
+			log.Fatal("Error getting or creating user tenant UUID", err)
+		}
+		tenantUuidStr := tenantUuid.String()
+		if err := multi_os_cmd_executor.OpenFile(path.Join(consts.KardinalDevURL, tenantUuidStr)); err != nil {
+			log.Fatal("Error occurred opening the dashboard", err)
+		}
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(flowCmd)
 	rootCmd.AddCommand(managerCmd)
 	rootCmd.AddCommand(deployCmd)
+	rootCmd.AddCommand(dashboardCmd)
 	flowCmd.AddCommand(createCmd, deleteCmd)
 	managerCmd.AddCommand(deployManagerCmd, removeManagerCmd)
 
