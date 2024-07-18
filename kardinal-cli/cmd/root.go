@@ -3,13 +3,15 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"kardinal.cli/consts"
-	"kardinal.cli/multi_os_cmd_executor"
 	"log"
+	"math"
 	"net/http"
 	"os"
 	"path"
 	"strings"
+
+	"kardinal.cli/consts"
+	"kardinal.cli/multi_os_cmd_executor"
 
 	"github.com/kurtosis-tech/stacktrace"
 	"github.com/sirupsen/logrus"
@@ -27,7 +29,7 @@ import (
 
 const (
 	projectName = "kardinal"
-	devMode     = false
+	devMode     = true
 
 	kontrolBaseURLTmpl                  = "%s://%s"
 	kontrolClusterResourcesEndpointTmpl = "%s/tenant/%s/cluster-resources"
@@ -211,10 +213,7 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.Ser
 	manifest := string(fileBytes)
 	// TODO: Check format of manifest file
 	blocks := strings.Split(manifest, "---")
-	if len(blocks)%2 != 0 {
-		return nil, stacktrace.NewError("The manifest should contain pairs of service / deployment specifications")
-	}
-	serviceConfigs := make([]api_types.ServiceConfig, len(blocks)/2)
+	serviceConfigs := make([]api_types.ServiceConfig, int(math.Ceil(float64(len(blocks))/2)))
 	decode := scheme.Codecs.UniversalDeserializer().Decode
 	for index, spec := range strings.Split(manifest, "---") {
 		if len(spec) == 0 {
@@ -227,6 +226,7 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.Ser
 		switch obj := obj.(type) {
 		case *corev1.Service:
 			service := obj
+			fmt.Printf("Service annotations: %v\n", service.GetObjectMeta().GetAnnotations())
 			serviceConfigs[index/2].Service = *service
 		case *appv1.Deployment:
 			deployment := obj
