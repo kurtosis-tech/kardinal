@@ -8,7 +8,7 @@ The lightest-weight Kubernetes development environments in the world. Stop dupli
 
 ## Can't wait to get started?
 
-Visit the [Kardinal playground](https://github.com/kurtosis-tech/kardinal-playground/) and experience a simple demonstration of how Kardinal can enhance your development workflow.
+Visit the [Kardinal playground](https://github.com/kurtosis-tech/kardinal-playground/) to experience a simple demonstration of how Kardinal can enhance your development workflow.
 
 ## What is Kardinal?
 
