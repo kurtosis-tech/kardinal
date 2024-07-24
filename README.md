@@ -31,9 +31,11 @@ In Kardinal, an application deployment with multiple logical environments (”fl
 
 ![infographic](https://github.com/user-attachments/assets/343a44bc-2119-4368-a338-f27dc2271d8f)
 
-Some services have multiple distinct versions (5 for `order-service`, 8 for `analytics-service`), because there are many version requirements for that service across the set of logical environments. Others only have one version deployed (`entity-service` ), because in this example, every single logical environment only depends on the stable version of `entity-service`. Because isolation is implemented at the level of traffic routing, you can maximally reuse shared resources, and you can spin up a new logical environment by only deploying the absolute minimum number of changes resources necessary.
+Some services have multiple distinct versions (5 for `order-service`, 8 for `analytics-service`), because there are many version requirements for that service across the set of logical environments. Others only have one version deployed (`entity-service` ). In this example, every single logical environment only depends on the stable version of `entity-service`.
 
-The same multi-version deploy and de-duplication mechanism works for stateful services like Postgres or state-bearing external services like Stripe. If an isolated version of Postgres is required in a logical environment, seeded with new test data or a snapshot of data in the stable environment, it will spin up automatically for the logical environments that need it. In the case of external service like Stripe, a proxy that switches requests between dev API keys will serve to provide the necessary isolation between logical environments.
+Because isolation is implemented at the level of traffic routing, you can maximally reuse shared resources, and you can spin up a new logical environment by only deploying the absolute minimum number of changes resources necessary.
+
+The same multi-version deploy and de-duplication mechanism works for stateful services like Postgres or state-bearing external services like Stripe. If an isolated version of Postgres is required in a logical environment, seeded with new test data or a snapshot of data in the stable environment, it will spin up automatically for the logical environments that need it. In the case of external service like Stripe, a proxy that switches requests between dev API keys will provide the necessary isolation between logical environments.
 
 Stateful services like databases and managed services like external APIs are supported via an open-source plugin ecosystem, so its easy to add support for the set of dependencies you have in your architecture.
 
