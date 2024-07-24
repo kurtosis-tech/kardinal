@@ -18,6 +18,15 @@ These traffic routes connect development versions to their appropriate dependenc
 
 It all happens in one cluster, with the absolute minimum duplication of resources necessary.
 
+There are many ways to isolate workflows on Kubernetes/cloud environments ("multi-tenancy"). To get an idea of how Kardinal fits into other methods, check out the table below:
+
+| Multi-tenancy method | Level of Isolation | Cost | # of duplicated resources |
+| :--- | :--- | :--- | :--- |
+| Separate VPCs | Most coarse-grained | Highest Cost | Highest |
+| Separate Kubernetes Clusters | Coarse-grained | High Cost | High |
+| Separate Namespaces (vclusters) | Fine-grained | Low Cost | Low |
+| Separate Traffic Routes (Kardinal) | Most fine-grained | Lowest Cost | Lowest |
+
 ## How it Works
 
 A cluster with multiple logical environments (”dev flows”) running in it may look like the following image. 
@@ -33,13 +42,6 @@ Stateful services like databases and managed services like external APIs are sup
 Kardinal is implemented as a set of sidecars that are deployed next to your stateless services, and proxies that sit on top of those stateful services or external, managed services (like Stripe or an external API hosted outside of Kubernetes).
 
 It's easy to install and easy to uninstall - just deploy the the sidecars in your staging cluster, and use the Kardinal control plane to manage your development and test environments. If you want to uninstall Kardinal, just remove the sidecars.
-
-| Multi-tenancy method | Level of Isolation | Cost | # of duplicated resources |
-| :--- | :--- | :--- | :--- |
-| Separate VPCs | Most coarse-grained | Highest Cost | Highest |
-| Separate Kubernetes Clusters | Coarse-grained | High Cost | High |
-| Separate Namespaces (vclusters) | Fine-grained | Low Cost | Low |
-| Separate Traffic Routes (Kardinal) | Most fine-grained | Lowest Cost | Lowest |
 
 ## Quick start
 
