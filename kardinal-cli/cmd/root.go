@@ -257,6 +257,7 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.Ser
 	return finalServiceConfigs, nil
 }
 
+// Use in priority the label app value
 func getObjectName(obj *metav1.ObjectMeta) string {
 	labelApp, ok := obj.GetLabels()["app"]
 	if ok {
