@@ -37,9 +37,9 @@ It's easy to install and easy to uninstall - just deploy the the sidecars in you
 | Multi-tenancy method       | Level of Isolation  | Cost         |
 |----------------------------|---------------------|--------------|
 | Separate VPCs              | Coarsest Isolation  | Highest Cost |
-| Separate Kubernetes Cluster| Coarse Isolation    | High Cost    |
-| Separate Namespaces        | Fine Isolation      | Low Cost     |
-| Separate Traffic Routes    | Finest Isolation    | Lowest Cost  |
+| Separate Kubernetes Clusters | Coarse Isolation    | High Cost    |
+| Separate Namespaces (ex. vclusters)        | Fine Isolation      | Low Cost     |
+| Separate Traffic Routes through an Application (ex. Kardinal)    | Finest Isolation    | Lowest Cost  |
 
 ## Quick start
 
