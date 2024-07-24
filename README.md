@@ -12,13 +12,11 @@ Visit the [Kardinal playground](https://github.com/kurtosis-tech/kardinal-playg
 
 ## What is Kardinal?
 
-Kardinal is a traffic control and state isolation layer for Kubernetes that enables engineers to efficiently do development and QA work within a single stable cluster. Instead of implementing isolation at the cluster level, Kardinal implements isolation by deploying development versions of services side-by-side with their "staging" versions, and defining isolated traffic routes through the cluster.
+Kardinal is a multi-tenancy tool for Kubernetes that enables engineers to efficiently do development, testing, and QA work within a single stable cluster. Instead of implementing isolation at the cluster level, Kardinal implements isolation by deploying development versions of services side-by-side with their "staging" versions, and creating isolated traffic routes through the cluster.
 
-These traffic routes connect development versions to their appropriate dependencies, and to development versions of any databases, queues, caches, and external APIs that you may need. They are effectively "logical environments" or "views" on top of a single cluster. In Kardinal, these are called "flows". Flows enable isolation for the purpose of development, testing, and QA with the lowest possible resource footprint.
+These traffic routes connect development versions to their appropriate dependencies, and to development versions of any databases, queues, caches, and external APIs that you may need. They are effectively "logical environments" or "views" on top of a single cluster. In Kardinal, these are called "flows". Flows enable application-level isolation for the purpose of development, testing, and QA with the lowest possible resource footprint. It all happens in one cluster, with the absolute minimum duplication of resources necessary.
 
-It all happens in one cluster, with the absolute minimum duplication of resources necessary.
-
-There are many ways to isolate workflows in separate Kubernetes/cloud environments ("multi-tenancy"). To get an idea of how Kardinal fits into other methods, check out the table below:
+There are many ways to isolate workflows in separate the context of cloud/Kubernetes deployments ("multi-tenancy"). To get an idea of how Kardinal fits into other methods, see the table below:
 
 | Multi-tenancy method | Level of Isolation | Cost | # of Duplicated Resources |
 | :--- | :--- | :--- | :--- |
@@ -29,7 +27,7 @@ There are many ways to isolate workflows in separate Kubernetes/cloud environmen
 
 ## How it Works
 
-A cluster with multiple logical environments (”dev flows”) running in it may look like the following image. 
+A cluster with multiple logical environments (”flows”) running in it may look like the following image. 
 
 ![infographic](https://github.com/user-attachments/assets/343a44bc-2119-4368-a338-f27dc2271d8f)
 
