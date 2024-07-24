@@ -18,9 +18,9 @@ These traffic routes connect development versions to their appropriate dependenc
 
 It all happens in one cluster, with the absolute minimum duplication of resources necessary.
 
-There are many ways to isolate workflows on Kubernetes/cloud environments ("multi-tenancy"). To get an idea of how Kardinal fits into other methods, check out the table below:
+There are many ways to isolate workflows in separate Kubernetes/cloud environments ("multi-tenancy"). To get an idea of how Kardinal fits into other methods, check out the table below:
 
-| Multi-tenancy method | Level of Isolation | Cost | # of duplicated resources |
+| Multi-tenancy method | Level of Isolation | Cost | # of Duplicated Resources |
 | :--- | :--- | :--- | :--- |
 | Separate VPCs | Most coarse-grained | Highest Cost | Highest |
 | Separate Kubernetes Clusters | Coarse-grained | High Cost | High |
