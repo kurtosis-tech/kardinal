@@ -38,8 +38,8 @@ It's easy to install and easy to uninstall - just deploy the the sidecars in you
 | :--- | :--- | :--- | :--- |
 | Separate VPCs | Coarsest Isolation | Highest Cost | Highest |
 | Separate Kubernetes Clusters | Coarse Isolation | High Cost | High |
-| Separate Namespaces (ex. vclusters) | Fine Isolation | Low Cost | Low |
-| Separate Traffic Routes through an Application (ex. Kardinal) | Finest Isolation | Lowest Cost | Lowest |
+| Separate Namespaces (vclusters) | Fine Isolation | Low Cost | Low |
+| Separate In-App Traffic Routes (Kardinal) | Finest Isolation | Lowest Cost | Lowest |
 
 ## Quick start
 
