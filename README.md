@@ -16,9 +16,9 @@ Kardinal is a multi-tenancy tool for Kubernetes that enables engineers to effici
 
 These traffic routes connect development versions to their appropriate dependencies, and to development versions of any databases, queues, caches, and external APIs that you may need. They are effectively "logical environments" or "views" on top of a single cluster. In Kardinal, these are called "flows". Flows enable application-level isolation for the purpose of development, testing, and QA with the lowest possible resource footprint. It all happens in one cluster, with the absolute minimum duplication of resources necessary.
 
-There are many ways to isolate workflows in separate the context of cloud/Kubernetes deployments ("multi-tenancy"). To get an idea of how Kardinal fits into other methods, see the table below:
+There are many ways to isolate different environments in the context of cloud/Kubernetes deployments. To get an idea of how Kardinal fits into other methods, see the table below:
 
-| Multi-tenancy method | Level of Isolation | Cost | # of Duplicated Resources |
+| Isolation method | Level of Isolation | Cost | # of Duplicated Resources |
 | :--- | :--- | :--- | :--- |
 | Separate VPCs | Most coarse-grained | Highest Cost | Highest |
 | Separate Kubernetes Clusters | Coarse-grained | High Cost | High |
