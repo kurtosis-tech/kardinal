@@ -39,7 +39,7 @@ It's easy to install and easy to uninstall - just deploy the the sidecars in you
 | Separate VPCs | Most coarse-grained | Highest Cost | Highest |
 | Separate Kubernetes Clusters | Coarse-grained | High Cost | High |
 | Separate Namespaces (vclusters) | Fine-grained | Low Cost | Low |
-| Separate In-App Traffic Routes (Kardinal) | Most fine-grained | Lowest Cost | Lowest |
+| Separate Traffic Routes (Kardinal) | Most fine-grained | Lowest Cost | Lowest |
 
 ## Quick start
 
