@@ -27,7 +27,7 @@ There are many ways to isolate different environments in the context of cloud/Ku
 
 ## How it Works
 
-A cluster with multiple logical environments (”flows”) running in it may look like the following image. 
+In Kardinal, an application deployment with multiple logical environments (”flows”) running in it may look like the following image. 
 
 ![infographic](https://github.com/user-attachments/assets/343a44bc-2119-4368-a338-f27dc2271d8f)
 
