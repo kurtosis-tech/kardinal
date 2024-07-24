@@ -34,6 +34,13 @@ Kardinal is implemented as a set of sidecars that are deployed next to your stat
 
 It's easy to install and easy to uninstall - just deploy the the sidecars in your staging cluster, and use the Kardinal control plane to manage your development and test environments. If you want to uninstall Kardinal, just remove the sidecars.
 
+| Multi-tenancy method       | Level of Isolation  | Cost         |
+|----------------------------|---------------------|--------------|
+| Separate VPCs              | Coarsest Isolation  | Highest Cost |
+| Separate Kubernetes Cluster| Coarse Isolation    | High Cost    |
+| Separate Namespaces        | Fine Isolation      | Low Cost     |
+| Separate Traffic Routes    | Finest Isolation    | Lowest Cost  |
+
 ## Quick start
 
 Steps needed to get up and running with Kardinal will be published when we release a version that works on generic cluster topologies. Estimated release data is August 2nd, 2024.
