@@ -36,10 +36,10 @@ It's easy to install and easy to uninstall - just deploy the the sidecars in you
 
 ## Quick start
 
-Steps needed to get up and running with Kardinal will be published when we release a version that works on generic cluster topologies. Estimated release data is August 2nd, 2024.
+Steps needed to get up and running with Kardinal will be published when we release a version that works on generic cluster topologies. Estimated release data is August 2nd, 2024. Until then, check out our demo in the [playground](https://github.com/kurtosis-tech/kardinal-playground/).
 
 ## Resources
 
-- Explore our [docs](https://kardinal.dev) to learn more about how Kardinal works
+- Explore our [docs](https://kardinal.dev/docs) to learn more about how Kardinal works.
 - Ask questions and get help in our community [forum](https://discuss.kardinal.dev).
 - Read our [blog](https://blog.kardinal.dev/) for tips from developers and creators.
