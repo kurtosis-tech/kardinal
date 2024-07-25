@@ -32,12 +32,18 @@ jobs:
       - name: Check for changes outside website directory
         id: check
         run: |
-          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -qvE '^website/'; then
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            # On main branch, compare the latest commit with its parent
+            diff_base="HEAD^"
+          else
+            # On other branches or PRs, compare with the main branch
+            diff_base="origin/main"
+          fi
+          if git diff --name-only $diff_base HEAD | grep -v -e '^website/' -e '\.md$' | grep -q '^'; then
             echo "run_workflow=true" >> $GITHUB_OUTPUT
           else
             echo "run_workflow=false" >> $GITHUB_OUTPUT
           fi
-
   check_nix:
     name: Basic Check
     needs: check_skip_condition
