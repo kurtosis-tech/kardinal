@@ -83,9 +83,8 @@ jobs:
 
   build_publish_images:
     name: Test, build and publish images
-    needs: check_skip_condition
+    needs: check_skip_condition check_nix
     if: needs.check_skip_condition.outputs.run_workflow == 'true'
-    needs: check_nix
     runs-on: ubuntu-22.04
     steps:
       - name: git checkout
