@@ -158,11 +158,9 @@ br[data-mobile="true"] {
     background-position: 0% 0%;
   }
 }
-
 html {
   color-scheme: light;
 }
-
 /* Carousel styles */
 .carousel .control-prev.control-arrow:before {
   border-right: 16px solid rgb(255, 255, 255) !important;
