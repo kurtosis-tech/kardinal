@@ -7,16 +7,41 @@ on:
       - main
     tags:
       - "v*.*.*"
+    paths-ignore:
+      - 'website/**'
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - 'website/**'
 
 env:
   MAIN_BRANCH: ${{ 'refs/heads/main' }}
 
 jobs:
+  # Check if we should skip CI if only ./website directory was modified
+  check_skip_condition:
+    name: Check if CI should be skipped
+    runs-on: ubuntu-latest
+    outputs:
+      run_workflow: ${{ steps.check.outputs.run_workflow }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # fetches all history for all branches and tags
+      - name: Check for changes outside website directory
+        id: check
+        run: |
+          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -qvE '^website/'; then
+            echo "run_workflow=true" >> $GITHUB_OUTPUT
+          else
+            echo "run_workflow=false" >> $GITHUB_OUTPUT
+          fi
+
   check_nix:
     name: Basic Check
+    needs: check_skip_condition
+    if: needs.check_skip_condition.outputs.run_workflow == 'true'
     runs-on: ubuntu-22.04
     steps:
       - name: git checkout
@@ -42,7 +67,7 @@ jobs:
         run: |
           git reset --hard
           git clean -f
-          nix develop --command go-tidy-all 
+          nix develop --command go-tidy-all
           export changed_files=$(git diff-files --name-only | grep -cv ".toml$")
           if [[ $changed_files != 0 ]]; then
             echo "Go modules are not so tidy (run 'go-tidy-all' to fix it):"
@@ -58,6 +83,8 @@ jobs:
 
   build_publish_images:
     name: Test, build and publish images
+    needs: check_skip_condition
+    if: needs.check_skip_condition.outputs.run_workflow == 'true'
     needs: check_nix
     runs-on: ubuntu-22.04
     steps:
@@ -100,7 +127,8 @@ jobs:
 
   build_clis:
     name: Test and build cross-compiled clis
-    needs: check_nix
+    needs: check_nix check_skip_condition
+    if: needs.check_skip_condition.outputs.run_workflow == 'true'
     runs-on: ubuntu-22.04
     strategy:
       matrix:

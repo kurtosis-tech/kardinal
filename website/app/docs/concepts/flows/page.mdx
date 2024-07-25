@@ -1,0 +1,23 @@
+export const metadata = {
+  title: "Kardinal Docs | Flows",
+};
+
+# Flows
+
+In Kardinal, a “flow” is a set of traffic routing rules paired with a data isolation layer that achieves the appropriate levels of isolation and data exposure for a version of deployable software.
+
+Anything you do with an “environment” across the software delivery lifecycle can be done with a “flow” in Kardinal. For example:
+
+- Isolated Dev Sandbox → [Isolated Dev Flow](use-cases/isolated-dev-sandbox-flows)
+- Preview Environment → [Preview Flow](use-cases/preview-and-feature-branch-flows)
+- QA Environment → [QA Flow](use-cases/qa-flows)
+
+_Flows are possible because Kardinal links traffic routing/mirroring rules with data access and isolation policies_. When both are combined, you can effectively create virtual views over an environment (we call them flows) where both the traffic and the data that are sent through the flow are isolated to a particular workflow (dev, QA, staging).
+
+An example flow configuration looks like this:
+
+![Flow Configuration](/illustrations/flow-configuration.png)
+
+**[Code maturity](concepts/maturity-gates)** defines the rules for when a version of software can have access to the flow. It's a way for teams to define policies that control data access and impact.
+
+**Traffic configuration** and **data configuration** are the two main elements of a flow. The combination of these allows "flows" to fill the role of any dev or QA environment, in addition to supporting progressive delivery on production.

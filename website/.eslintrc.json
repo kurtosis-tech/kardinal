@@ -1,0 +1,23 @@
+{
+  "extends": ["eslint:recommended", "next/core-web-vitals"],
+  "rules": {
+    "simple-import-sort/imports": [
+      "error",
+      {
+        "groups": [
+          ["^@?\\w"],
+          ["^(@|components|sections|src|$lib)(/.*|$)"],
+          ["^\\.\\.(?!/?$)", "^\\.\\./?$"],
+          ["^\\./(?=.*/)(?!/?$)", "^\\.(?!/?$)", "^\\./?$"],
+          ["^.+\\.s?css$"]
+        ]
+      }
+    ],
+    "simple-import-sort/exports": "error",
+    "react/react-in-jsx-scope": "off",
+    "react/jsx-uses-react": "off",
+    "no-irregular-whitespace": "off"
+  },
+  "plugins": ["simple-import-sort"],
+  "ignorePatterns": ["public/", ".next/", "out/"]
+}
