@@ -2,7 +2,6 @@
 
 ## [0.1.3](https://github.com/kurtosis-tech/kardinal/compare/0.1.2...0.1.3) (2024-07-12)
 
-
 ### Features
 
 * remove old urls ([#21](https://github.com/kurtosis-tech/kardinal/issues/21)) ([2ce038f](https://github.com/kurtosis-tech/kardinal/commit/2ce038f8e7fb16979998d88c84d871b76596197b))
