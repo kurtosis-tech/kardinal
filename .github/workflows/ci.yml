@@ -83,7 +83,7 @@ jobs:
 
   build_publish_images:
     name: Test, build and publish images
-    needs: check_skip_condition check_nix
+    needs: [check_skip_condition, check_nix]
     if: needs.check_skip_condition.outputs.run_workflow == 'true'
     runs-on: ubuntu-22.04
     steps:
@@ -126,7 +126,7 @@ jobs:
 
   build_clis:
     name: Test and build cross-compiled clis
-    needs: check_nix check_skip_condition
+    needs: [check_skip_condition, check_nix]
     if: needs.check_skip_condition.outputs.run_workflow == 'true'
     runs-on: ubuntu-22.04
     strategy:
