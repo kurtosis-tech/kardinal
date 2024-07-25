@@ -6,10 +6,6 @@
 
 The lightest-weight Kubernetes development environments in the world. Stop duplicating everything across your dev, test, and QA Kubernetes clusters. Deploy the minimum resources necessary to develop and test directly in one production-like environment.
 
-## Can't wait to get started?
-
-Visit the [Kardinal playground](https://github.com/kurtosis-tech/kardinal-playground/) to experience a simple demonstration of how Kardinal can enhance your development workflow.
-
 ## What is Kardinal?
 
 Kardinal is a traffic routing and state isolation tool for Kubernetes that enables engineers to efficiently do development, testing, and QA work within a single stable cluster. Instead of implementing isolation at the cluster level, Kardinal implements isolation by deploying development versions of services side-by-side with their "staging" versions, and creating isolated traffic routes through the cluster.
@@ -45,7 +41,7 @@ It's easy to install and easy to uninstall - just deploy the the sidecars in you
 
 ## Quick start
 
-Steps needed to get up and running with Kardinal will be published when we release a version that works on generic cluster topologies. Estimated release data is August 2nd, 2024. Until then, check out our demo in the [playground](https://github.com/kurtosis-tech/kardinal-playground/).
+Steps needed to get up and running with Kardinal will be published when we release a version that works on generic cluster topologies. Estimated release data is August 2nd, 2024. 
 
 ## Resources
 
