@@ -91,9 +91,6 @@ namespace S {
     }
   `;
   export const CTAHeading = styled(Heading.H2)`
-    em {
-      margin-left: 10px;
-    }
     img {
       width: 32px;
       height: 32px;
