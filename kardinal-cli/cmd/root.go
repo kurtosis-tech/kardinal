@@ -3,13 +3,14 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"kardinal.cli/consts"
-	"kardinal.cli/multi_os_cmd_executor"
 	"log"
 	"net/http"
 	"os"
 	"path"
 	"strings"
+
+	"kardinal.cli/consts"
+	"kardinal.cli/multi_os_cmd_executor"
 
 	"github.com/kurtosis-tech/stacktrace"
 	"github.com/sirupsen/logrus"
@@ -22,6 +23,7 @@ import (
 	api_types "github.com/kurtosis-tech/kardinal/libs/cli-kontrol-api/api/golang/types"
 	appv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 )
 
@@ -209,14 +211,9 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.Ser
 	}
 
 	manifest := string(fileBytes)
-	// TODO: Check format of manifest file
-	blocks := strings.Split(manifest, "---")
-	if len(blocks)%2 != 0 {
-		return nil, stacktrace.NewError("The manifest should contain pairs of service / deployment specifications")
-	}
-	serviceConfigs := make([]api_types.ServiceConfig, len(blocks)/2)
+	serviceConfigs := map[string]*api_types.ServiceConfig{}
 	decode := scheme.Codecs.UniversalDeserializer().Decode
-	for index, spec := range strings.Split(manifest, "---") {
+	for _, spec := range strings.Split(manifest, "---") {
 		if len(spec) == 0 {
 			continue
 		}
@@ -227,16 +224,47 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.Ser
 		switch obj := obj.(type) {
 		case *corev1.Service:
 			service := obj
-			serviceConfigs[index/2].Service = *service
+			serviceName := getObjectName(service.GetObjectMeta().(*metav1.ObjectMeta))
+			_, ok := serviceConfigs[serviceName]
+			if !ok {
+				serviceConfigs[serviceName] = &api_types.ServiceConfig{
+					Service: *service,
+				}
+			} else {
+				serviceConfigs[serviceName].Service = *service
+			}
 		case *appv1.Deployment:
 			deployment := obj
-			serviceConfigs[index/2].Deployment = *deployment
+			deploymentName := getObjectName(deployment.GetObjectMeta().(*metav1.ObjectMeta))
+			_, ok := serviceConfigs[deploymentName]
+			if !ok {
+				serviceConfigs[deploymentName] = &api_types.ServiceConfig{
+					Deployment: *deployment,
+				}
+			} else {
+				serviceConfigs[deploymentName].Deployment = *deployment
+			}
 		default:
 			return nil, stacktrace.NewError("An error occurred parsing the manifest because of an unsupported kubernetes type")
 		}
 	}
 
-	return serviceConfigs, nil
+	finalServiceConfigs := []api_types.ServiceConfig{}
+	for _, serviceConfig := range serviceConfigs {
+		finalServiceConfigs = append(finalServiceConfigs, *serviceConfig)
+	}
+
+	return finalServiceConfigs, nil
+}
+
+// Use in priority the label app value
+func getObjectName(obj *metav1.ObjectMeta) string {
+	labelApp, ok := obj.GetLabels()["app"]
+	if ok {
+		return labelApp
+	}
+
+	return obj.GetName()
 }
 
 func createDevFlow(tenantUuid api_types.Uuid, serviceConfigs []api_types.ServiceConfig, imageLocator, serviceName string) {
