@@ -1,0 +1,22 @@
+export const metadata = {
+  title: "Kardinal Docs | Architecture",
+};
+
+# Architecture
+
+Kardinal is built with a sidecar - control plane architecture.
+
+There are two kinds of sidecars:
+
+- _Stateless service sidecar_
+
+  Deployed alongside services that are stateless, and thus can be reused across flows without risk of corrupting data in other flows.
+
+- _Stateful service sidecar_
+
+  Deployed alongside services that have state like databases, queues, and caches. Implements rules like “shared read, isolated write”, “isolated read, isolated write”, and “shared read/write” which allow the stateful service to be maximally reused across flows without breaking isolation.
+
+Both of these sidecars are deployed inside of your environment, next to the corresponding stateless or stateful services.
+
+The **control plane** is the single interface where the behavior of the Kardinal sidecars is managed. It enables developers to configure and monitor their [flows](concepts/flows) and [maturity gates](concepts/maturity-gates) for themselves and their organization.
+
