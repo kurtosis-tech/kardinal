@@ -1,8 +1,6 @@
 module kardinal.kontrol
 
-go 1.22.0
-
-toolchain go1.22.3
+go 1.20
 
 replace github.com/kurtosis-tech/kardinal/libs/manager-kontrol-api => ../libs/manager-kontrol-api
 

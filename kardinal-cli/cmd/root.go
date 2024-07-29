@@ -29,7 +29,7 @@ import (
 
 const (
 	projectName = "kardinal"
-	devMode     = false
+	devMode     = true
 
 	kontrolBaseURLTmpl                  = "%s://%s"
 	kontrolClusterResourcesEndpointTmpl = "%s/tenant/%s/cluster-resources"
@@ -225,6 +225,7 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.Ser
 		case *corev1.Service:
 			service := obj
 			serviceName := getObjectName(service.GetObjectMeta().(*metav1.ObjectMeta))
+			logrus.Infof("service name: %v", serviceName)
 			_, ok := serviceConfigs[serviceName]
 			if !ok {
 				serviceConfigs[serviceName] = &api_types.ServiceConfig{
@@ -236,6 +237,7 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.Ser
 		case *appv1.Deployment:
 			deployment := obj
 			deploymentName := getObjectName(deployment.GetObjectMeta().(*metav1.ObjectMeta))
+			logrus.Infof("deployment name: %v", deploymentName)
 			_, ok := serviceConfigs[deploymentName]
 			if !ok {
 				serviceConfigs[deploymentName] = &api_types.ServiceConfig{
@@ -244,12 +246,14 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.Ser
 			} else {
 				serviceConfigs[deploymentName].Deployment = *deployment
 			}
+			logrus.Infof("service config container: %s", serviceConfigs[deploymentName].Deployment.Spec.Template.Spec.Containers[0])
 		default:
 			return nil, stacktrace.NewError("An error occurred parsing the manifest because of an unsupported kubernetes type")
 		}
 	}
 
 	finalServiceConfigs := []api_types.ServiceConfig{}
+	logrus.Infof("size of map %v", len(serviceConfigs))
 	for _, serviceConfig := range serviceConfigs {
 		finalServiceConfigs = append(finalServiceConfigs, *serviceConfig)
 	}
@@ -287,6 +291,10 @@ func createDevFlow(tenantUuid api_types.Uuid, serviceConfigs []api_types.Service
 func deploy(tenantUuid api_types.Uuid, serviceConfigs []api_types.ServiceConfig) {
 	ctx := context.Background()
 
+	logrus.Infof("number of service configs: %v", len(serviceConfigs))
+	for _, serviceConfig := range serviceConfigs {
+		logrus.Infof("service config name %v", serviceConfig.Deployment)
+	}
 	body := api_types.PostTenantUuidDeployJSONRequestBody{
 		ServiceConfigs: &serviceConfigs,
 	}

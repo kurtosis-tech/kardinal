@@ -1,8 +1,6 @@
 module kardinal.cli
 
-go 1.22.0
-
-toolchain go1.22.3
+go 1.20
 
 require (
 	github.com/adrg/xdg v0.4.0

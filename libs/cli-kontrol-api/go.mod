@@ -1,8 +1,6 @@
 module github.com/kurtosis-tech/kardinal/libs/cli-kontrol-api
 
-go 1.22.0
-
-toolchain go1.22.3
+go 1.20
 
 require (
 	github.com/getkin/kin-openapi v0.124.0
