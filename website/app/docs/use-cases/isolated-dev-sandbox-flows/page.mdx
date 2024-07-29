@@ -1,0 +1,44 @@
+export const metadata = {
+  title: "Kardinal Docs | Isolated Dev Sandbox Flows",
+};
+
+# Isolated Dev Sandbox Flows
+
+Isolated dev sandbox flows remove the need for the remote, isolated dev sandboxes that many large organizations provide for their developers.
+
+There are two ways to configure isolated dev sandbox flows in Kardinal:
+
+1. Recreate the same development experience you had before in your dev sandbox environments
+2. Recreate your remote dev sandboxes, but with a higher level of dev-prod parity through traffic mirroring and write-level data isolation.
+
+In the first case, you will at least _maximize reuse of resources_ by using isolated flows instead of isolated environments. Instead of recreating every service in the environment per developer, Kardinal will only spin up the dev versions of the services being modified and will reuse all the other services from a shared environment.
+
+In the second case, you will not only maximize the reuse of resources, as in the first case, but you'll also get a _higher level of dev-prod parity._
+
+We'll describe both here, to illustrate what you can achieve with [flows](concepts/flows) and [maturity gates](concepts/maturity-gates).
+
+### (Okay) Recreate existing dev sandboxes as flows
+
+**Maturity Gate**:
+
+- Unmerged, untested code
+
+**Maturity-Based Access Controls**
+
+- **Traffic Source:** Isolated dev traffic
+- **Traffic Access:** Directed
+- **Data Layer:** Dev (Notional) Data
+- **Data Isolation Mode:** Read/Write (full access to the database)
+
+### (Great) Implement dev sandbox flows with maximum dev-prod parity
+
+**Maturity Gate**:
+
+- Unmerged, untested code
+
+**Maturity-Based Access Controls**
+
+- **Traffic Source:** Production Traffic (or Internal-Only Traffic)
+- **Traffic Access:** Mirrored
+- **Data Layer:** Production Data (or Internal-Only Data)
+- **Data Isolation Mode:** Shared Read / Isolated Write

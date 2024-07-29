@@ -1,0 +1,189 @@
+:root {
+  color-scheme: only light;
+
+  --max-width: 1248px;
+  --border-radius: 4px;
+
+  /* --font-mono: ui-monospace, Menlo, Monaco, "Cascadia Mono", "Segoe UI Mono", */
+  /*   "Roboto Mono", "Oxygen Mono", "Ubuntu Monospace", "Source Code Pro", */
+  /*   "Fira Mono", "Droid Sans Mono", "Courier New", monospace; */
+
+  /* color vars */
+  --brand-primary: #ff602c;
+  --brand-primary-dark: rgba(168, 50, 5, 0.4);
+  --brand-secondary: #fca061;
+  --gradient-from-bg: linear-gradient(84deg, transparent 0%, white 100%);
+  --gradient-to-bg: linear-gradient(180deg, transparent 0%, white 100%);
+
+  --gradient-brand: linear-gradient(90deg, #fca061 0%, #ff602c 80%);
+  --gradient-brand-compact: linear-gradient(
+    90deg,
+    #fca061 24.54%,
+    #ff602c 65.88%
+  );
+
+  --gradient-brand-dark: linear-gradient(90deg, #fca061, rgba(168, 50, 5, 0.4));
+  --gray-bg: #1f232a;
+  --gray-bg-light: #212121;
+  --gray-dark: #21262d;
+  --gray-diagramlines: #666a6f;
+  --gray-icon: #8b949e;
+  --white-10: rgba(255, 255, 255, 0.1);
+  --white-20: rgba(255, 255, 255, 0.2);
+  --white-40: rgba(255, 255, 255, 0.4);
+  --white-60: rgba(255, 255, 255, 0.6);
+  --white-70: rgba(255, 255, 255, 0.7);
+  --white-90: rgba(255, 255, 255, 0.9);
+  --white-100: #ffffff;
+
+  --blue: #1F56A5;
+  --blue-light: #58A6FF;
+
+  --gray: #525157;
+  --gray-light: #aaa;
+  --gray-lightest: #f2f2f2;
+
+  --black: #000330;
+  --white: #ffffff;
+
+  /* semantic vars */
+  --foreground: var(--gray);
+  --foreground-dark: var(--black);
+  --foreground-light: var(--gray-light);
+
+  --foreground-inverted: var(--gray-light);
+  --foreground-dark-inverted: var(--gray-lightest);
+
+  --background: var(--white);
+  --background-light: var(--gray-bg-light, #212121);
+  --background-dark: var(--gray-bg-dark, #21262d);
+
+  --background-contrast: #fff9f2;
+  --background-inverted: var(--gray-bg);
+
+  --gray-border: #ddd;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
+  font-smooth: always;
+}
+
+html,
+body {
+  background: var(--background);
+  overflow-x: hidden;
+}
+
+body {
+  color: var(--foreground);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+em {
+  font-weight: 500;
+  background: var(--gradient-brand-compact);
+  background-size: auto;
+  background-clip: border-box;
+  background-size: 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation-duration: 3s;
+  animation-name: gradient;
+  animation-iteration-count: infinite;
+  font-style: normal;
+}
+
+s {
+  text-decoration: none;
+  position: relative;
+  display: inline-block;
+}
+
+s:after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("/scribble-animated.svg");
+  background-size: 100%;
+  background-repeat: no-repeat;
+}
+
+hr {
+  border: 0;
+  border-bottom: 1px solid var(--gray-border);
+}
+
+br[data-mobile="true"] {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  br[data-desktop="true"] {
+    display: none;
+  }
+  br[data-mobile="true"] {
+    display: block;
+  }
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 0%;
+  }
+  25% {
+    background-position: 50% 0%;
+  }
+  50% {
+    background-position: 90% 0%;
+  }
+  60% {
+    background-position: 60% 0%;
+  }
+  75% {
+    background-position: 40% 0%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
+}
+html {
+  color-scheme: light;
+}
+/* Carousel styles */
+.carousel .control-prev.control-arrow:before {
+  border-right: 16px solid rgb(255, 255, 255) !important;
+  border-top: 16px solid transparent !important;
+  border-bottom: 16px solid transparent !important;
+}
+.carousel .control-prev {
+  margin-left: -10px;
+}
+
+.carousel .control-next.control-arrow:before {
+  border-left: 16px solid rgb(255, 255, 255) !important;
+  border-top: 16px solid transparent !important;
+  border-bottom: 16px solid transparent !important;
+}
+.carousel .control-next {
+  margin-right: -10px;
+}
+
+.carousel .control-dots .dot {
+  width: 16px !important;
+  height: 16px !important;
+}
+.carousel .control-dots {
+  margin: 0 !important;
+}

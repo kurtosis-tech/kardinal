@@ -1,0 +1,32 @@
+export const metadata = {
+  title: "Kardinal Docs | Maturity-Based Access Controls",
+};
+
+# Maturity-Based Access Controls
+
+Maturity-based access controls are how teams configure [flows](concepts/flows) so that every engineer can get access to the right traffic and data at the right time for effective delivery.
+
+With maturity-based access controls, you define the level of exposure to production data and traffic along with the level of isolation that a deployed version of a service has.
+
+This can be done by combining the following configuration options:
+
+### _Traffic Source_
+
+1. Staging Traffic
+2. Dev Traffic (only the dev or QA team can generate traffic)
+
+### _Traffic Access Controls_
+
+1. Redirect (the new version completely handles the traffic)
+2. Mirror (the new version gets a duplicate of the traffic, and the output is not given to end-users)
+
+### _Data Layer_
+
+1. Obfuscated Production Data
+2. Staging Data
+4. Dev (Notional) Data
+
+### _Data Isolation Modes_
+
+1. Read/Write (full access to the database)
+2. Shared Read, Isolated Write (full read access to the database, but writes happen in an isolated commit layer)

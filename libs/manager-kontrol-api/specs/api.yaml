@@ -97,3 +97,17 @@ components:
           x-go-type-import:
             path: istio.io/client-go/pkg/apis/networking/v1alpha3
             name: v1alpha3
+        envoy_filters:
+          type: array
+          items:
+            x-go-type: v1alpha3.EnvoyFilter
+            x-go-type-import:
+              path: istio.io/client-go/pkg/apis/networking/v1alpha3
+              name: v1alpha3
+        authorization_policies:
+          type: array
+          items:
+            x-go-type: v1beta1.AuthorizationPolicy
+            x-go-type-import:
+              path: istio.io/client-go/pkg/apis/security/v1beta1
+              name: v1beta1
