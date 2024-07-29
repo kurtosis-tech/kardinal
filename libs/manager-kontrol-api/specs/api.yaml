@@ -109,5 +109,5 @@ components:
           items:
             x-go-type: v1beta1.AuthorizationPolicy
             x-go-type-import:
-              path: istio.io/api/security/v1beta1
+              path: istio.io/client-go/pkg/apis/security/v1beta1
               name: v1beta1
