@@ -4,6 +4,7 @@
 package types
 
 import (
+	v1beta1 "istio.io/api/security/v1beta1"
 	v1alpha3 "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -18,11 +19,13 @@ const (
 
 // ClusterResources defines model for ClusterResources.
 type ClusterResources struct {
-	Deployments      *[]appsv1.Deployment        `json:"deployments,omitempty"`
-	DestinationRules *[]v1alpha3.DestinationRule `json:"destination_rules,omitempty"`
-	Gateway          *v1alpha3.Gateway           `json:"gateway,omitempty"`
-	Services         *[]corev1.Service           `json:"services,omitempty"`
-	VirtualServices  *[]v1alpha3.VirtualService  `json:"virtual_services,omitempty"`
+	AuthorizationPolicies *[]v1beta1.AuthorizationPolicy `json:"authorization_policies,omitempty"`
+	Deployments           *[]appsv1.Deployment           `json:"deployments,omitempty"`
+	DestinationRules      *[]v1alpha3.DestinationRule    `json:"destination_rules,omitempty"`
+	EnvoyFilters          *[]v1alpha3.EnvoyFilter        `json:"envoy_filters,omitempty"`
+	Gateway               *v1alpha3.Gateway              `json:"gateway,omitempty"`
+	Services              *[]corev1.Service              `json:"services,omitempty"`
+	VirtualServices       *[]v1alpha3.VirtualService     `json:"virtual_services,omitempty"`
 }
 
 // ResponseInfo defines model for ResponseInfo.

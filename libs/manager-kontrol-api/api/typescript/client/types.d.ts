@@ -44,6 +44,8 @@ export interface components {
       virtual_services?: unknown[];
       destination_rules?: unknown[];
       gateway?: unknown;
+      envoy_filters?: unknown[];
+      authorization_policies?: unknown[];
     };
   };
   responses: {
