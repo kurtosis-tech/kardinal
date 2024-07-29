@@ -27,7 +27,9 @@ const Page = () => {
         </>
       }
       trafficFlowContent={
-        "Run it all in a single cluster using traffic routing and data access policies."
+        <>
+        Run it all in a single cluster with Kardinal&apos;s <em>open-source</em>, hyper-lightweight multitenancy framework.
+        </>
       }
       videoStepperHeading={
         <>
@@ -38,7 +40,7 @@ const Page = () => {
         'Kardinal creates logical "environments" within one cluster to isolate traffic and data access between dev, test, and staging workflows.'
       }
     >
-      Stop duplicating everything in your Kubernetes cluster.{" "}
+      Stop duplicating everything in your Kubernetes clusters.{" "}
       <br data-desktop />
       Deploy the <em>minimum resources necessary</em> to dev and test
       <br data-desktop />
