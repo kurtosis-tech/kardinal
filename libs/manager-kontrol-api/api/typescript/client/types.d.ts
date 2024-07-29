@@ -3,87 +3,70 @@
  * Do not make direct changes to the file.
  */
 
+
 export interface paths {
-    "/tenant/{uuid}/cluster-resources": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+  "/tenant/{uuid}/cluster-resources": {
+    /** Cluster resource definition */
+    get: {
+      parameters: {
+        path: {
+          uuid: components["parameters"]["uuid"];
         };
-        /** Cluster resource definition */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    /** @description UUID of the resource */
-                    uuid: components["parameters"]["uuid"];
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Successful response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ClusterResources"];
-                    };
-                };
-                default: components["responses"]["NotOk"];
-            };
+      };
+      responses: {
+        /** @description Successful response */
+        200: {
+          content: {
+            "application/json": components["schemas"]["ClusterResources"];
+          };
         };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        default: components["responses"]["NotOk"];
+      };
     };
+  };
 }
+
 export type webhooks = Record<string, never>;
+
 export interface components {
-    schemas: {
-        ResponseInfo: {
-            type: components["schemas"]["ResponseType"];
-            message: string;
-            /** Format: uint32 */
-            code: number;
-        };
-        /** @enum {string} */
-        ResponseType: "ERROR" | "INFO" | "WARNING";
-        ClusterResources: {
-            services?: unknown[];
-            deployments?: unknown[];
-            virtual_services?: unknown[];
-            destination_rules?: unknown[];
-            gateway?: unknown;
-            envoy_filters?: unknown[];
-            authorization_policies?: unknown[];
-        };
+  schemas: {
+    ResponseInfo: {
+      type: components["schemas"]["ResponseType"];
+      message: string;
+      /** Format: uint32 */
+      code: number;
     };
-    responses: {
-        /** @description Unexpected error */
-        NotOk: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["ResponseInfo"];
-            };
-        };
+    /** @enum {string} */
+    ResponseType: "ERROR" | "INFO" | "WARNING";
+    ClusterResources: {
+      services?: unknown[];
+      deployments?: unknown[];
+      virtual_services?: unknown[];
+      destination_rules?: unknown[];
+      gateway?: unknown;
+      envoy_filters?: unknown[];
+      authorization_policies?: unknown[];
     };
-    parameters: {
-        /** @description UUID of the resource */
-        uuid: string;
+  };
+  responses: {
+    /** @description Unexpected error */
+    NotOk: {
+      content: {
+        "application/json": components["schemas"]["ResponseInfo"];
+      };
     };
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
+  };
+  parameters: {
+    /** @description UUID of the resource */
+    uuid: string;
+  };
+  requestBodies: never;
+  headers: never;
+  pathItems: never;
 }
+
 export type $defs = Record<string, never>;
+
+export type external = Record<string, never>;
+
 export type operations = Record<string, never>;
