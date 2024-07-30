@@ -83,7 +83,6 @@ spec:
               value: "{{.ClusterResourcesURL}}"
             - name: KARDINAL_MANAGER_FETCHER_JOB_DURATION_SECONDS
               value: "10"
----
 `
 )
 
