@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.5](https://github.com/kurtosis-tech/kardinal/compare/0.1.4...0.1.5) (2024-07-30)
+
+
+### Bug Fixes
+
+* use the right namespace for router/router-redis ([#59](https://github.com/kurtosis-tech/kardinal/issues/59)) ([959b970](https://github.com/kurtosis-tech/kardinal/commit/959b970046b790ce4bb1f9084a882c7c595596d9))
+
 ## [0.1.4](https://github.com/kurtosis-tech/kardinal/compare/0.1.3...0.1.4) (2024-07-30)
 
 
