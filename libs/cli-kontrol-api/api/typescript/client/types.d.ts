@@ -37,6 +37,7 @@ export interface paths {
             "application/json": components["schemas"]["DevFlow"];
           };
         };
+        404: components["responses"]["NotFound"];
       };
     };
   };
@@ -54,6 +55,7 @@ export interface paths {
             "application/json": components["schemas"]["DevFlow"][];
           };
         };
+        404: components["responses"]["NotFound"];
       };
     };
   };
@@ -72,11 +74,10 @@ export interface paths {
         };
       };
       responses: {
-        /** @description Dev flow creation status */
-        200: {
-          content: {
-            "application/json": string;
-          };
+        404: components["responses"]["NotFound"];
+        /** @description Dev flow deletion status */
+        "2xx": {
+          content: never;
         };
       };
     };
@@ -118,6 +119,7 @@ export interface paths {
             "application/json": components["schemas"]["ClusterTopology"];
           };
         };
+        404: components["responses"]["NotFound"];
       };
     };
   };
@@ -170,7 +172,19 @@ export interface components {
       deployment: unknown;
     };
   };
-  responses: never;
+  responses: {
+    /** @description Resource not found */
+    NotFound: {
+      content: {
+        "application/json": {
+          /** @description Resource type */
+          "resource-type"?: string;
+          /** @description Resource ID */
+          id?: string;
+        };
+      };
+    };
+  };
   parameters: {
     /** @description UUID of the resource */
     uuid: string;

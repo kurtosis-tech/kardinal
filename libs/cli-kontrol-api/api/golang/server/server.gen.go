@@ -183,6 +183,14 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 
 }
 
+type NotFoundJSONResponse struct {
+	// Id Resource ID
+	Id *string `json:"id,omitempty"`
+
+	// ResourceType Resource type
+	ResourceType *string `json:"resource-type,omitempty"`
+}
+
 type GetHealthRequestObject struct {
 }
 
@@ -235,6 +243,15 @@ func (response PostTenantUuidFlowCreate200JSONResponse) VisitPostTenantUuidFlowC
 	return json.NewEncoder(w).Encode(response)
 }
 
+type PostTenantUuidFlowCreate404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response PostTenantUuidFlowCreate404JSONResponse) VisitPostTenantUuidFlowCreateResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type PostTenantUuidFlowFlowIdDeleteRequestObject struct {
 	Uuid   Uuid   `json:"uuid"`
 	FlowId FlowId `json:"flow-id"`
@@ -245,11 +262,20 @@ type PostTenantUuidFlowFlowIdDeleteResponseObject interface {
 	VisitPostTenantUuidFlowFlowIdDeleteResponse(w http.ResponseWriter) error
 }
 
-type PostTenantUuidFlowFlowIdDelete200JSONResponse string
+type PostTenantUuidFlowFlowIdDelete2xxResponse struct {
+	StatusCode int
+}
 
-func (response PostTenantUuidFlowFlowIdDelete200JSONResponse) VisitPostTenantUuidFlowFlowIdDeleteResponse(w http.ResponseWriter) error {
+func (response PostTenantUuidFlowFlowIdDelete2xxResponse) VisitPostTenantUuidFlowFlowIdDeleteResponse(w http.ResponseWriter) error {
+	w.WriteHeader(response.StatusCode)
+	return nil
+}
+
+type PostTenantUuidFlowFlowIdDelete404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response PostTenantUuidFlowFlowIdDelete404JSONResponse) VisitPostTenantUuidFlowFlowIdDeleteResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
+	w.WriteHeader(404)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -271,6 +297,15 @@ func (response GetTenantUuidFlows200JSONResponse) VisitGetTenantUuidFlowsRespons
 	return json.NewEncoder(w).Encode(response)
 }
 
+type GetTenantUuidFlows404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetTenantUuidFlows404JSONResponse) VisitGetTenantUuidFlowsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type GetTenantUuidTopologyRequestObject struct {
 	Uuid Uuid `json:"uuid"`
 }
@@ -284,6 +319,15 @@ type GetTenantUuidTopology200JSONResponse ClusterTopology
 func (response GetTenantUuidTopology200JSONResponse) VisitGetTenantUuidTopologyResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetTenantUuidTopology404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetTenantUuidTopology404JSONResponse) VisitGetTenantUuidTopologyResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -492,22 +536,24 @@ func (sh *strictHandler) GetTenantUuidTopology(ctx echo.Context, uuid Uuid) erro
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"AgAA//9YpuEFzBEAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

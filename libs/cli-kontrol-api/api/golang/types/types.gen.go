@@ -81,6 +81,15 @@ type FlowId = string
 // Uuid defines model for uuid.
 type Uuid = string
 
+// NotFound defines model for NotFound.
+type NotFound struct {
+	// Id Resource ID
+	Id *string `json:"id,omitempty"`
+
+	// ResourceType Resource type
+	ResourceType *string `json:"resource-type,omitempty"`
+}
+
 // PostTenantUuidDeployJSONRequestBody defines body for PostTenantUuidDeploy for application/json ContentType.
 type PostTenantUuidDeployJSONRequestBody = ProdFlowSpec
 

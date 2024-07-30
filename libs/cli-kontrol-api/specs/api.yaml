@@ -28,6 +28,8 @@ paths:
             schema:
               $ref: "#/components/schemas/DevFlowSpec"
       responses:
+        "404":
+          $ref: "#/components/responses/NotFound"
         "200":
           description: Dev flow creation status
           content:
@@ -40,6 +42,8 @@ paths:
       parameters:
         - $ref: "#/components/parameters/uuid"
       responses:
+        "404":
+          $ref: "#/components/responses/NotFound"
         "200":
           description: Dev flow creation status
           content:
@@ -62,12 +66,10 @@ paths:
             schema:
               $ref: "#/components/schemas/ProdFlowSpec"
       responses:
-        "200":
-          description: Dev flow creation status
-          content:
-            application/json:
-              schema:
-                type: string
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "2xx":
+          description: Dev flow deletion status
 
   /tenant/{uuid}/deploy:
     post:
@@ -93,6 +95,8 @@ paths:
       parameters:
         - $ref: "#/components/parameters/uuid"
       responses:
+        "404":
+          $ref: "#/components/responses/NotFound"
         "200":
           description: Topology information
           content:
@@ -101,6 +105,20 @@ paths:
                 $ref: "#/components/schemas/ClusterTopology"
 
 components:
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              resource-type:
+                type: string
+                description: Resource type
+              id:
+                type: string
+                description: Resource ID
   parameters:
     uuid:
       name: uuid

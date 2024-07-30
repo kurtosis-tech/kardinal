@@ -582,6 +582,7 @@ type PostTenantUuidFlowCreateResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *DevFlow
+	JSON404      *NotFound
 }
 
 // Status returns HTTPResponse.Status
@@ -603,7 +604,7 @@ func (r PostTenantUuidFlowCreateResponse) StatusCode() int {
 type PostTenantUuidFlowFlowIdDeleteResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *string
+	JSON404      *NotFound
 }
 
 // Status returns HTTPResponse.Status
@@ -626,6 +627,7 @@ type GetTenantUuidFlowsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *[]DevFlow
+	JSON404      *NotFound
 }
 
 // Status returns HTTPResponse.Status
@@ -648,6 +650,7 @@ type GetTenantUuidTopologyResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *ClusterTopology
+	JSON404      *NotFound
 }
 
 // Status returns HTTPResponse.Status
@@ -817,6 +820,13 @@ func ParsePostTenantUuidFlowCreateResponse(rsp *http.Response) (*PostTenantUuidF
 		}
 		response.JSON200 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
 	}
 
 	return response, nil
@@ -836,12 +846,12 @@ func ParsePostTenantUuidFlowFlowIdDeleteResponse(rsp *http.Response) (*PostTenan
 	}
 
 	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest string
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
-		response.JSON200 = &dest
+		response.JSON404 = &dest
 
 	}
 
@@ -869,6 +879,13 @@ func ParseGetTenantUuidFlowsResponse(rsp *http.Response) (*GetTenantUuidFlowsRes
 		}
 		response.JSON200 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
 	}
 
 	return response, nil
@@ -894,6 +911,13 @@ func ParseGetTenantUuidTopologyResponse(rsp *http.Response) (*GetTenantUuidTopol
 			return nil, err
 		}
 		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
 
 	}
 
