@@ -1,7 +1,9 @@
 openapi: 3.0.0
+
 info:
   title: CLI/Kontrol API
   version: 1.0.0
+
 paths:
   /health:
     description: For health check control
@@ -13,6 +15,7 @@ paths:
             application/json:
               schema:
                 type: string
+
   /tenant/{uuid}/flow/create:
     post:
       parameters:
@@ -30,11 +33,27 @@ paths:
           content:
             application/json:
               schema:
-                type: string
-  /tenant/{uuid}/flow/delete:
+                $ref: "#/components/schemas/DevFlow"
+
+  /tenant/{uuid}/flows:
+    get:
+      parameters:
+        - $ref: "#/components/parameters/uuid"
+      responses:
+        "200":
+          description: Dev flow creation status
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DevFlow"
+
+  /tenant/{uuid}/flow/{flow-id}/delete:
     post:
       parameters:
         - $ref: "#/components/parameters/uuid"
+        - $ref: "#/components/parameters/flow-id"
       requestBody:
         description: Delete dev flow (revert back to prod only)
         required: true
@@ -49,6 +68,7 @@ paths:
             application/json:
               schema:
                 type: string
+
   /tenant/{uuid}/deploy:
     post:
       parameters:
@@ -66,7 +86,8 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: "#/components/schemas/DevFlow"
+
   /tenant/{uuid}/topology:
     get:
       parameters:
@@ -89,6 +110,14 @@ components:
       schema:
         type: string
 
+    flow-id:
+      name: flow-id
+      in: path
+      required: true
+      description: Flow identifier
+      schema:
+        type: string
+
   schemas:
     ProdFlowSpec:
       type: object
@@ -97,6 +126,12 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ServiceConfig"
+
+    DevFlow:
+      type: object
+      properties:
+        dev-flow-id:
+          type: string
 
     DevFlowSpec:
       type: object

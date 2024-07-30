@@ -102,8 +102,9 @@ var createCmd = &cobra.Command{
 var deleteCmd = &cobra.Command{
 	Use:   "delete",
 	Short: "Delete services",
-	Args:  cobra.ExactArgs(0),
+	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		flowId := args[0]
 		serviceConfigs, err := parseKubernetesManifestFile(kubernetesManifestFile)
 		if err != nil {
 			log.Fatalf("Error loading k8s manifest file: %v", err)
@@ -113,7 +114,7 @@ var deleteCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal("Error getting or creating user tenant UUID", err)
 		}
-		deleteFlow(tenantUuid.String(), serviceConfigs)
+		deleteFlow(tenantUuid.String(), flowId, serviceConfigs)
 
 		fmt.Print("Deleting dev flow")
 	},
@@ -279,7 +280,7 @@ func createDevFlow(tenantUuid api_types.Uuid, serviceConfigs []api_types.Service
 		log.Fatalf("Failed to create dev flow: %v", err)
 	}
 
-	fmt.Printf("Response: %s\n", string(resp.Body))
+	fmt.Printf("Create new dev flow: %s\n", string(*resp.JSON200.DevFlowId))
 }
 
 func deploy(tenantUuid api_types.Uuid, serviceConfigs []api_types.ServiceConfig) {
@@ -306,15 +307,15 @@ func deploy(tenantUuid api_types.Uuid, serviceConfigs []api_types.ServiceConfig)
 	logrus.Infof("Visit: %s", trafficConfigurationURL)
 }
 
-func deleteFlow(tenantUuid api_types.Uuid, serviceConfigs []api_types.ServiceConfig) {
+func deleteFlow(tenantUuid api_types.Uuid, flowId api_types.FlowId, serviceConfigs []api_types.ServiceConfig) {
 	ctx := context.Background()
 
-	body := api_types.PostTenantUuidFlowDeleteJSONRequestBody{
+	body := api_types.PostTenantUuidFlowFlowIdDeleteJSONRequestBody{
 		ServiceConfigs: &serviceConfigs,
 	}
 	client := getKontrolServiceClient()
 
-	resp, err := client.PostTenantUuidFlowDeleteWithResponse(ctx, tenantUuid, body)
+	resp, err := client.PostTenantUuidFlowFlowIdDeleteWithResponse(ctx, tenantUuid, flowId, body)
 	if err != nil {
 		log.Fatalf("Failed to delete flow: %v", err)
 	}

@@ -34,17 +34,35 @@ export interface paths {
         /** @description Dev flow creation status */
         200: {
           content: {
-            "application/json": string;
+            "application/json": components["schemas"]["DevFlow"];
           };
         };
       };
     };
   };
-  "/tenant/{uuid}/flow/delete": {
+  "/tenant/{uuid}/flows": {
+    get: {
+      parameters: {
+        path: {
+          uuid: components["parameters"]["uuid"];
+        };
+      };
+      responses: {
+        /** @description Dev flow creation status */
+        200: {
+          content: {
+            "application/json": components["schemas"]["DevFlow"][];
+          };
+        };
+      };
+    };
+  };
+  "/tenant/{uuid}/flow/{flow-id}/delete": {
     post: {
       parameters: {
         path: {
           uuid: components["parameters"]["uuid"];
+          "flow-id": components["parameters"]["flow-id"];
         };
       };
       /** @description Delete dev flow (revert back to prod only) */
@@ -80,7 +98,7 @@ export interface paths {
         /** @description Dev flow creation status */
         200: {
           content: {
-            "application/json": string;
+            "application/json": components["schemas"]["DevFlow"];
           };
         };
       };
@@ -111,6 +129,9 @@ export interface components {
   schemas: {
     ProdFlowSpec: {
       "service-configs"?: components["schemas"]["ServiceConfig"][];
+    };
+    DevFlow: {
+      "dev-flow-id"?: string;
     };
     DevFlowSpec: {
       /** @example backend-a:latest */
@@ -153,6 +174,8 @@ export interface components {
   parameters: {
     /** @description UUID of the resource */
     uuid: string;
+    /** @description Flow identifier */
+    "flow-id": string;
   };
   requestBodies: never;
   headers: never;

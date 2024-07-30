@@ -103,10 +103,13 @@ type ClientInterface interface {
 
 	PostTenantUuidFlowCreate(ctx context.Context, uuid Uuid, body PostTenantUuidFlowCreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostTenantUuidFlowDeleteWithBody request with any body
-	PostTenantUuidFlowDeleteWithBody(ctx context.Context, uuid Uuid, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// PostTenantUuidFlowFlowIdDeleteWithBody request with any body
+	PostTenantUuidFlowFlowIdDeleteWithBody(ctx context.Context, uuid Uuid, flowId FlowId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostTenantUuidFlowDelete(ctx context.Context, uuid Uuid, body PostTenantUuidFlowDeleteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PostTenantUuidFlowFlowIdDelete(ctx context.Context, uuid Uuid, flowId FlowId, body PostTenantUuidFlowFlowIdDeleteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetTenantUuidFlows request
+	GetTenantUuidFlows(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetTenantUuidTopology request
 	GetTenantUuidTopology(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -172,8 +175,8 @@ func (c *Client) PostTenantUuidFlowCreate(ctx context.Context, uuid Uuid, body P
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostTenantUuidFlowDeleteWithBody(ctx context.Context, uuid Uuid, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostTenantUuidFlowDeleteRequestWithBody(c.Server, uuid, contentType, body)
+func (c *Client) PostTenantUuidFlowFlowIdDeleteWithBody(ctx context.Context, uuid Uuid, flowId FlowId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostTenantUuidFlowFlowIdDeleteRequestWithBody(c.Server, uuid, flowId, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -184,8 +187,20 @@ func (c *Client) PostTenantUuidFlowDeleteWithBody(ctx context.Context, uuid Uuid
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostTenantUuidFlowDelete(ctx context.Context, uuid Uuid, body PostTenantUuidFlowDeleteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostTenantUuidFlowDeleteRequest(c.Server, uuid, body)
+func (c *Client) PostTenantUuidFlowFlowIdDelete(ctx context.Context, uuid Uuid, flowId FlowId, body PostTenantUuidFlowFlowIdDeleteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostTenantUuidFlowFlowIdDeleteRequest(c.Server, uuid, flowId, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetTenantUuidFlows(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetTenantUuidFlowsRequest(c.Server, uuid)
 	if err != nil {
 		return nil, err
 	}
@@ -329,19 +344,19 @@ func NewPostTenantUuidFlowCreateRequestWithBody(server string, uuid Uuid, conten
 	return req, nil
 }
 
-// NewPostTenantUuidFlowDeleteRequest calls the generic PostTenantUuidFlowDelete builder with application/json body
-func NewPostTenantUuidFlowDeleteRequest(server string, uuid Uuid, body PostTenantUuidFlowDeleteJSONRequestBody) (*http.Request, error) {
+// NewPostTenantUuidFlowFlowIdDeleteRequest calls the generic PostTenantUuidFlowFlowIdDelete builder with application/json body
+func NewPostTenantUuidFlowFlowIdDeleteRequest(server string, uuid Uuid, flowId FlowId, body PostTenantUuidFlowFlowIdDeleteJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewPostTenantUuidFlowDeleteRequestWithBody(server, uuid, "application/json", bodyReader)
+	return NewPostTenantUuidFlowFlowIdDeleteRequestWithBody(server, uuid, flowId, "application/json", bodyReader)
 }
 
-// NewPostTenantUuidFlowDeleteRequestWithBody generates requests for PostTenantUuidFlowDelete with any type of body
-func NewPostTenantUuidFlowDeleteRequestWithBody(server string, uuid Uuid, contentType string, body io.Reader) (*http.Request, error) {
+// NewPostTenantUuidFlowFlowIdDeleteRequestWithBody generates requests for PostTenantUuidFlowFlowIdDelete with any type of body
+func NewPostTenantUuidFlowFlowIdDeleteRequestWithBody(server string, uuid Uuid, flowId FlowId, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -351,12 +366,19 @@ func NewPostTenantUuidFlowDeleteRequestWithBody(server string, uuid Uuid, conten
 		return nil, err
 	}
 
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "flow-id", runtime.ParamLocationPath, flowId)
+	if err != nil {
+		return nil, err
+	}
+
 	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/tenant/%s/flow/delete", pathParam0)
+	operationPath := fmt.Sprintf("/tenant/%s/flow/%s/delete", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -372,6 +394,40 @@ func NewPostTenantUuidFlowDeleteRequestWithBody(server string, uuid Uuid, conten
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetTenantUuidFlowsRequest generates requests for GetTenantUuidFlows
+func NewGetTenantUuidFlowsRequest(server string, uuid Uuid) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "uuid", runtime.ParamLocationPath, uuid)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/tenant/%s/flows", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -466,10 +522,13 @@ type ClientWithResponsesInterface interface {
 
 	PostTenantUuidFlowCreateWithResponse(ctx context.Context, uuid Uuid, body PostTenantUuidFlowCreateJSONRequestBody, reqEditors ...RequestEditorFn) (*PostTenantUuidFlowCreateResponse, error)
 
-	// PostTenantUuidFlowDeleteWithBodyWithResponse request with any body
-	PostTenantUuidFlowDeleteWithBodyWithResponse(ctx context.Context, uuid Uuid, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostTenantUuidFlowDeleteResponse, error)
+	// PostTenantUuidFlowFlowIdDeleteWithBodyWithResponse request with any body
+	PostTenantUuidFlowFlowIdDeleteWithBodyWithResponse(ctx context.Context, uuid Uuid, flowId FlowId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostTenantUuidFlowFlowIdDeleteResponse, error)
 
-	PostTenantUuidFlowDeleteWithResponse(ctx context.Context, uuid Uuid, body PostTenantUuidFlowDeleteJSONRequestBody, reqEditors ...RequestEditorFn) (*PostTenantUuidFlowDeleteResponse, error)
+	PostTenantUuidFlowFlowIdDeleteWithResponse(ctx context.Context, uuid Uuid, flowId FlowId, body PostTenantUuidFlowFlowIdDeleteJSONRequestBody, reqEditors ...RequestEditorFn) (*PostTenantUuidFlowFlowIdDeleteResponse, error)
+
+	// GetTenantUuidFlowsWithResponse request
+	GetTenantUuidFlowsWithResponse(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*GetTenantUuidFlowsResponse, error)
 
 	// GetTenantUuidTopologyWithResponse request
 	GetTenantUuidTopologyWithResponse(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*GetTenantUuidTopologyResponse, error)
@@ -500,7 +559,7 @@ func (r GetHealthResponse) StatusCode() int {
 type PostTenantUuidDeployResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *string
+	JSON200      *DevFlow
 }
 
 // Status returns HTTPResponse.Status
@@ -522,7 +581,7 @@ func (r PostTenantUuidDeployResponse) StatusCode() int {
 type PostTenantUuidFlowCreateResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *string
+	JSON200      *DevFlow
 }
 
 // Status returns HTTPResponse.Status
@@ -541,14 +600,14 @@ func (r PostTenantUuidFlowCreateResponse) StatusCode() int {
 	return 0
 }
 
-type PostTenantUuidFlowDeleteResponse struct {
+type PostTenantUuidFlowFlowIdDeleteResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *string
 }
 
 // Status returns HTTPResponse.Status
-func (r PostTenantUuidFlowDeleteResponse) Status() string {
+func (r PostTenantUuidFlowFlowIdDeleteResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -556,7 +615,29 @@ func (r PostTenantUuidFlowDeleteResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostTenantUuidFlowDeleteResponse) StatusCode() int {
+func (r PostTenantUuidFlowFlowIdDeleteResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetTenantUuidFlowsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]DevFlow
+}
+
+// Status returns HTTPResponse.Status
+func (r GetTenantUuidFlowsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetTenantUuidFlowsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -628,21 +709,30 @@ func (c *ClientWithResponses) PostTenantUuidFlowCreateWithResponse(ctx context.C
 	return ParsePostTenantUuidFlowCreateResponse(rsp)
 }
 
-// PostTenantUuidFlowDeleteWithBodyWithResponse request with arbitrary body returning *PostTenantUuidFlowDeleteResponse
-func (c *ClientWithResponses) PostTenantUuidFlowDeleteWithBodyWithResponse(ctx context.Context, uuid Uuid, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostTenantUuidFlowDeleteResponse, error) {
-	rsp, err := c.PostTenantUuidFlowDeleteWithBody(ctx, uuid, contentType, body, reqEditors...)
+// PostTenantUuidFlowFlowIdDeleteWithBodyWithResponse request with arbitrary body returning *PostTenantUuidFlowFlowIdDeleteResponse
+func (c *ClientWithResponses) PostTenantUuidFlowFlowIdDeleteWithBodyWithResponse(ctx context.Context, uuid Uuid, flowId FlowId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostTenantUuidFlowFlowIdDeleteResponse, error) {
+	rsp, err := c.PostTenantUuidFlowFlowIdDeleteWithBody(ctx, uuid, flowId, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostTenantUuidFlowDeleteResponse(rsp)
+	return ParsePostTenantUuidFlowFlowIdDeleteResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostTenantUuidFlowDeleteWithResponse(ctx context.Context, uuid Uuid, body PostTenantUuidFlowDeleteJSONRequestBody, reqEditors ...RequestEditorFn) (*PostTenantUuidFlowDeleteResponse, error) {
-	rsp, err := c.PostTenantUuidFlowDelete(ctx, uuid, body, reqEditors...)
+func (c *ClientWithResponses) PostTenantUuidFlowFlowIdDeleteWithResponse(ctx context.Context, uuid Uuid, flowId FlowId, body PostTenantUuidFlowFlowIdDeleteJSONRequestBody, reqEditors ...RequestEditorFn) (*PostTenantUuidFlowFlowIdDeleteResponse, error) {
+	rsp, err := c.PostTenantUuidFlowFlowIdDelete(ctx, uuid, flowId, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostTenantUuidFlowDeleteResponse(rsp)
+	return ParsePostTenantUuidFlowFlowIdDeleteResponse(rsp)
+}
+
+// GetTenantUuidFlowsWithResponse request returning *GetTenantUuidFlowsResponse
+func (c *ClientWithResponses) GetTenantUuidFlowsWithResponse(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*GetTenantUuidFlowsResponse, error) {
+	rsp, err := c.GetTenantUuidFlows(ctx, uuid, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetTenantUuidFlowsResponse(rsp)
 }
 
 // GetTenantUuidTopologyWithResponse request returning *GetTenantUuidTopologyResponse
@@ -695,7 +785,7 @@ func ParsePostTenantUuidDeployResponse(rsp *http.Response) (*PostTenantUuidDeplo
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest string
+		var dest DevFlow
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -721,6 +811,32 @@ func ParsePostTenantUuidFlowCreateResponse(rsp *http.Response) (*PostTenantUuidF
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DevFlow
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePostTenantUuidFlowFlowIdDeleteResponse parses an HTTP response from a PostTenantUuidFlowFlowIdDeleteWithResponse call
+func ParsePostTenantUuidFlowFlowIdDeleteResponse(rsp *http.Response) (*PostTenantUuidFlowFlowIdDeleteResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PostTenantUuidFlowFlowIdDeleteResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest string
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
@@ -732,22 +848,22 @@ func ParsePostTenantUuidFlowCreateResponse(rsp *http.Response) (*PostTenantUuidF
 	return response, nil
 }
 
-// ParsePostTenantUuidFlowDeleteResponse parses an HTTP response from a PostTenantUuidFlowDeleteWithResponse call
-func ParsePostTenantUuidFlowDeleteResponse(rsp *http.Response) (*PostTenantUuidFlowDeleteResponse, error) {
+// ParseGetTenantUuidFlowsResponse parses an HTTP response from a GetTenantUuidFlowsWithResponse call
+func ParseGetTenantUuidFlowsResponse(rsp *http.Response) (*GetTenantUuidFlowsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostTenantUuidFlowDeleteResponse{
+	response := &GetTenantUuidFlowsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest string
+		var dest []DevFlow
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
