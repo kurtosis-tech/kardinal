@@ -83,6 +83,87 @@ spec:
               value: "{{.ClusterResourcesURL}}"
             - name: KARDINAL_MANAGER_FETCHER_JOB_DURATION_SECONDS
               value: "10"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: trace-router
+  labels:
+    {{.KardinalAppIDLabelKey}}: {{.KardinalManagerAppIDLabelValue}}
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: trace-router
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trace-router
+  namespace: {{.Namespace}}
+  labels:
+    {{.KardinalAppIDLabelKey}}: {{.KardinalManagerAppIDLabelValue}}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trace-router
+  template:
+    metadata:
+      labels:
+        app: trace-router
+    spec:
+      containers:
+        - name: trace-router
+          image: kurtosistech/kardinal-router:latest
+          imagePullPolicy: {{.KardinalManagerContainerImagePullPolicy}}
+          ports:
+            - containerPort: 8080
+          env:
+            - name: REDIS_HOST
+              value: trace-router-redis
+            - name: REDIS_PORT
+              value: 6379
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: trace-router-redis
+  namespace: {{.Namespace}}
+  labels:
+    {{.KardinalAppIDLabelKey}}: {{.KardinalManagerAppIDLabelValue}}
+spec:
+  ports:
+    - port: 6379
+      targetPort: 6379
+  selector:
+    app: trace-router-redis
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trace-router-redis
+  labels:
+    {{.KardinalAppIDLabelKey}}: {{.KardinalManagerAppIDLabelValue}}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trace-router-redis
+  template:
+    metadata:
+      labels:
+        app: trace-router-redis
+    spec:
+      containers:
+        - name: redis
+          image: bitnami/redis:6.0.8
+          ports:
+            - containerPort: 6379
+          env:
+            - name: ALLOW_EMPTY_PASSWORD
+              value: "yes"
 `
 )
 
