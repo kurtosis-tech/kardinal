@@ -219,7 +219,7 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.Ser
 		}
 		obj, _, err := decode([]byte(spec), nil, nil)
 		if err != nil {
-			continue
+			return nil, stacktrace.Propagate(err, "An error occurred parsing the spec: %s", spec)
 		}
 		switch obj := obj.(type) {
 		case *corev1.Service:

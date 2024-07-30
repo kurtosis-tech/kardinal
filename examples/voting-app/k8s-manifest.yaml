@@ -6,6 +6,12 @@ metadata:
     version: v1
   name: redis-prod
   namespace: voting-app
+  annotations:
+    kardinal.dev.service/stateful: "true"
+    kardinal.dev/plugins: |
+      - name: github.com/kardinaldev/redis-db-sidecar-plugin:36ed9a4
+        args:
+          mode: "pass-through"
 spec:
   ports:
     - name: tcp-redis
@@ -70,11 +76,14 @@ metadata:
     version: v1
   name: voting-app-ui
   namespace: voting-app
+  annotations:
+    kardinal.dev.service/dependencies: "redis-prod:tcp-redis"
 spec:
   ports:
     - name: http
       port: 80
       protocol: TCP
+      appProtocol: HTTP
       targetPort: 80
   selector:
     app: voting-app-ui
@@ -122,3 +131,17 @@ spec:
           env:
             - name: REDIS
               value: "redis-prod"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: voting-app-lb
+  annotations:
+    kardinal.dev.service/ingress: "true"
+    kardinal.dev.service/host: "prod.app.localhost"
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+  selector:
+    app: voting-app-ui
