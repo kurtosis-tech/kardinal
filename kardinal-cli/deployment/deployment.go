@@ -90,6 +90,7 @@ metadata:
   name: trace-router
   labels:
     {{.KardinalAppIDLabelKey}}: {{.KardinalManagerAppIDLabelValue}}
+  namespace: {{.Namespace}}
 spec:
   ports:
     - port: 8080
@@ -104,6 +105,7 @@ metadata:
   namespace: {{.Namespace}}
   labels:
     {{.KardinalAppIDLabelKey}}: {{.KardinalManagerAppIDLabelValue}}
+    app: trace-router
 spec:
   replicas: 1
   selector:
@@ -114,6 +116,7 @@ spec:
       labels:
         app: trace-router
     spec:
+      serviceAccountName: kardinal-manager
       containers:
         - name: trace-router
           image: kurtosistech/kardinal-router:latest
@@ -124,7 +127,7 @@ spec:
             - name: REDIS_HOST
               value: trace-router-redis
             - name: REDIS_PORT
-              value: 6379
+              value: "6379"
 ---
 apiVersion: v1
 kind: Service
@@ -133,6 +136,7 @@ metadata:
   namespace: {{.Namespace}}
   labels:
     {{.KardinalAppIDLabelKey}}: {{.KardinalManagerAppIDLabelValue}}
+    app: trace-router-redis
 spec:
   ports:
     - port: 6379
@@ -146,6 +150,7 @@ metadata:
   name: trace-router-redis
   labels:
     {{.KardinalAppIDLabelKey}}: {{.KardinalManagerAppIDLabelValue}}
+  namespace: {{.Namespace}}
 spec:
   replicas: 1
   selector:
@@ -156,6 +161,7 @@ spec:
       labels:
         app: trace-router-redis
     spec:
+      serviceAccountName: kardinal-manager
       containers:
         - name: redis
           image: bitnami/redis:6.0.8
