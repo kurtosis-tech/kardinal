@@ -29,7 +29,7 @@ import (
 
 const (
 	projectName = "kardinal"
-	devMode     = true
+	devMode     = false
 
 	kontrolBaseURLTmpl                  = "%s://%s"
 	kontrolClusterResourcesEndpointTmpl = "%s/tenant/%s/cluster-resources"
