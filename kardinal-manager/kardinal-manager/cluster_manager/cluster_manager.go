@@ -230,6 +230,7 @@ func (manager *ClusterManager) ApplyClusterResources(ctx context.Context, cluste
 		}
 	}
 
+	logrus.Infof("Have %d envoy filters and %d policies to apply", len(*clusterResources.EnvoyFilters), len(*clusterResources.AuthorizationPolicies))
 	for _, envoyFilter := range *clusterResources.EnvoyFilters {
 		if err := manager.createOrUpdateEnvoyFilter(ctx, &envoyFilter); err != nil {
 			return stacktrace.Propagate(err, "An error occurred while creating or updating envoy filter '%s'", envoyFilter.GetName())
