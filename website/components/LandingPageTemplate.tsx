@@ -90,9 +90,7 @@ const LandingPageTemplate = ({
         fullWidthImageUrl={architectureDiagram}
         mobileFullWidthImageUrl={architectureDiagramMobile}
       >
-        Kardinal uses a sidecar - control plane architecture. Just drop sidecars
-        next to your services in your environment and configure your traffic
-        flows in the control plane.
+        Kardinal integrates with your existing distributed tracing, and will handle the heavy lifting of configuring a service mesh for traffic routing for you.
       </Content>
 
       <CTASmall heading={heading} myPrecious={iAmTheLordOfTheRings}>
