@@ -302,6 +302,8 @@ func (manager *ClusterManager) CleanUpClusterResources(ctx context.Context, clus
 		}
 	}
 
+	// TODO(gm) cleanup authorization policy + envoy filter
+
 	return nil
 }
 
@@ -435,10 +437,39 @@ func (manager *ClusterManager) createOrUpdateGateway(ctx context.Context, gatewa
 }
 
 func (manager *ClusterManager) createOrUpdateEnvoyFilter(ctx context.Context, filter *v1alpha3.EnvoyFilter) error {
+	envoyFilterClient := manager.istioClient.clientSet.NetworkingV1alpha3().EnvoyFilters(filter.GetNamespace())
+	existingFilter, err := envoyFilterClient.Get(ctx, filter.Name, metav1.GetOptions{})
+	if err != nil {
+		_, err = envoyFilterClient.Create(ctx, filter, globalCreateOptions)
+		if err != nil {
+			return stacktrace.Propagate(err, "Failed to create envoy filter: %s", filter.GetName())
+		}
+	} else {
+		filter.ResourceVersion = existingFilter.ResourceVersion
+		_, err = envoyFilterClient.Update(ctx, filter, globalUpdateOptions)
+		if err != nil {
+			return stacktrace.Propagate(err, "Failed to update filter: %s", filter.GetName())
+		}
+	}
 	return nil
 }
 
+// TODO(gm) fill this up
 func (manager *ClusterManager) createOrUpdateAuthorizationPolicies(ctx context.Context, policy *securityv1beta1.AuthorizationPolicy) error {
+	authorizationPolicyClient := manager.istioClient.clientSet.SecurityV1beta1().AuthorizationPolicies(policy.GetNamespace())
+	existingFilter, err := authorizationPolicyClient.Get(ctx, policy.Name, metav1.GetOptions{})
+	if err != nil {
+		_, err = authorizationPolicyClient.Create(ctx, filter, globalCreateOptions)
+		if err != nil {
+			return stacktrace.Propagate(err, "Failed to create policy: %s", policy.GetName())
+		}
+	} else {
+		filter.ResourceVersion = existingFilter.ResourceVersion
+		_, err = authorizationPolicyClient.Update(ctx, filter, globalUpdateOptions)
+		if err != nil {
+			return stacktrace.Propagate(err, "Failed to update policy: %s", policy.GetName())
+		}
+	}
 	return nil
 }
 
