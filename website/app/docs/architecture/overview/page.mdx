@@ -4,19 +4,27 @@ export const metadata = {
 
 # Architecture
 
-Kardinal is built with a sidecar - control plane architecture.
+Kardinal depends on three elements of your Kubernetes deployment::
 
-There are two kinds of sidecars:
+1. A dependency graph - every service defines its dependencies, including external APIs it uses to store or retrieve data.
+2. A service mesh, like Istio.
+3. Distributed tracing
 
-- _Stateless service sidecar_
+With these elements, Kardinal can effectively instrument the lightest-weight multitenancy possible within your cluster.
 
-  Deployed alongside services that are stateless, and thus can be reused across flows without risk of corrupting data in other flows.
+On the Kardinal sie, an in-cluster service called the `Kardinal Manager` is responsible for reading the dependency graph annotations and managing the service mesh to implement routing rules per request. The existing distributed tracing infrastucture in your application is used to keep track of requests as they trace their way through the cluster.
 
-- _Stateful service sidecar_
+To manage any persisted state in your cluster, Kardinal relies on a plugin ecosystem that define, service-by-service, how to properly share state between environments, or how to spin up new, empty "dev" versions of given stateful services.
 
-  Deployed alongside services that have state like databases, queues, and caches. Implements rules like “shared read, isolated write”, “isolated read, isolated write”, and “shared read/write” which allow the stateful service to be maximally reused across flows without breaking isolation.
+There are two kinds of plugins:
 
-Both of these sidecars are deployed inside of your environment, next to the corresponding stateless or stateful services.
+- _Stateful service plugins_
 
-The **control plane** is the single interface where the behavior of the Kardinal sidecars is managed. It enables developers to configure and monitor their [flows](concepts/flows) and [maturity gates](concepts/maturity-gates) for themselves and their organization.
+  Define state access modes for stateful services that are deployed and managed via Kubernetes, like a Postgres database.
+
+- _External service plugins_
+
+  Define state access modes for external services that are not managed by Kubernetes, like Stripe or Twilio.
+
+These plugins can be installed with Kardinal, enabling you to properly configure your flows to maximally reuse any persisted state in your application across development workflows, allocating new development instances of stateful services whenever necessary.
 
