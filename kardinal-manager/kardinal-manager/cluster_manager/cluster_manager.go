@@ -232,13 +232,13 @@ func (manager *ClusterManager) ApplyClusterResources(ctx context.Context, cluste
 
 	for _, envoyFilter := range *clusterResources.EnvoyFilters {
 		if err := manager.createOrUpdateEnvoyFilter(ctx, &envoyFilter); err != nil {
-
+			return stacktrace.Propagate(err, "An error occurred while creating or updating envoy filter '%s'", envoyFilter.GetName())
 		}
 	}
 
-	for _, envoyFilter := range *clusterResources.AuthorizationPolicies {
-		if err := manager.createOrUpdateAuthorizationPolicies(ctx, &envoyFilter); err != nil {
-
+	for _, policy := range *clusterResources.AuthorizationPolicies {
+		if err := manager.createOrUpdateAuthorizationPolicies(ctx, &policy); err != nil {
+			return stacktrace.Propagate(err, "An error occurred while creating or updating envoy policies '%s'", policy.GetName())
 		}
 	}
 
@@ -454,18 +454,17 @@ func (manager *ClusterManager) createOrUpdateEnvoyFilter(ctx context.Context, fi
 	return nil
 }
 
-// TODO(gm) fill this up
 func (manager *ClusterManager) createOrUpdateAuthorizationPolicies(ctx context.Context, policy *securityv1beta1.AuthorizationPolicy) error {
 	authorizationPolicyClient := manager.istioClient.clientSet.SecurityV1beta1().AuthorizationPolicies(policy.GetNamespace())
-	existingFilter, err := authorizationPolicyClient.Get(ctx, policy.Name, metav1.GetOptions{})
+	existingPolicy, err := authorizationPolicyClient.Get(ctx, policy.Name, metav1.GetOptions{})
 	if err != nil {
-		_, err = authorizationPolicyClient.Create(ctx, filter, globalCreateOptions)
+		_, err = authorizationPolicyClient.Create(ctx, policy, globalCreateOptions)
 		if err != nil {
 			return stacktrace.Propagate(err, "Failed to create policy: %s", policy.GetName())
 		}
 	} else {
-		filter.ResourceVersion = existingFilter.ResourceVersion
-		_, err = authorizationPolicyClient.Update(ctx, filter, globalUpdateOptions)
+		policy.ResourceVersion = existingPolicy.ResourceVersion
+		_, err = authorizationPolicyClient.Update(ctx, policy, globalUpdateOptions)
 		if err != nil {
 			return stacktrace.Propagate(err, "Failed to update policy: %s", policy.GetName())
 		}
