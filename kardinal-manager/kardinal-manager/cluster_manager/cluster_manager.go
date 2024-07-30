@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 	istio "istio.io/api/networking/v1alpha3"
 	"istio.io/client-go/pkg/apis/networking/v1alpha3"
+	securityv1beta1 "istio.io/client-go/pkg/apis/security/v1beta1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -192,6 +193,8 @@ func (manager *ClusterManager) ApplyClusterResources(ctx context.Context, cluste
 		lo.Uniq(lo.Map(*clusterResources.Deployments, func(item appsv1.Deployment, _ int) string { return item.Namespace })),
 		lo.Uniq(lo.Map(*clusterResources.VirtualServices, func(item v1alpha3.VirtualService, _ int) string { return item.Namespace })),
 		lo.Uniq(lo.Map(*clusterResources.DestinationRules, func(item v1alpha3.DestinationRule, _ int) string { return item.Namespace })),
+		lo.Uniq(lo.Map(*clusterResources.EnvoyFilters, func(item v1alpha3.EnvoyFilter, _ int) string { return item.Namespace })),
+		lo.Uniq(lo.Map(*clusterResources.AuthorizationPolicies, func(item securityv1beta1.AuthorizationPolicy, _ int) string { return item.Namespace })),
 		{clusterResources.Gateway.Namespace},
 	}
 
@@ -224,6 +227,18 @@ func (manager *ClusterManager) ApplyClusterResources(ctx context.Context, cluste
 	for _, destinationRule := range *clusterResources.DestinationRules {
 		if err := manager.createOrUpdateDestinationRule(ctx, &destinationRule); err != nil {
 			return stacktrace.Propagate(err, "An error occurred while creating or updating destination rule '%s'", destinationRule.GetName())
+		}
+	}
+
+	for _, envoyFilter := range *clusterResources.EnvoyFilters {
+		if err := manager.createOrUpdateEnvoyFilter(ctx, &envoyFilter); err != nil {
+
+		}
+	}
+
+	for _, envoyFilter := range *clusterResources.AuthorizationPolicies {
+		if err := manager.createOrUpdateAuthorizationPolicies(ctx, &envoyFilter); err != nil {
+
 		}
 	}
 
@@ -416,6 +431,14 @@ func (manager *ClusterManager) createOrUpdateGateway(ctx context.Context, gatewa
 		}
 	}
 
+	return nil
+}
+
+func (manager *ClusterManager) createOrUpdateEnvoyFilter(ctx context.Context, filter *v1alpha3.EnvoyFilter) error {
+	return nil
+}
+
+func (manager *ClusterManager) createOrUpdateAuthorizationPolicies(ctx context.Context, policy *securityv1beta1.AuthorizationPolicy) error {
 	return nil
 }
 
