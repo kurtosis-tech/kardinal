@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.1.4](https://github.com/kurtosis-tech/kardinal/compare/0.1.3...0.1.4) (2024-07-30)
+
+
+### Features
+
+* added a dashboard cmd that opens the kardinal dashboard in the browser ([#36](https://github.com/kurtosis-tech/kardinal/issues/36)) ([741e2e5](https://github.com/kurtosis-tech/kardinal/commit/741e2e54f1a5676f58d0e1abb054fa7235fd3b64))
+* added required types for tracing &lt;&gt; flows ([#51](https://github.com/kurtosis-tech/kardinal/issues/51)) ([c525e3f](https://github.com/kurtosis-tech/kardinal/commit/c525e3f01b1946db33e3c3fc07357d2170bf4901))
+* deploy the trace router + redis when manager is deployed ([#53](https://github.com/kurtosis-tech/kardinal/issues/53)) ([d458d22](https://github.com/kurtosis-tech/kardinal/commit/d458d221681cd5ffbf9155f9b52e5d76dfba696d))
+* More robust k8s manifest parsing ([#39](https://github.com/kurtosis-tech/kardinal/issues/39)) ([3a18e63](https://github.com/kurtosis-tech/kardinal/commit/3a18e631350c05fb2820d69bf525ea11cb8e3df1))
+* move website to public repo ([#47](https://github.com/kurtosis-tech/kardinal/issues/47)) ([368f733](https://github.com/kurtosis-tech/kardinal/commit/368f73396604bc4a6aa0c68224418d53eb047f20))
+
+
+### Bug Fixes
+
+* better error message if dashboard doesnt open ([#38](https://github.com/kurtosis-tech/kardinal/issues/38)) ([ce8804b](https://github.com/kurtosis-tech/kardinal/commit/ce8804b25294e830a900c0d0f905dd262d08ad22))
+* remove extra space in CTA heading ([#49](https://github.com/kurtosis-tech/kardinal/issues/49)) ([8b2fe9f](https://github.com/kurtosis-tech/kardinal/commit/8b2fe9fa7fca3f60a069b73e1b8d38b0c340df55))
+* use right type for authorization policies ([#52](https://github.com/kurtosis-tech/kardinal/issues/52)) ([216e606](https://github.com/kurtosis-tech/kardinal/commit/216e60670e4d5eaa0a878067b70491177bd3bade))
+
 ## [0.1.3](https://github.com/kurtosis-tech/kardinal/compare/0.1.2...0.1.3) (2024-07-12)
 
 
