@@ -302,7 +302,25 @@ func (manager *ClusterManager) CleanUpClusterResources(ctx context.Context, clus
 		}
 	}
 
-	// TODO(gm) cleanup authorization policy + envoy filter
+	// Cleanup envoy filters
+	envoyFiltersByNS := lo.GroupBy(*clusterResources.EnvoyFilters, func(item v1alpha3.EnvoyFilter) string {
+		return item.Namespace
+	})
+	for namespace, envoyFilters := range envoyFiltersByNS {
+		if err := manager.cleanupEnvoyFiltersInNamespace(ctx, namespace, envoyFilters); err != nil {
+			return stacktrace.Propagate(err, "An error occurred cleaning up envoy filters '%+v' in namespace '%s'", envoyFilters, namespace)
+		}
+	}
+
+	// Cleanup authorization policies
+	authorizationPoliciesByNS := lo.GroupBy(*clusterResources.AuthorizationPolicies, func(item securityv1beta1.AuthorizationPolicy) string {
+		return item.Namespace
+	})
+	for namespace, authorizationPolicies := range authorizationPoliciesByNS {
+		if err := manager.cleanupAuthorizationPoliciesInNamespace(ctx, namespace, authorizationPolicies); err != nil {
+			return stacktrace.Propagate(err, "An error occurred cleaning up authorization policies '%+v' in namespace '%s'", authorizationPolicies, namespace)
+		}
+	}
 
 	return nil
 }
@@ -561,6 +579,44 @@ func (manager *ClusterManager) cleanUpGatewaysInNamespace(ctx context.Context, n
 			err = gatewayClient.Delete(ctx, gateway.Name, globalDeleteOptions)
 			if err != nil {
 				return stacktrace.Propagate(err, "Failed to delete gateway %s", gateway.GetName())
+			}
+		}
+	}
+
+	return nil
+}
+
+func (manager *ClusterManager) cleanupEnvoyFiltersInNamespace(ctx context.Context, namespace string, filtersToKeep []v1alpha3.EnvoyFilter) error {
+	envoyFilterClient := manager.istioClient.clientSet.NetworkingV1alpha3().EnvoyFilters(namespace)
+	allEnvoyFilters, err := envoyFilterClient.List(ctx, globalListOptions)
+	if err != nil {
+		return stacktrace.Propagate(err, "Failed to list envoy filter in namespace %s", namespace)
+	}
+	for _, filter := range allEnvoyFilters.Items {
+		_, exists := lo.Find(filtersToKeep, func(item v1alpha3.EnvoyFilter) bool { return item.Name == filter.Name })
+		if !exists {
+			err = envoyFilterClient.Delete(ctx, filter.Name, globalDeleteOptions)
+			if err != nil {
+				return stacktrace.Propagate(err, "Failed to delete filter %s", filter.GetName())
+			}
+		}
+	}
+
+	return nil
+}
+
+func (manager *ClusterManager) cleanupAuthorizationPoliciesInNamespace(ctx context.Context, namespace string, policiesToKeep []securityv1beta1.AuthorizationPolicy) error {
+	authorizationPolicyClient := manager.istioClient.clientSet.SecurityV1beta1().AuthorizationPolicies(namespace)
+	allPolicies, err := authorizationPolicyClient.List(ctx, globalListOptions)
+	if err != nil {
+		return stacktrace.Propagate(err, "Failed to list policy in namespace %s", namespace)
+	}
+	for _, policy := range allPolicies.Items {
+		_, exists := lo.Find(policiesToKeep, func(item securityv1beta1.AuthorizationPolicy) bool { return item.Name == policy.Name })
+		if !exists {
+			err = authorizationPolicyClient.Delete(ctx, policy.Name, globalDeleteOptions)
+			if err != nil {
+				return stacktrace.Propagate(err, "Failed to delete policy %s", policy.GetName())
 			}
 		}
 	}
