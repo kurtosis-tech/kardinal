@@ -26,7 +26,7 @@ const navItems: NavItem[] = [
     title: "Concepts",
     children: [
       { path: "flows", title: "Flows" },
-      { path: "maturity-gates", title: "Maturity Gates" },
+      { path: "plugins", title: "Stateful Service Plugins" },
     ],
   },
   {
