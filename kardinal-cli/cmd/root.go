@@ -280,7 +280,13 @@ func createDevFlow(tenantUuid api_types.Uuid, serviceConfigs []api_types.Service
 		log.Fatalf("Failed to create dev flow: %v", err)
 	}
 
-	fmt.Printf("Create new dev flow: %s\n", string(*resp.JSON200.DevFlowId))
+	if resp.StatusCode() == 200 {
+		fmt.Printf("Create new dev flow: %s\n", string(*resp.JSON200.DevFlowId))
+	} else if resp.StatusCode() == 404 {
+		fmt.Printf("Could not create flow, missing %s: %s\n", *resp.JSON404.ResourceType, *resp.JSON404.Id)
+	} else {
+		fmt.Printf("Failed to create dev flow: %s\n", string(resp.Body))
+	}
 }
 
 func deploy(tenantUuid api_types.Uuid, serviceConfigs []api_types.ServiceConfig) {
