@@ -29,7 +29,6 @@ import (
 
 const (
 	projectName = "kardinal"
-	devMode     = false
 
 	kontrolBaseURLTmpl                  = "%s://%s"
 	kontrolClusterResourcesEndpointTmpl = "%s/tenant/%s/cluster-resources"
@@ -126,7 +125,6 @@ var deployManagerCmd = &cobra.Command{
 	ValidArgs: []string{kontrol.KontrolLocationLocalMinikube, kontrol.KontrolLocationKloudKontrol},
 	Args:      cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
 	Run: func(cmd *cobra.Command, args []string) {
-
 		kontrolLocation := args[0]
 
 		if err := kontrol.SaveKontrolLocation(kontrolLocation); err != nil {
@@ -194,7 +192,6 @@ func Execute() error {
 }
 
 func loadKubernetesManifestFile(filename string) ([]byte, error) {
-
 	fileBytes, err := os.ReadFile(filename)
 	if err != nil {
 		return fileBytes, stacktrace.Propagate(err, "attempted to read kubernetes manifest file with path '%s' but failed", filename)
@@ -326,7 +323,6 @@ func deleteFlow(tenantUuid api_types.Uuid, serviceConfigs []api_types.ServiceCon
 }
 
 func deployManager(tenantUuid api_types.Uuid, kontrolLocation string) error {
-
 	ctx := context.Background()
 
 	clusterResourcesURL, err := getClusterResourcesURL(tenantUuid)
@@ -352,6 +348,10 @@ func removeManager() error {
 }
 
 func getKontrolServiceClient() *api.ClientWithResponses {
+	devMode := false
+	if os.Getenv("KARDINAL_CLI_DEV_MODE") == "TRUE" {
+		devMode = true
+	}
 	if devMode {
 		client, err := api.NewClientWithResponses("http://localhost:8080", api.WithHTTPClient(http.DefaultClient))
 		if err != nil {
@@ -399,7 +399,6 @@ func getKontrolBaseURL(useApiHost bool) (string, error) {
 }
 
 func getTrafficConfigurationURL(tenantUuid api_types.Uuid) (string, error) {
-
 	kontrolBaseURL, err := getKontrolBaseURL(false)
 	if err != nil {
 		return "", stacktrace.Propagate(err, "An error occurred getting the Kontrol base URL")
@@ -411,7 +410,6 @@ func getTrafficConfigurationURL(tenantUuid api_types.Uuid) (string, error) {
 }
 
 func getClusterResourcesURL(tenantUuid api_types.Uuid) (string, error) {
-
 	kontrolBaseURL, err := getKontrolBaseURL(true)
 	if err != nil {
 		return "", stacktrace.Propagate(err, "An error occurred getting the Kontrol base URL")
