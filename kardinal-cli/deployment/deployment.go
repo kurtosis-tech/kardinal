@@ -196,7 +196,7 @@ func DeployKardinalManagerInCluster(ctx context.Context, clusterResourcesURL str
 
 	switch kontrolLocation {
 	case kontrol.KontrolLocationLocalMinikube:
-		imagePullPolicy = "Never"
+		imagePullPolicy = "IfNotPresent"
 	case kontrol.KontrolLocationKloudKontrol:
 		imagePullPolicy = "Always"
 	default:
