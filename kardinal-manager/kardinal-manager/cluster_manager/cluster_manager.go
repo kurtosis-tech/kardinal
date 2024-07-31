@@ -193,9 +193,17 @@ func (manager *ClusterManager) ApplyClusterResources(ctx context.Context, cluste
 		lo.Uniq(lo.Map(*clusterResources.Deployments, func(item appsv1.Deployment, _ int) string { return item.Namespace })),
 		lo.Uniq(lo.Map(*clusterResources.VirtualServices, func(item v1alpha3.VirtualService, _ int) string { return item.Namespace })),
 		lo.Uniq(lo.Map(*clusterResources.DestinationRules, func(item v1alpha3.DestinationRule, _ int) string { return item.Namespace })),
-		lo.Uniq(lo.Map(*clusterResources.EnvoyFilters, func(item v1alpha3.EnvoyFilter, _ int) string { return item.Namespace })),
-		lo.Uniq(lo.Map(*clusterResources.AuthorizationPolicies, func(item securityv1beta1.AuthorizationPolicy, _ int) string { return item.Namespace })),
 		{clusterResources.Gateway.Namespace},
+	}
+
+	if clusterResources.EnvoyFilters != nil {
+		envoyFiltersNS := lo.Uniq(lo.Map(*clusterResources.EnvoyFilters, func(item v1alpha3.EnvoyFilter, _ int) string { return item.Namespace }))
+		allNSs = append(allNSs, [][]string{envoyFiltersNS}...)
+	}
+
+	if clusterResources.AuthorizationPolicies != nil {
+		authPoliciesNS := lo.Uniq(lo.Map(*clusterResources.AuthorizationPolicies, func(item securityv1beta1.AuthorizationPolicy, _ int) string { return item.Namespace }))
+		allNSs = append(allNSs, [][]string{authPoliciesNS}...)
 	}
 
 	uniqueNamespaces := lo.Uniq(lo.Flatten(allNSs))
@@ -230,16 +238,30 @@ func (manager *ClusterManager) ApplyClusterResources(ctx context.Context, cluste
 		}
 	}
 
-	logrus.Infof("Have %d envoy filters and %d policies to apply", len(*clusterResources.EnvoyFilters), len(*clusterResources.AuthorizationPolicies))
-	for _, envoyFilter := range *clusterResources.EnvoyFilters {
-		if err := manager.createOrUpdateEnvoyFilter(ctx, &envoyFilter); err != nil {
-			return stacktrace.Propagate(err, "An error occurred while creating or updating envoy filter '%s'", envoyFilter.GetName())
+	envoyFiltersLen := 0
+	if clusterResources.EnvoyFilters != nil {
+		envoyFiltersLen = len(*clusterResources.EnvoyFilters)
+	}
+
+	authPoliciesLen := 0
+	if clusterResources.AuthorizationPolicies != nil {
+		authPoliciesLen = len(*clusterResources.AuthorizationPolicies)
+	}
+
+	logrus.Infof("Have %d envoy filters and %d policies to apply", envoyFiltersLen, authPoliciesLen)
+	if clusterResources.EnvoyFilters != nil {
+		for _, envoyFilter := range *clusterResources.EnvoyFilters {
+			if err := manager.createOrUpdateEnvoyFilter(ctx, &envoyFilter); err != nil {
+				return stacktrace.Propagate(err, "An error occurred while creating or updating envoy filter '%s'", envoyFilter.GetName())
+			}
 		}
 	}
 
-	for _, policy := range *clusterResources.AuthorizationPolicies {
-		if err := manager.createOrUpdateAuthorizationPolicies(ctx, &policy); err != nil {
-			return stacktrace.Propagate(err, "An error occurred while creating or updating envoy policies '%s'", policy.GetName())
+	if clusterResources.AuthorizationPolicies != nil {
+		for _, policy := range *clusterResources.AuthorizationPolicies {
+			if err := manager.createOrUpdateAuthorizationPolicies(ctx, &policy); err != nil {
+				return stacktrace.Propagate(err, "An error occurred while creating or updating envoy policies '%s'", policy.GetName())
+			}
 		}
 	}
 
@@ -304,22 +326,26 @@ func (manager *ClusterManager) CleanUpClusterResources(ctx context.Context, clus
 	}
 
 	// Cleanup envoy filters
-	envoyFiltersByNS := lo.GroupBy(*clusterResources.EnvoyFilters, func(item v1alpha3.EnvoyFilter) string {
-		return item.Namespace
-	})
-	for namespace, envoyFilters := range envoyFiltersByNS {
-		if err := manager.cleanupEnvoyFiltersInNamespace(ctx, namespace, envoyFilters); err != nil {
-			return stacktrace.Propagate(err, "An error occurred cleaning up envoy filters '%+v' in namespace '%s'", envoyFilters, namespace)
+	if clusterResources.EnvoyFilters != nil {
+		envoyFiltersByNS := lo.GroupBy(*clusterResources.EnvoyFilters, func(item v1alpha3.EnvoyFilter) string {
+			return item.Namespace
+		})
+		for namespace, envoyFilters := range envoyFiltersByNS {
+			if err := manager.cleanupEnvoyFiltersInNamespace(ctx, namespace, envoyFilters); err != nil {
+				return stacktrace.Propagate(err, "An error occurred cleaning up envoy filters '%+v' in namespace '%s'", envoyFilters, namespace)
+			}
 		}
 	}
 
 	// Cleanup authorization policies
-	authorizationPoliciesByNS := lo.GroupBy(*clusterResources.AuthorizationPolicies, func(item securityv1beta1.AuthorizationPolicy) string {
-		return item.Namespace
-	})
-	for namespace, authorizationPolicies := range authorizationPoliciesByNS {
-		if err := manager.cleanupAuthorizationPoliciesInNamespace(ctx, namespace, authorizationPolicies); err != nil {
-			return stacktrace.Propagate(err, "An error occurred cleaning up authorization policies '%+v' in namespace '%s'", authorizationPolicies, namespace)
+	if clusterResources.AuthorizationPolicies != nil {
+		authorizationPoliciesByNS := lo.GroupBy(*clusterResources.AuthorizationPolicies, func(item securityv1beta1.AuthorizationPolicy) string {
+			return item.Namespace
+		})
+		for namespace, authorizationPolicies := range authorizationPoliciesByNS {
+			if err := manager.cleanupAuthorizationPoliciesInNamespace(ctx, namespace, authorizationPolicies); err != nil {
+				return stacktrace.Propagate(err, "An error occurred cleaning up authorization policies '%+v' in namespace '%s'", authorizationPolicies, namespace)
+			}
 		}
 	}
 
