@@ -22,6 +22,11 @@ type ClusterTopology struct {
 	Nodes []Node `json:"nodes"`
 }
 
+// DevFlow defines model for DevFlow.
+type DevFlow struct {
+	DevFlowId *string `json:"dev-flow-id,omitempty"`
+}
+
 // DevFlowSpec defines model for DevFlowSpec.
 type DevFlowSpec struct {
 	ImageLocator   *string          `json:"image-locator,omitempty"`
@@ -70,8 +75,20 @@ type ServiceConfig struct {
 	Service    corev1.Service   `json:"service"`
 }
 
+// FlowId defines model for flow-id.
+type FlowId = string
+
 // Uuid defines model for uuid.
 type Uuid = string
+
+// NotFound defines model for NotFound.
+type NotFound struct {
+	// Id Resource ID
+	Id *string `json:"id,omitempty"`
+
+	// ResourceType Resource type
+	ResourceType *string `json:"resource-type,omitempty"`
+}
 
 // PostTenantUuidDeployJSONRequestBody defines body for PostTenantUuidDeploy for application/json ContentType.
 type PostTenantUuidDeployJSONRequestBody = ProdFlowSpec
@@ -79,5 +96,5 @@ type PostTenantUuidDeployJSONRequestBody = ProdFlowSpec
 // PostTenantUuidFlowCreateJSONRequestBody defines body for PostTenantUuidFlowCreate for application/json ContentType.
 type PostTenantUuidFlowCreateJSONRequestBody = DevFlowSpec
 
-// PostTenantUuidFlowDeleteJSONRequestBody defines body for PostTenantUuidFlowDelete for application/json ContentType.
-type PostTenantUuidFlowDeleteJSONRequestBody = ProdFlowSpec
+// PostTenantUuidFlowFlowIdDeleteJSONRequestBody defines body for PostTenantUuidFlowFlowIdDelete for application/json ContentType.
+type PostTenantUuidFlowFlowIdDeleteJSONRequestBody = ProdFlowSpec

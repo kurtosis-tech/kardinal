@@ -34,17 +34,37 @@ export interface paths {
         /** @description Dev flow creation status */
         200: {
           content: {
-            "application/json": string;
+            "application/json": components["schemas"]["DevFlow"];
           };
         };
+        404: components["responses"]["NotFound"];
       };
     };
   };
-  "/tenant/{uuid}/flow/delete": {
+  "/tenant/{uuid}/flows": {
+    get: {
+      parameters: {
+        path: {
+          uuid: components["parameters"]["uuid"];
+        };
+      };
+      responses: {
+        /** @description Dev flow creation status */
+        200: {
+          content: {
+            "application/json": components["schemas"]["DevFlow"][];
+          };
+        };
+        404: components["responses"]["NotFound"];
+      };
+    };
+  };
+  "/tenant/{uuid}/flow/{flow-id}/delete": {
     post: {
       parameters: {
         path: {
           uuid: components["parameters"]["uuid"];
+          "flow-id": components["parameters"]["flow-id"];
         };
       };
       /** @description Delete dev flow (revert back to prod only) */
@@ -54,11 +74,10 @@ export interface paths {
         };
       };
       responses: {
-        /** @description Dev flow creation status */
-        200: {
-          content: {
-            "application/json": string;
-          };
+        404: components["responses"]["NotFound"];
+        /** @description Dev flow deletion status */
+        "2xx": {
+          content: never;
         };
       };
     };
@@ -80,7 +99,7 @@ export interface paths {
         /** @description Dev flow creation status */
         200: {
           content: {
-            "application/json": string;
+            "application/json": components["schemas"]["DevFlow"];
           };
         };
       };
@@ -100,6 +119,7 @@ export interface paths {
             "application/json": components["schemas"]["ClusterTopology"];
           };
         };
+        404: components["responses"]["NotFound"];
       };
     };
   };
@@ -111,6 +131,9 @@ export interface components {
   schemas: {
     ProdFlowSpec: {
       "service-configs"?: components["schemas"]["ServiceConfig"][];
+    };
+    DevFlow: {
+      "dev-flow-id"?: string;
     };
     DevFlowSpec: {
       /** @example backend-a:latest */
@@ -149,10 +172,24 @@ export interface components {
       deployment: unknown;
     };
   };
-  responses: never;
+  responses: {
+    /** @description Resource not found */
+    NotFound: {
+      content: {
+        "application/json": {
+          /** @description Resource type */
+          "resource-type"?: string;
+          /** @description Resource ID */
+          id?: string;
+        };
+      };
+    };
+  };
   parameters: {
     /** @description UUID of the resource */
     uuid: string;
+    /** @description Flow identifier */
+    "flow-id": string;
   };
   requestBodies: never;
   headers: never;

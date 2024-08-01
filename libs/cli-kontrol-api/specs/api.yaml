@@ -1,7 +1,9 @@
 openapi: 3.0.0
+
 info:
   title: CLI/Kontrol API
   version: 1.0.0
+
 paths:
   /health:
     description: For health check control
@@ -13,6 +15,7 @@ paths:
             application/json:
               schema:
                 type: string
+
   /tenant/{uuid}/flow/create:
     post:
       parameters:
@@ -25,16 +28,36 @@ paths:
             schema:
               $ref: "#/components/schemas/DevFlowSpec"
       responses:
+        "404":
+          $ref: "#/components/responses/NotFound"
         "200":
           description: Dev flow creation status
           content:
             application/json:
               schema:
-                type: string
-  /tenant/{uuid}/flow/delete:
+                $ref: "#/components/schemas/DevFlow"
+
+  /tenant/{uuid}/flows:
+    get:
+      parameters:
+        - $ref: "#/components/parameters/uuid"
+      responses:
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "200":
+          description: Dev flow creation status
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DevFlow"
+
+  /tenant/{uuid}/flow/{flow-id}/delete:
     post:
       parameters:
         - $ref: "#/components/parameters/uuid"
+        - $ref: "#/components/parameters/flow-id"
       requestBody:
         description: Delete dev flow (revert back to prod only)
         required: true
@@ -43,12 +66,11 @@ paths:
             schema:
               $ref: "#/components/schemas/ProdFlowSpec"
       responses:
-        "200":
-          description: Dev flow creation status
-          content:
-            application/json:
-              schema:
-                type: string
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "2xx":
+          description: Dev flow deletion status
+
   /tenant/{uuid}/deploy:
     post:
       parameters:
@@ -66,12 +88,15 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: "#/components/schemas/DevFlow"
+
   /tenant/{uuid}/topology:
     get:
       parameters:
         - $ref: "#/components/parameters/uuid"
       responses:
+        "404":
+          $ref: "#/components/responses/NotFound"
         "200":
           description: Topology information
           content:
@@ -80,12 +105,34 @@ paths:
                 $ref: "#/components/schemas/ClusterTopology"
 
 components:
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              resource-type:
+                type: string
+                description: Resource type
+              id:
+                type: string
+                description: Resource ID
   parameters:
     uuid:
       name: uuid
       in: path
       required: true
       description: UUID of the resource
+      schema:
+        type: string
+
+    flow-id:
+      name: flow-id
+      in: path
+      required: true
+      description: Flow identifier
       schema:
         type: string
 
@@ -97,6 +144,12 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ServiceConfig"
+
+    DevFlow:
+      type: object
+      properties:
+        dev-flow-id:
+          type: string
 
     DevFlowSpec:
       type: object
