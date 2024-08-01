@@ -34,8 +34,8 @@ type ServerInterface interface {
 	// (POST /tenant/{uuid}/flow/create)
 	PostTenantUuidFlowCreate(ctx echo.Context, uuid Uuid) error
 
-	// (POST /tenant/{uuid}/flow/{flow-id}/delete)
-	PostTenantUuidFlowFlowIdDelete(ctx echo.Context, uuid Uuid, flowId FlowId) error
+	// (DELETE /tenant/{uuid}/flow/{flow-id})
+	DeleteTenantUuidFlowFlowId(ctx echo.Context, uuid Uuid, flowId FlowId) error
 
 	// (GET /tenant/{uuid}/flows)
 	GetTenantUuidFlows(ctx echo.Context, uuid Uuid) error
@@ -90,8 +90,8 @@ func (w *ServerInterfaceWrapper) PostTenantUuidFlowCreate(ctx echo.Context) erro
 	return err
 }
 
-// PostTenantUuidFlowFlowIdDelete converts echo context to params.
-func (w *ServerInterfaceWrapper) PostTenantUuidFlowFlowIdDelete(ctx echo.Context) error {
+// DeleteTenantUuidFlowFlowId converts echo context to params.
+func (w *ServerInterfaceWrapper) DeleteTenantUuidFlowFlowId(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "uuid" -------------
 	var uuid Uuid
@@ -110,7 +110,7 @@ func (w *ServerInterfaceWrapper) PostTenantUuidFlowFlowIdDelete(ctx echo.Context
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PostTenantUuidFlowFlowIdDelete(ctx, uuid, flowId)
+	err = w.Handler.DeleteTenantUuidFlowFlowId(ctx, uuid, flowId)
 	return err
 }
 
@@ -177,10 +177,18 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/health", wrapper.GetHealth)
 	router.POST(baseURL+"/tenant/:uuid/deploy", wrapper.PostTenantUuidDeploy)
 	router.POST(baseURL+"/tenant/:uuid/flow/create", wrapper.PostTenantUuidFlowCreate)
-	router.POST(baseURL+"/tenant/:uuid/flow/:flow-id/delete", wrapper.PostTenantUuidFlowFlowIdDelete)
+	router.DELETE(baseURL+"/tenant/:uuid/flow/:flow-id", wrapper.DeleteTenantUuidFlowFlowId)
 	router.GET(baseURL+"/tenant/:uuid/flows", wrapper.GetTenantUuidFlows)
 	router.GET(baseURL+"/tenant/:uuid/topology", wrapper.GetTenantUuidTopology)
 
+}
+
+type ErrorJSONResponse struct {
+	// Error Error type
+	Error *string `json:"error,omitempty"`
+
+	// Msg Error message
+	Msg *string `json:"msg,omitempty"`
 }
 
 type NotFoundJSONResponse struct {
@@ -225,6 +233,24 @@ func (response PostTenantUuidDeploy200JSONResponse) VisitPostTenantUuidDeployRes
 	return json.NewEncoder(w).Encode(response)
 }
 
+type PostTenantUuidDeploy404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response PostTenantUuidDeploy404JSONResponse) VisitPostTenantUuidDeployResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostTenantUuidDeploy500JSONResponse struct{ ErrorJSONResponse }
+
+func (response PostTenantUuidDeploy500JSONResponse) VisitPostTenantUuidDeployResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type PostTenantUuidFlowCreateRequestObject struct {
 	Uuid Uuid `json:"uuid"`
 	Body *PostTenantUuidFlowCreateJSONRequestBody
@@ -252,30 +278,47 @@ func (response PostTenantUuidFlowCreate404JSONResponse) VisitPostTenantUuidFlowC
 	return json.NewEncoder(w).Encode(response)
 }
 
-type PostTenantUuidFlowFlowIdDeleteRequestObject struct {
+type PostTenantUuidFlowCreate500JSONResponse struct{ ErrorJSONResponse }
+
+func (response PostTenantUuidFlowCreate500JSONResponse) VisitPostTenantUuidFlowCreateResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteTenantUuidFlowFlowIdRequestObject struct {
 	Uuid   Uuid   `json:"uuid"`
 	FlowId FlowId `json:"flow-id"`
-	Body   *PostTenantUuidFlowFlowIdDeleteJSONRequestBody
 }
 
-type PostTenantUuidFlowFlowIdDeleteResponseObject interface {
-	VisitPostTenantUuidFlowFlowIdDeleteResponse(w http.ResponseWriter) error
+type DeleteTenantUuidFlowFlowIdResponseObject interface {
+	VisitDeleteTenantUuidFlowFlowIdResponse(w http.ResponseWriter) error
 }
 
-type PostTenantUuidFlowFlowIdDelete2xxResponse struct {
+type DeleteTenantUuidFlowFlowId2xxResponse struct {
 	StatusCode int
 }
 
-func (response PostTenantUuidFlowFlowIdDelete2xxResponse) VisitPostTenantUuidFlowFlowIdDeleteResponse(w http.ResponseWriter) error {
+func (response DeleteTenantUuidFlowFlowId2xxResponse) VisitDeleteTenantUuidFlowFlowIdResponse(w http.ResponseWriter) error {
 	w.WriteHeader(response.StatusCode)
 	return nil
 }
 
-type PostTenantUuidFlowFlowIdDelete404JSONResponse struct{ NotFoundJSONResponse }
+type DeleteTenantUuidFlowFlowId404JSONResponse struct{ NotFoundJSONResponse }
 
-func (response PostTenantUuidFlowFlowIdDelete404JSONResponse) VisitPostTenantUuidFlowFlowIdDeleteResponse(w http.ResponseWriter) error {
+func (response DeleteTenantUuidFlowFlowId404JSONResponse) VisitDeleteTenantUuidFlowFlowIdResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteTenantUuidFlowFlowId500JSONResponse struct{ ErrorJSONResponse }
+
+func (response DeleteTenantUuidFlowFlowId500JSONResponse) VisitDeleteTenantUuidFlowFlowIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -306,6 +349,15 @@ func (response GetTenantUuidFlows404JSONResponse) VisitGetTenantUuidFlowsRespons
 	return json.NewEncoder(w).Encode(response)
 }
 
+type GetTenantUuidFlows500JSONResponse struct{ ErrorJSONResponse }
+
+func (response GetTenantUuidFlows500JSONResponse) VisitGetTenantUuidFlowsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type GetTenantUuidTopologyRequestObject struct {
 	Uuid Uuid `json:"uuid"`
 }
@@ -332,6 +384,15 @@ func (response GetTenantUuidTopology404JSONResponse) VisitGetTenantUuidTopologyR
 	return json.NewEncoder(w).Encode(response)
 }
 
+type GetTenantUuidTopology500JSONResponse struct{ ErrorJSONResponse }
+
+func (response GetTenantUuidTopology500JSONResponse) VisitGetTenantUuidTopologyResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 
@@ -344,8 +405,8 @@ type StrictServerInterface interface {
 	// (POST /tenant/{uuid}/flow/create)
 	PostTenantUuidFlowCreate(ctx context.Context, request PostTenantUuidFlowCreateRequestObject) (PostTenantUuidFlowCreateResponseObject, error)
 
-	// (POST /tenant/{uuid}/flow/{flow-id}/delete)
-	PostTenantUuidFlowFlowIdDelete(ctx context.Context, request PostTenantUuidFlowFlowIdDeleteRequestObject) (PostTenantUuidFlowFlowIdDeleteResponseObject, error)
+	// (DELETE /tenant/{uuid}/flow/{flow-id})
+	DeleteTenantUuidFlowFlowId(ctx context.Context, request DeleteTenantUuidFlowFlowIdRequestObject) (DeleteTenantUuidFlowFlowIdResponseObject, error)
 
 	// (GET /tenant/{uuid}/flows)
 	GetTenantUuidFlows(ctx context.Context, request GetTenantUuidFlowsRequestObject) (GetTenantUuidFlowsResponseObject, error)
@@ -451,32 +512,26 @@ func (sh *strictHandler) PostTenantUuidFlowCreate(ctx echo.Context, uuid Uuid) e
 	return nil
 }
 
-// PostTenantUuidFlowFlowIdDelete operation middleware
-func (sh *strictHandler) PostTenantUuidFlowFlowIdDelete(ctx echo.Context, uuid Uuid, flowId FlowId) error {
-	var request PostTenantUuidFlowFlowIdDeleteRequestObject
+// DeleteTenantUuidFlowFlowId operation middleware
+func (sh *strictHandler) DeleteTenantUuidFlowFlowId(ctx echo.Context, uuid Uuid, flowId FlowId) error {
+	var request DeleteTenantUuidFlowFlowIdRequestObject
 
 	request.Uuid = uuid
 	request.FlowId = flowId
 
-	var body PostTenantUuidFlowFlowIdDeleteJSONRequestBody
-	if err := ctx.Bind(&body); err != nil {
-		return err
-	}
-	request.Body = &body
-
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.PostTenantUuidFlowFlowIdDelete(ctx.Request().Context(), request.(PostTenantUuidFlowFlowIdDeleteRequestObject))
+		return sh.ssi.DeleteTenantUuidFlowFlowId(ctx.Request().Context(), request.(DeleteTenantUuidFlowFlowIdRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "PostTenantUuidFlowFlowIdDelete")
+		handler = middleware(handler, "DeleteTenantUuidFlowFlowId")
 	}
 
 	response, err := handler(ctx, request)
 
 	if err != nil {
 		return err
-	} else if validResponse, ok := response.(PostTenantUuidFlowFlowIdDeleteResponseObject); ok {
-		return validResponse.VisitPostTenantUuidFlowFlowIdDeleteResponse(ctx.Response())
+	} else if validResponse, ok := response.(DeleteTenantUuidFlowFlowIdResponseObject); ok {
+		return validResponse.VisitDeleteTenantUuidFlowFlowIdResponse(ctx.Response())
 	} else if response != nil {
 		return fmt.Errorf("unexpected response type: %T", response)
 	}
@@ -536,24 +591,24 @@ func (sh *strictHandler) GetTenantUuidTopology(ctx echo.Context, uuid Uuid) erro
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/8xXW2/bNhT+KwS3hw2QrGTrw6C3LV43Y0URLMlT0QeGPLbZSDwsSTkxDP33gaQkX0Qn",
-	"doOufTAgk+fyne9cdLShHGuNCpSztNxQzQyrwYEJ/+YVPuZS+EcBlhupnURFS/q2wkciBSgn5xIMzaj0",
-	"x5q5Jc2oYjXQctDOqIHPjTQgaOlMAxm1fAk182bdWntR64xUC9q2GW2alMO7u9mU4Jy4JRADFhvDIe01",
-	"6J/jsvXCVqOyEIJ+j+4tNiqA4KgcKOcfmdaV5MzjKT5ZD2qzY1Qb1GCcjCZSEfzboSazKc0OQQQI4TqP",
-	"N0e1w3WW4K07wftPwF0M64gJhY7MQ4ReKMYQYF9VjXVgblFjhYv1OC4Qiy5AB3V4+NHAnJb0h2JbRkVn",
-	"sfhTLIBukTFj2Nr/VyjOsPIeRcJKu5vhD53JrAP4ccRGRqew8kU7jknAKt+p8xeJHUzdaOCJ1NdsAXmF",
-	"nDk0gbMnVuvKW7hn/AGUyFlZMQfWpcrAgllJDjlHNZeL01m6iXpXQS1Fem84dkkKVi/BTimvjIbsjsKv",
-	"2D1U4/J954/JHE1oYJ+lSTL62Ncj9dsl7Eybfg4M5SygPzpq2TGzAHeq5Sh9iuWDOhwGU+cvVYmhoE8a",
-	"GXdKfm728PUMemTJOE/i/6i2Zqabdvvq1+E86CXJTY6s27Ue2Os0QTW1p2nBHDyyNR3KcvuUr8BYb8AT",
-	"K+RuMx/hPIz7IJJi+9qgON6tX6ndUv2yr5IYQ7rCdd3R/5QvMO9tar26nEy399n2Ope1RhNUutdfkKZZ",
-	"fCmW9OE3O5FYMC0LprUtVpdx6He0H7jiaGB1ObkZkvKMoyib9OSvoqfD9hgM74T7MfnukmqOYR5LF6bU",
-	"1btZ8Q8qZ7Aiv1/PaEb7Qinp5eRicuE5Rg2KaUlL+ms4iuACv8USWOWBjlYZNCTeEb4E/kB49EIz2k0M",
-	"n6bw3p8JWtK/wP0dTR3sDb9cXJy1MiT2kH1kNw3nYO28qUjvyIu1GS0cKKZcsfHLTltEMkNNoU1Avkbr",
-	"boPGXSNFrKTAzXbX+5Cu961IEfaq9mNMKFj3B4r1WfE+1097XZqgImImjGiDgqCq1oTHZWW06rWvTMtz",
-	"MPslIolwRfwaQbiBYJpYx1xj0xnzkkWQhFPT5h1fRY3vKnW721CClwiZMCI6gr7/hGX0zcWbY5YHqMXw",
-	"nXA8w5tusfQtWsF5ufa/mZhGvS/LePaiXL/4fru+9uENtUF+MrAC44jfSYnDbbv//HLZPD2Nh/uQ5MD/",
-	"V0lycH7sTbGfUvuazn1Fh5y00gytMlpm/u/WcTvfny8TO3ytfhtun6P08Hs6QWV/R/y+Y+rg5ctobNv/",
-	"AgAA//9YpuEFzBEAAA==",
+	"H4sIAAAAAAAC/+xXwW7jNhD9FYLtUbKcdgsUurXxbmt0sQia5LTIgSHHMjcSyZCUE8PQvxckJVmyaMdp",
+	"gDaHPQRQSM7MmzePw/EOU1kpKUBYg/MdVkSTCixo/9+qlE8pZ+6TgaGaK8ulwDn+VMonxBkIy1ccNE4w",
+	"d8uK2DVOsCAV4Ly3TrCGx5prYDi3uoYEG7qGiji3dqvcUWM1FwVumgTXdSzg7e1ygeQK2TUgDUbWmkI8",
+	"qrd/TcjGHTZKCgM+6Y9aS+0+qBQWhHWfRKmSU+LAZN+MQ7QbeFRaKtCWB3vo7McZeLfIB08OMSS4MsUx",
+	"kwqMIUXEqulX5P03oDbkEnHhAnyR9pOsBXtDYrG6/N3WAi0XsbS6UqVh56h1nJZzEuxdCGnRymfoDoUc",
+	"POzLsjYW9I1UspTFNlIwVrQJWqj8x48aVjjHP2T7y5G1HrOPrAC8R0a0Jlv3v5DsFV6+SBbx0gx1+7V1",
+	"mbQA7yZsJHgBG3cVpzkx2KSD2/sisb2rawV0lMWBBipSQFpKSmwQOTyTSpXO1T2hDyBYSvKSWDA2pgcD",
+	"esMppOGuxqy7E+QcOUyr4KszQV2Seyin8vvsltHKXcs1IMfyLAo6dJuJ+c0aBj2w6069HBl0S0c9W6IL",
+	"sOd6DqfP8Xygo75dtvFiSvKCPOvK3wr+WI/wdQw6ZNE8z+L/qLUiuu1WY/Mrv+7touRGW87NVvXstZYg",
+	"6srRVBALT2SLe5nuv9INaOMcOGIZH17GI5z7R8gfibF9pSUb3rYx611QKsWKF+c3letgd+nNot1lAmRs",
+	"EmkjqpTbqqX/OS1k2vlUanMxW+z3k/12yisltTdpH2V/Gifhqc7xw69mxmVGFM+IUibbXISm3dJ+EIpK",
+	"DZuL2XVflBOBwtloJLcVIh1ej97xIN276NvDxUr6fsqt71qXn5fZX1JYLUv029USJ7gTSo4vZvPZ3HEs",
+	"FQiiOM7xz34pgPP8ZmsgpQM6GbCkRmEP0TXQB0RDFJzgtmO4Mvl3e8lwjv8A+2dwdTDN/DSfv+rJj0xH",
+	"Y2TXNaVgzKouURfIHWsSnFkQRNhs50awJgtkek1JE4F8JY298Ra3NWdBSZ6b/QT6Na73/ZHMT3vNXSgo",
+	"GPu7ZNtX5XvqPo1uaYSKgBkRpLRkSIpyi2gYNiYDaPPGspyC2Q0BUYQb5MYARDV418hYYmvjZPlh/uGY",
+	"5x5q1o+NTYJ/CZhPG7QDZ0wQDkjmgcC5qnB5XQaLd6WM4bAUoT1ARgSxlv/vejimh107pTahB5YQxDEW",
+	"xcKvj2Xh/pbsX8oiefFcNzwHBQ0r9fw8bdc9rz6Dd8Crh3rspRgTad5ytd4g4bNGml7Lk2HmfWvbDn5t",
+	"vlyG/rfp/1OJUwU4/PUcIb7bQ2460pWP8l+Q3jT/BAAA//+QXUlqvhIAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

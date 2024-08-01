@@ -38,6 +38,7 @@ export interface paths {
           };
         };
         404: components["responses"]["NotFound"];
+        500: components["responses"]["Error"];
       };
     };
   };
@@ -56,25 +57,21 @@ export interface paths {
           };
         };
         404: components["responses"]["NotFound"];
+        500: components["responses"]["Error"];
       };
     };
   };
-  "/tenant/{uuid}/flow/{flow-id}/delete": {
-    post: {
+  "/tenant/{uuid}/flow/{flow-id}": {
+    delete: {
       parameters: {
         path: {
           uuid: components["parameters"]["uuid"];
           "flow-id": components["parameters"]["flow-id"];
         };
       };
-      /** @description Delete dev flow (revert back to prod only) */
-      requestBody: {
-        content: {
-          "application/json": components["schemas"]["ProdFlowSpec"];
-        };
-      };
       responses: {
         404: components["responses"]["NotFound"];
+        500: components["responses"]["Error"];
         /** @description Dev flow deletion status */
         "2xx": {
           content: never;
@@ -102,6 +99,8 @@ export interface paths {
             "application/json": components["schemas"]["DevFlow"];
           };
         };
+        404: components["responses"]["NotFound"];
+        500: components["responses"]["Error"];
       };
     };
   };
@@ -120,6 +119,7 @@ export interface paths {
           };
         };
         404: components["responses"]["NotFound"];
+        500: components["responses"]["Error"];
       };
     };
   };
@@ -136,12 +136,11 @@ export interface components {
       "dev-flow-id"?: string;
     };
     DevFlowSpec: {
-      /** @example backend-a:latest */
-      "image-locator"?: string;
-      /** @example backend-service-a */
-      "service-name"?: string;
-      "service-configs"?: components["schemas"]["ServiceConfig"][];
-    };
+        /** @example backend-a:latest */
+        "image-locator"?: string;
+        /** @example backend-service-a */
+        "service-name"?: string;
+      }[];
     Node: {
       /** @description Unique identifier for the node. */
       id: string;
@@ -173,6 +172,17 @@ export interface components {
     };
   };
   responses: {
+    /** @description Error */
+    Error: {
+      content: {
+        "application/json": {
+          /** @description Error type */
+          error?: string;
+          /** @description Error message */
+          msg?: string;
+        };
+      };
+    };
     /** @description Resource not found */
     NotFound: {
       content: {

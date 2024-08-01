@@ -28,10 +28,9 @@ type DevFlow struct {
 }
 
 // DevFlowSpec defines model for DevFlowSpec.
-type DevFlowSpec struct {
-	ImageLocator   *string          `json:"image-locator,omitempty"`
-	ServiceConfigs *[]ServiceConfig `json:"service-configs,omitempty"`
-	ServiceName    *string          `json:"service-name,omitempty"`
+type DevFlowSpec = []struct {
+	ImageLocator *string `json:"image-locator,omitempty"`
+	ServiceName  *string `json:"service-name,omitempty"`
 }
 
 // Edge defines model for Edge.
@@ -81,6 +80,15 @@ type FlowId = string
 // Uuid defines model for uuid.
 type Uuid = string
 
+// Error defines model for Error.
+type Error struct {
+	// Error Error type
+	Error *string `json:"error,omitempty"`
+
+	// Msg Error message
+	Msg *string `json:"msg,omitempty"`
+}
+
 // NotFound defines model for NotFound.
 type NotFound struct {
 	// Id Resource ID
@@ -95,6 +103,3 @@ type PostTenantUuidDeployJSONRequestBody = ProdFlowSpec
 
 // PostTenantUuidFlowCreateJSONRequestBody defines body for PostTenantUuidFlowCreate for application/json ContentType.
 type PostTenantUuidFlowCreateJSONRequestBody = DevFlowSpec
-
-// PostTenantUuidFlowFlowIdDeleteJSONRequestBody defines body for PostTenantUuidFlowFlowIdDelete for application/json ContentType.
-type PostTenantUuidFlowFlowIdDeleteJSONRequestBody = ProdFlowSpec

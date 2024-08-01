@@ -84,10 +84,6 @@ var createCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		serviceName, imageName := args[0], args[1]
-		serviceConfigs, err := parseKubernetesManifestFile(kubernetesManifestFile)
-		if err != nil {
-			log.Fatalf("Error loading k8s manifest file: %v", err)
-		}
 
 		tenantUuid, err := tenant.GetOrCreateUserTenantUUID()
 		if err != nil {
@@ -95,7 +91,7 @@ var createCmd = &cobra.Command{
 		}
 
 		fmt.Printf("Creating service %s with image %s in development mode...\n", serviceName, imageName)
-		createDevFlow(tenantUuid.String(), serviceConfigs, imageName, serviceName)
+		createDevFlow(tenantUuid.String(), imageName, serviceName)
 	},
 }
 
@@ -105,16 +101,12 @@ var deleteCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		flowId := args[0]
-		serviceConfigs, err := parseKubernetesManifestFile(kubernetesManifestFile)
-		if err != nil {
-			log.Fatalf("Error loading k8s manifest file: %v", err)
-		}
 
 		tenantUuid, err := tenant.GetOrCreateUserTenantUUID()
 		if err != nil {
 			log.Fatal("Error getting or creating user tenant UUID", err)
 		}
-		deleteFlow(tenantUuid.String(), flowId, serviceConfigs)
+		deleteFlow(tenantUuid.String(), flowId)
 
 		fmt.Print("Deleting dev flow")
 	},
@@ -182,8 +174,6 @@ func init() {
 	flowCmd.AddCommand(createCmd, deleteCmd)
 	managerCmd.AddCommand(deployManagerCmd, removeManagerCmd)
 
-	flowCmd.PersistentFlags().StringVarP(&kubernetesManifestFile, "k8s-manifest", "k", "", "Path to the K8S manifest file")
-	flowCmd.MarkPersistentFlagRequired("k8s-manifest")
 	deployCmd.PersistentFlags().StringVarP(&kubernetesManifestFile, "k8s-manifest", "k", "", "Path to the K8S manifest file")
 	deployCmd.MarkPersistentFlagRequired("k8s-manifest")
 }
@@ -265,17 +255,18 @@ func getObjectName(obj *metav1.ObjectMeta) string {
 	return obj.GetName()
 }
 
-func createDevFlow(tenantUuid api_types.Uuid, serviceConfigs []api_types.ServiceConfig, imageLocator, serviceName string) {
+func createDevFlow(tenantUuid api_types.Uuid, imageLocator, serviceName string) {
 	ctx := context.Background()
 
-	body := api_types.PostTenantUuidFlowCreateJSONRequestBody{
-		ServiceConfigs: &serviceConfigs,
-		ServiceName:    &serviceName,
-		ImageLocator:   &imageLocator,
+	devSpec := api_types.DevFlowSpec{
+		{
+			ServiceName:  &serviceName,
+			ImageLocator: &imageLocator,
+		},
 	}
 	client := getKontrolServiceClient()
 
-	resp, err := client.PostTenantUuidFlowCreateWithResponse(ctx, tenantUuid, body)
+	resp, err := client.PostTenantUuidFlowCreateWithResponse(ctx, tenantUuid, devSpec)
 	if err != nil {
 		log.Fatalf("Failed to create dev flow: %v", err)
 	}
@@ -313,20 +304,23 @@ func deploy(tenantUuid api_types.Uuid, serviceConfigs []api_types.ServiceConfig)
 	logrus.Infof("Visit: %s", trafficConfigurationURL)
 }
 
-func deleteFlow(tenantUuid api_types.Uuid, flowId api_types.FlowId, serviceConfigs []api_types.ServiceConfig) {
+func deleteFlow(tenantUuid api_types.Uuid, flowId api_types.FlowId) {
 	ctx := context.Background()
 
-	body := api_types.PostTenantUuidFlowFlowIdDeleteJSONRequestBody{
-		ServiceConfigs: &serviceConfigs,
-	}
 	client := getKontrolServiceClient()
 
-	resp, err := client.PostTenantUuidFlowFlowIdDeleteWithResponse(ctx, tenantUuid, flowId, body)
+	resp, err := client.DeleteTenantUuidFlowFlowId(ctx, tenantUuid, flowId)
 	if err != nil {
 		log.Fatalf("Failed to delete flow: %v", err)
 	}
 
-	fmt.Printf("Response: %s\n", string(resp.Body))
+	respCode := resp.StatusCode
+	if respCode == 200 || respCode == 204 {
+		fmt.Printf("Dev flow %s has been deleted", flowId)
+	} else {
+		fmt.Printf("Failed to delete dev flow!\n")
+		os.Exit(1)
+	}
 }
 
 func deployManager(tenantUuid api_types.Uuid, kontrolLocation string) error {
