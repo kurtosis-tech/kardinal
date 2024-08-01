@@ -154,6 +154,8 @@ export interface components {
       type: "gateway" | "service" | "service-version" | "redis";
       /** @description Parent node */
       parent?: string;
+      /** @description Node versions */
+      versions?: string[];
     };
     Edge: {
       /** @description The identifier of the source node of the edge. */
