@@ -185,7 +185,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 
 type ErrorJSONResponse struct {
 	// Error Error type
-	Error *string `json:"error,omitempty"`
+	Error string `json:"error"`
 
 	// Msg Error message
 	Msg *string `json:"msg,omitempty"`
@@ -193,10 +193,10 @@ type ErrorJSONResponse struct {
 
 type NotFoundJSONResponse struct {
 	// Id Resource ID
-	Id *string `json:"id,omitempty"`
+	Id string `json:"id"`
 
 	// ResourceType Resource type
-	ResourceType *string `json:"resource-type,omitempty"`
+	ResourceType string `json:"resource-type"`
 }
 
 type GetHealthRequestObject struct {
@@ -224,7 +224,7 @@ type PostTenantUuidDeployResponseObject interface {
 	VisitPostTenantUuidDeployResponse(w http.ResponseWriter) error
 }
 
-type PostTenantUuidDeploy200JSONResponse DevFlow
+type PostTenantUuidDeploy200JSONResponse Flow
 
 func (response PostTenantUuidDeploy200JSONResponse) VisitPostTenantUuidDeployResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
@@ -260,7 +260,7 @@ type PostTenantUuidFlowCreateResponseObject interface {
 	VisitPostTenantUuidFlowCreateResponse(w http.ResponseWriter) error
 }
 
-type PostTenantUuidFlowCreate200JSONResponse DevFlow
+type PostTenantUuidFlowCreate200JSONResponse Flow
 
 func (response PostTenantUuidFlowCreate200JSONResponse) VisitPostTenantUuidFlowCreateResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
@@ -331,7 +331,7 @@ type GetTenantUuidFlowsResponseObject interface {
 	VisitGetTenantUuidFlowsResponse(w http.ResponseWriter) error
 }
 
-type GetTenantUuidFlows200JSONResponse []DevFlow
+type GetTenantUuidFlows200JSONResponse []Flow
 
 func (response GetTenantUuidFlows200JSONResponse) VisitGetTenantUuidFlowsResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
@@ -591,24 +591,25 @@ func (sh *strictHandler) GetTenantUuidTopology(ctx echo.Context, uuid Uuid) erro
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"/+/W0v1UEwAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

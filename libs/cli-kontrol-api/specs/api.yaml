@@ -26,7 +26,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/DevFlowSpec"
+              $ref: "#/components/schemas/FlowSpec"
       responses:
         "500":
           $ref: "#/components/responses/Error"
@@ -37,7 +37,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/DevFlow"
+                $ref: "#/components/schemas/Flow"
 
   /tenant/{uuid}/flows:
     get:
@@ -55,7 +55,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/DevFlow"
+                  $ref: "#/components/schemas/Flow"
 
   /tenant/{uuid}/flow/{flow-id}:
     delete:
@@ -80,7 +80,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ProdFlowSpec"
+              $ref: "#/components/schemas/MainClusterConfig"
       responses:
         "500":
           $ref: "#/components/responses/Error"
@@ -91,7 +91,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/DevFlow"
+                $ref: "#/components/schemas/Flow"
 
   /tenant/{uuid}/topology:
     get:
@@ -124,6 +124,8 @@ components:
               msg:
                 type: string
                 description: Error message
+            required:
+              - error
 
     NotFound:
       description: Resource not found
@@ -138,6 +140,9 @@ components:
               id:
                 type: string
                 description: Resource ID
+            required:
+              - resource-type
+              - id
   parameters:
     uuid:
       name: uuid
@@ -156,7 +161,7 @@ components:
         type: string
 
   schemas:
-    ProdFlowSpec:
+    MainClusterConfig:
       type: object
       properties:
         service-configs:
@@ -164,13 +169,18 @@ components:
           items:
             $ref: "#/components/schemas/ServiceConfig"
 
-    DevFlow:
+    Flow:
       type: object
       properties:
-        dev-flow-id:
+        flow-id:
           type: string
+        flow-url:
+          type: string
+      required:
+        - flow-id
+        - flow-url
 
-    DevFlowSpec:
+    FlowSpec:
       type: array
       items:
         type: object
@@ -181,6 +191,9 @@ components:
           service-name:
             type: string
             example: backend-service-a
+        required:
+          - image-locator
+          - service-name
 
     Node:
       type: object

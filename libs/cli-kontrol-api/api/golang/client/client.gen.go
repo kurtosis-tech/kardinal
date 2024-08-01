@@ -530,7 +530,7 @@ func (r GetHealthResponse) StatusCode() int {
 type PostTenantUuidDeployResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *DevFlow
+	JSON200      *Flow
 	JSON404      *NotFound
 	JSON500      *Error
 }
@@ -554,7 +554,7 @@ func (r PostTenantUuidDeployResponse) StatusCode() int {
 type PostTenantUuidFlowCreateResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *DevFlow
+	JSON200      *Flow
 	JSON404      *NotFound
 	JSON500      *Error
 }
@@ -601,7 +601,7 @@ func (r DeleteTenantUuidFlowFlowIdResponse) StatusCode() int {
 type GetTenantUuidFlowsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *[]DevFlow
+	JSON200      *[]Flow
 	JSON404      *NotFound
 	JSON500      *Error
 }
@@ -757,7 +757,7 @@ func ParsePostTenantUuidDeployResponse(rsp *http.Response) (*PostTenantUuidDeplo
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest DevFlow
+		var dest Flow
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -797,7 +797,7 @@ func ParsePostTenantUuidFlowCreateResponse(rsp *http.Response) (*PostTenantUuidF
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest DevFlow
+		var dest Flow
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -870,7 +870,7 @@ func ParseGetTenantUuidFlowsResponse(rsp *http.Response) (*GetTenantUuidFlowsRes
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []DevFlow
+		var dest []Flow
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

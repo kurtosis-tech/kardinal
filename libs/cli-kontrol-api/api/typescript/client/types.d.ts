@@ -27,14 +27,14 @@ export interface paths {
       /** @description Create a dev flow */
       requestBody: {
         content: {
-          "application/json": components["schemas"]["DevFlowSpec"];
+          "application/json": components["schemas"]["FlowSpec"];
         };
       };
       responses: {
         /** @description Dev flow creation status */
         200: {
           content: {
-            "application/json": components["schemas"]["DevFlow"];
+            "application/json": components["schemas"]["Flow"];
           };
         };
         404: components["responses"]["NotFound"];
@@ -53,7 +53,7 @@ export interface paths {
         /** @description Dev flow creation status */
         200: {
           content: {
-            "application/json": components["schemas"]["DevFlow"][];
+            "application/json": components["schemas"]["Flow"][];
           };
         };
         404: components["responses"]["NotFound"];
@@ -89,14 +89,14 @@ export interface paths {
       /** @description Deploy a prod only cluster */
       requestBody: {
         content: {
-          "application/json": components["schemas"]["ProdFlowSpec"];
+          "application/json": components["schemas"]["MainClusterConfig"];
         };
       };
       responses: {
         /** @description Dev flow creation status */
         200: {
           content: {
-            "application/json": components["schemas"]["DevFlow"];
+            "application/json": components["schemas"]["Flow"];
           };
         };
         404: components["responses"]["NotFound"];
@@ -129,17 +129,18 @@ export type webhooks = Record<string, never>;
 
 export interface components {
   schemas: {
-    ProdFlowSpec: {
+    MainClusterConfig: {
       "service-configs"?: components["schemas"]["ServiceConfig"][];
     };
-    DevFlow: {
-      "dev-flow-id"?: string;
+    Flow: {
+      "flow-id": string;
+      "flow-url": string;
     };
-    DevFlowSpec: {
+    FlowSpec: {
         /** @example backend-a:latest */
-        "image-locator"?: string;
+        "image-locator": string;
         /** @example backend-service-a */
-        "service-name"?: string;
+        "service-name": string;
       }[];
     Node: {
       /** @description Unique identifier for the node. */
@@ -177,7 +178,7 @@ export interface components {
       content: {
         "application/json": {
           /** @description Error type */
-          error?: string;
+          error: string;
           /** @description Error message */
           msg?: string;
         };
@@ -188,9 +189,9 @@ export interface components {
       content: {
         "application/json": {
           /** @description Resource type */
-          "resource-type"?: string;
+          "resource-type": string;
           /** @description Resource ID */
-          id?: string;
+          id: string;
         };
       };
     };
