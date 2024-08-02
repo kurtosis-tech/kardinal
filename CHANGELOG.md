@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.7](https://github.com/kurtosis-tech/kardinal/compare/0.1.6...0.1.7) (2024-08-02)
+
+
+### Bug Fixes
+
+* CLI link printing ([#75](https://github.com/kurtosis-tech/kardinal/issues/75)) ([3b0257d](https://github.com/kurtosis-tech/kardinal/commit/3b0257d2f4340c2df5a705c1828bdf4b16a29f5b))
+* flow URL log line ([#73](https://github.com/kurtosis-tech/kardinal/issues/73)) ([26103d0](https://github.com/kurtosis-tech/kardinal/commit/26103d01b30cb78f05144619ae04601791a83569))
+
 ## [0.1.6](https://github.com/kurtosis-tech/kardinal/compare/0.1.5...0.1.6) (2024-08-02)
 
 
