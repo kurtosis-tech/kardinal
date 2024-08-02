@@ -174,11 +174,13 @@ components:
       properties:
         flow-id:
           type: string
-        flow-url:
-          type: string
+        flow-urls:
+          type: array
+          items:
+            type: string
       required:
         - flow-id
-        - flow-url
+        - flow-urls
 
     FlowSpec:
       type: array

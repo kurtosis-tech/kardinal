@@ -134,7 +134,7 @@ export interface components {
     };
     Flow: {
       "flow-id": string;
-      "flow-url": string;
+      "flow-urls": string[];
     };
     FlowSpec: {
         /** @example backend-a:latest */

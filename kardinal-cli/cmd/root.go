@@ -311,7 +311,10 @@ func createDevFlow(tenantUuid api_types.Uuid, imageLocator, serviceName string) 
 	}
 
 	if resp.StatusCode() == 200 {
-		fmt.Printf("Flow \"%s\" created. Access it on: http://%s\n", resp.JSON200.FlowId, resp.JSON200.FlowUrl)
+		fmt.Printf("Flow \"%s\" created. Access it on:\n", resp.JSON200.FlowId)
+		for url := range resp.JSON200.FlowUrls {
+			fmt.Printf("http://%s\n", url)
+		}
 		return
 	}
 
@@ -345,7 +348,10 @@ func deploy(tenantUuid api_types.Uuid, serviceConfigs []api_types.ServiceConfig)
 	}
 
 	if resp.StatusCode() == 200 {
-		fmt.Printf("Flow \"%s\" created. Access it on: http://%s\n", resp.JSON200.FlowId, resp.JSON200.FlowUrl)
+		fmt.Printf("Flow \"%s\" created. Access it on:\n", resp.JSON200.FlowId)
+		for url := range resp.JSON200.FlowUrls {
+			fmt.Printf("http://%s\n", url)
+		}
 		fmt.Printf("Visit Kardinal Kontrol: %s", trafficConfigurationURL)
 		return
 	}
@@ -480,7 +486,10 @@ func getClusterResourcesURL(tenantUuid api_types.Uuid) (string, error) {
 func printTable(flows []api_types.Flow) {
 	// Find the maximum width of each column
 	data := lo.Map(flows, func(flow api_types.Flow, _ int) []string {
-		return []string{flow.FlowId, fmt.Sprintf("http://%s", flow.FlowUrl)}
+		return []string{
+			flow.FlowId,
+			strings.Join(lo.Map(flow.FlowUrls, func(item string, _ int) string { return fmt.Sprintf("http://%s", item) }), ", "),
+		}
 	})
 	header := [][]string{{"Flow ID", "Flow URL"}}
 	data = append(header, data...)
