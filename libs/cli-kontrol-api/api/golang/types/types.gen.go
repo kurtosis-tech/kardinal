@@ -64,6 +64,9 @@ type Node struct {
 
 	// Type Type of the node
 	Type NodeType `json:"type"`
+
+	// Versions Node versions
+	Versions *[]string `json:"versions,omitempty"`
 }
 
 // NodeType Type of the node

@@ -213,6 +213,11 @@ components:
         parent:
           type: string
           description: Parent node
+        versions:
+          type: array
+          description: Node versions
+          items:
+            type: string
       required:
         - id
         - type
