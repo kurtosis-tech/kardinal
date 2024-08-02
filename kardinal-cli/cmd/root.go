@@ -37,6 +37,7 @@ const (
 
 	localMinikubeKontrolAPIHost = "host.minikube.internal:8080"
 	localKontrolAPIHost         = "localhost:8080"
+	localFrontendHost           = "localhost:5173"
 	kloudKontrolHost            = "app.kardinal.dev"
 	kloudKontrolAPIHost         = kloudKontrolHost + "/api"
 
@@ -419,7 +420,7 @@ func removeManager() error {
 }
 
 func getKontrolServiceClient() *api.ClientWithResponses {
-	kontrolHostApi, err := getKontrolBaseURL(true)
+	kontrolHostApi, err := getKontrolBaseURLForCLI()
 	if err != nil {
 		logrus.Fatalf("An error occurred getting the Kontrol location:\n%v", err)
 		os.Exit(1)
@@ -432,7 +433,45 @@ func getKontrolServiceClient() *api.ClientWithResponses {
 	return client
 }
 
-func getKontrolBaseURL(useApiHost bool) (string, error) {
+func getKontrolBaseURLForUI() (string, error) {
+	var (
+		scheme string
+		host   string
+	)
+
+	if devMode {
+		scheme = httpSchme
+		host = localFrontendHost
+	} else {
+		scheme = httpsScheme
+		host = kloudKontrolHost
+	}
+
+	baseURL := fmt.Sprintf(kontrolBaseURLTmpl, scheme, host)
+
+	return baseURL, nil
+}
+
+func getKontrolBaseURLForCLI() (string, error) {
+	var (
+		scheme string
+		host   string
+	)
+
+	if devMode {
+		scheme = httpSchme
+		host = localKontrolAPIHost
+	} else {
+		scheme = httpsScheme
+		host = kloudKontrolAPIHost
+	}
+
+	baseURL := fmt.Sprintf(kontrolBaseURLTmpl, scheme, host)
+
+	return baseURL, nil
+}
+
+func getKontrolBaseURLForManager() (string, error) {
 	kontrolLocation, err := kontrol.GetKontrolLocation()
 	if err != nil {
 		return "", stacktrace.Propagate(err, "An error occurred getting the Kontrol location")
@@ -447,27 +486,19 @@ func getKontrolBaseURL(useApiHost bool) (string, error) {
 	case kontrol.KontrolLocationLocalMinikube:
 		scheme = httpSchme
 		host = localMinikubeKontrolAPIHost
-		if devMode {
-			host = localKontrolAPIHost
-		}
 	case kontrol.KontrolLocationKloudKontrol:
 		scheme = httpsScheme
-		if useApiHost {
-			host = kloudKontrolAPIHost
-		} else {
-			host = kloudKontrolHost
-		}
+		host = kloudKontrolAPIHost
 	default:
 		return "", stacktrace.NewError("invalid Kontrol location: %s", kontrolLocation)
 	}
 
 	baseURL := fmt.Sprintf(kontrolBaseURLTmpl, scheme, host)
-
 	return baseURL, nil
 }
 
 func getTrafficConfigurationURL(tenantUuid api_types.Uuid) (string, error) {
-	kontrolBaseURL, err := getKontrolBaseURL(false)
+	kontrolBaseURL, err := getKontrolBaseURLForUI()
 	if err != nil {
 		return "", stacktrace.Propagate(err, "An error occurred getting the Kontrol base URL")
 	}
@@ -478,7 +509,7 @@ func getTrafficConfigurationURL(tenantUuid api_types.Uuid) (string, error) {
 }
 
 func getClusterResourcesURL(tenantUuid api_types.Uuid) (string, error) {
-	kontrolBaseURL, err := getKontrolBaseURL(true)
+	kontrolBaseURL, err := getKontrolBaseURLForManager()
 	if err != nil {
 		return "", stacktrace.Propagate(err, "An error occurred getting the Kontrol base URL")
 	}
