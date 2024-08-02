@@ -5,7 +5,7 @@ import DocsLayout from "@/components/DocsLayout";
 
 export const metadata: Metadata = {
   title: "Kardinal Docs",
-  description: "Develop in prod... fearlessly",
+  description: "The lightest-weight Kubernetes dev environments in the world",
 };
 
 const Layout = ({ children }: PropsWithChildren) => {
