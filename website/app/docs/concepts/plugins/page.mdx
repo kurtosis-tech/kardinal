@@ -91,7 +91,7 @@ To use a plugin with a particular service, you need to add special annotations t
 
 1. Open your Kubernetes service specification YAML file.
 2. Add an annotation under the `metadata` section of your service.
-3. Use the `kardinal.dev/plugins` key to specify the plugins you want to use.
+3. Use the `kardinal.dev.service/plugins` key to specify the plugins you want to use.
 
 Here's an example of how your service spec might look:
 
@@ -101,7 +101,7 @@ kind: Service
 metadata:
   name: my-awesome-service
   annotations:
-    kardinal.dev/plugins: |
+    kardinal.dev.service/plugins: |
       - name: github.com/kurtosis-tech/redis-plugin
         args:
           text_to_replace: "original-text"
@@ -116,7 +116,7 @@ spec:
 
 ### Annotation Structure
 
-The `kardinal.dev/plugins` annotation uses a YAML-formatted list of plugins. Each plugin in the list has two main parts:
+The `kardinal.dev.service/plugins` annotation uses a YAML-formatted list of plugins. Each plugin in the list has two main parts:
 
 1. `name`: This is the GitHub repository URL of the plugin.
 2. `args`: These are the arguments that will be passed to the plugin's `create_flow` function.
@@ -125,7 +125,7 @@ You can specify multiple plugins for a single service by adding more items to th
 
 ```yaml
 annotations:
-  kardinal.dev/plugins: |
+  kardinal.dev.service/plugins: |
     - name: github.com/username/repo1
       args:
         arg1: value1
@@ -138,7 +138,7 @@ annotations:
 
 When Kardinal processes your service, it will:
 
-1. Read the `kardinal.dev/plugins` annotation.
+1. Read the `kardinal.dev.service/plugins` annotation.
 2. For each plugin listed:
    - Fetch the plugin code from the specified GitHub repository.
    - Execute the plugin's `create_flow` function, passing in the service spec, deployment spec, a generated flow UUID, and any arguments specified in the `args` section.
