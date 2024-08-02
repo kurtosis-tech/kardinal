@@ -312,7 +312,7 @@ func createDevFlow(tenantUuid api_types.Uuid, imageLocator, serviceName string) 
 
 	if resp.StatusCode() == 200 {
 		fmt.Printf("Flow \"%s\" created. Access it on:\n", resp.JSON200.FlowId)
-		for url := range resp.JSON200.FlowUrls {
+		for _, url := range resp.JSON200.FlowUrls {
 			fmt.Printf("http://%s\n", url)
 		}
 		return
@@ -349,7 +349,7 @@ func deploy(tenantUuid api_types.Uuid, serviceConfigs []api_types.ServiceConfig)
 
 	if resp.StatusCode() == 200 {
 		fmt.Printf("Flow \"%s\" created. Access it on:\n", resp.JSON200.FlowId)
-		for url := range resp.JSON200.FlowUrls {
+		for _, url := range resp.JSON200.FlowUrls {
 			fmt.Printf("http://%s\n", url)
 		}
 		fmt.Printf("Visit Kardinal Kontrol: %s", trafficConfigurationURL)
