@@ -26,8 +26,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/DevFlowSpec"
+              $ref: "#/components/schemas/FlowSpec"
       responses:
+        "500":
+          $ref: "#/components/responses/Error"
         "404":
           $ref: "#/components/responses/NotFound"
         "200":
@@ -35,13 +37,15 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/DevFlow"
+                $ref: "#/components/schemas/Flow"
 
   /tenant/{uuid}/flows:
     get:
       parameters:
         - $ref: "#/components/parameters/uuid"
       responses:
+        "500":
+          $ref: "#/components/responses/Error"
         "404":
           $ref: "#/components/responses/NotFound"
         "200":
@@ -51,21 +55,16 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/DevFlow"
+                  $ref: "#/components/schemas/Flow"
 
-  /tenant/{uuid}/flow/{flow-id}/delete:
-    post:
+  /tenant/{uuid}/flow/{flow-id}:
+    delete:
       parameters:
         - $ref: "#/components/parameters/uuid"
         - $ref: "#/components/parameters/flow-id"
-      requestBody:
-        description: Delete dev flow (revert back to prod only)
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ProdFlowSpec"
       responses:
+        "500":
+          $ref: "#/components/responses/Error"
         "404":
           $ref: "#/components/responses/NotFound"
         "2xx":
@@ -81,20 +80,26 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ProdFlowSpec"
+              $ref: "#/components/schemas/MainClusterConfig"
       responses:
+        "500":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/NotFound"
         "200":
           description: Dev flow creation status
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/DevFlow"
+                $ref: "#/components/schemas/Flow"
 
   /tenant/{uuid}/topology:
     get:
       parameters:
         - $ref: "#/components/parameters/uuid"
       responses:
+        "500":
+          $ref: "#/components/responses/Error"
         "404":
           $ref: "#/components/responses/NotFound"
         "200":
@@ -106,6 +111,22 @@ paths:
 
 components:
   responses:
+    Error:
+      description: Error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                description: Error type
+              msg:
+                type: string
+                description: Error message
+            required:
+              - error
+
     NotFound:
       description: Resource not found
       content:
@@ -119,6 +140,9 @@ components:
               id:
                 type: string
                 description: Resource ID
+            required:
+              - resource-type
+              - id
   parameters:
     uuid:
       name: uuid
@@ -137,7 +161,7 @@ components:
         type: string
 
   schemas:
-    ProdFlowSpec:
+    MainClusterConfig:
       type: object
       properties:
         service-configs:
@@ -145,25 +169,33 @@ components:
           items:
             $ref: "#/components/schemas/ServiceConfig"
 
-    DevFlow:
+    Flow:
       type: object
       properties:
-        dev-flow-id:
+        flow-id:
           type: string
-
-    DevFlowSpec:
-      type: object
-      properties:
-        image-locator:
-          type: string
-          example: backend-a:latest
-        service-name:
-          type: string
-          example: backend-service-a
-        service-configs:
+        flow-urls:
           type: array
           items:
-            $ref: "#/components/schemas/ServiceConfig"
+            type: string
+      required:
+        - flow-id
+        - flow-urls
+
+    FlowSpec:
+      type: array
+      items:
+        type: object
+        properties:
+          image-locator:
+            type: string
+            example: backend-a:latest
+          service-name:
+            type: string
+            example: backend-service-a
+        required:
+          - image-locator
+          - service-name
 
     Node:
       type: object
