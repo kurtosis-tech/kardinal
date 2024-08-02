@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"path"
 	"strings"
@@ -37,6 +36,7 @@ const (
 	kontrolTrafficConfigurationURLTmpl = "%s/%s/traffic-configuration"
 
 	localMinikubeKontrolAPIHost = "host.minikube.internal:8080"
+	localKontrolAPIHost         = "localhost:8080"
 	kloudKontrolHost            = "app.kardinal.dev"
 	kloudKontrolAPIHost         = kloudKontrolHost + "/api"
 
@@ -44,7 +44,10 @@ const (
 	httpsScheme = httpSchme + "s"
 )
 
-var kubernetesManifestFile string
+var (
+	kubernetesManifestFile string
+	devMode                bool
+)
 
 var rootCmd = &cobra.Command{
 	Use:   "kardinal",
@@ -105,7 +108,7 @@ var createCmd = &cobra.Command{
 			log.Fatal("Error getting or creating user tenant UUID", err)
 		}
 
-		fmt.Printf("Creating service %s with image %s in development mode...\n", serviceName, imageName)
+		logrus.Infof("Creating service %s with image %s in development mode...\n", serviceName, imageName)
 		createDevFlow(tenantUuid.String(), imageName, serviceName)
 	},
 }
@@ -182,6 +185,11 @@ var dashboardCmd = &cobra.Command{
 }
 
 func init() {
+	devMode = false
+	if os.Getenv("KARDINAL_CLI_DEV_MODE") == "TRUE" {
+		devMode = true
+	}
+
 	rootCmd.AddCommand(flowCmd)
 	rootCmd.AddCommand(managerCmd)
 	rootCmd.AddCommand(deployCmd)
@@ -312,8 +320,8 @@ func createDevFlow(tenantUuid api_types.Uuid, imageLocator, serviceName string) 
 
 	if resp.StatusCode() == 200 {
 		fmt.Printf("Flow \"%s\" created. Access it on:\n", resp.JSON200.FlowId)
-		for url := range resp.JSON200.FlowUrls {
-			fmt.Printf("http://%s\n", url)
+		for _, url := range resp.JSON200.FlowUrls {
+			fmt.Printf("🌐 http://%s\n", url)
 		}
 		return
 	}
@@ -349,10 +357,10 @@ func deploy(tenantUuid api_types.Uuid, serviceConfigs []api_types.ServiceConfig)
 
 	if resp.StatusCode() == 200 {
 		fmt.Printf("Flow \"%s\" created. Access it on:\n", resp.JSON200.FlowId)
-		for url := range resp.JSON200.FlowUrls {
-			fmt.Printf("http://%s\n", url)
+		for _, url := range resp.JSON200.FlowUrls {
+			fmt.Printf("🌐 http://%s\n", url)
 		}
-		fmt.Printf("Visit Kardinal Kontrol: %s", trafficConfigurationURL)
+		fmt.Printf("View and manage flows:\n⚙️  %s", trafficConfigurationURL)
 		return
 	}
 
@@ -411,23 +419,17 @@ func removeManager() error {
 }
 
 func getKontrolServiceClient() *api.ClientWithResponses {
-	devMode := false
-	if os.Getenv("KARDINAL_CLI_DEV_MODE") == "TRUE" {
-		devMode = true
+	kontrolHostApi, err := getKontrolBaseURL(true)
+	if err != nil {
+		logrus.Fatalf("An error occurred getting the Kontrol location:\n%v", err)
+		os.Exit(1)
 	}
-	if devMode {
-		client, err := api.NewClientWithResponses("http://localhost:8080", api.WithHTTPClient(http.DefaultClient))
-		if err != nil {
-			log.Fatalf("Failed to create client: %v", err)
-		}
-		return client
-	} else {
-		client, err := api.NewClientWithResponses(fmt.Sprintf("https://%s", kloudKontrolAPIHost))
-		if err != nil {
-			log.Fatalf("Failed to create client: %v", err)
-		}
-		return client
+	client, err := api.NewClientWithResponses(kontrolHostApi)
+	if err != nil {
+		log.Fatalf("Failed to create client: %v", err)
+		os.Exit(1)
 	}
+	return client
 }
 
 func getKontrolBaseURL(useApiHost bool) (string, error) {
@@ -445,6 +447,9 @@ func getKontrolBaseURL(useApiHost bool) (string, error) {
 	case kontrol.KontrolLocationLocalMinikube:
 		scheme = httpSchme
 		host = localMinikubeKontrolAPIHost
+		if devMode {
+			host = localKontrolAPIHost
+		}
 	case kontrol.KontrolLocationKloudKontrol:
 		scheme = httpsScheme
 		if useApiHost {
@@ -523,4 +528,9 @@ func printTable(flows []api_types.Flow) {
 			fmt.Println("|")
 		}
 	}
+
+	for _, width := range colWidths {
+		fmt.Print("|", strings.Repeat("-", width+2))
+	}
+	fmt.Println("|")
 }
