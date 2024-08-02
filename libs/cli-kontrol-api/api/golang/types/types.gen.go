@@ -22,18 +22,6 @@ type ClusterTopology struct {
 	Nodes []Node `json:"nodes"`
 }
 
-// DevFlow defines model for DevFlow.
-type DevFlow struct {
-	DevFlowId *string `json:"dev-flow-id,omitempty"`
-}
-
-// DevFlowSpec defines model for DevFlowSpec.
-type DevFlowSpec struct {
-	ImageLocator   *string          `json:"image-locator,omitempty"`
-	ServiceConfigs *[]ServiceConfig `json:"service-configs,omitempty"`
-	ServiceName    *string          `json:"service-name,omitempty"`
-}
-
 // Edge defines model for Edge.
 type Edge struct {
 	// Label Label for the edge.
@@ -44,6 +32,23 @@ type Edge struct {
 
 	// Target The identifier of the target node of the edge.
 	Target string `json:"target"`
+}
+
+// Flow defines model for Flow.
+type Flow struct {
+	FlowId   string   `json:"flow-id"`
+	FlowUrls []string `json:"flow-urls"`
+}
+
+// FlowSpec defines model for FlowSpec.
+type FlowSpec = []struct {
+	ImageLocator string `json:"image-locator"`
+	ServiceName  string `json:"service-name"`
+}
+
+// MainClusterConfig defines model for MainClusterConfig.
+type MainClusterConfig struct {
+	ServiceConfigs *[]ServiceConfig `json:"service-configs,omitempty"`
 }
 
 // Node defines model for Node.
@@ -67,11 +72,6 @@ type Node struct {
 // NodeType Type of the node
 type NodeType string
 
-// ProdFlowSpec defines model for ProdFlowSpec.
-type ProdFlowSpec struct {
-	ServiceConfigs *[]ServiceConfig `json:"service-configs,omitempty"`
-}
-
 // ServiceConfig defines model for ServiceConfig.
 type ServiceConfig struct {
 	Deployment appv1.Deployment `json:"deployment"`
@@ -84,20 +84,26 @@ type FlowId = string
 // Uuid defines model for uuid.
 type Uuid = string
 
+// Error defines model for Error.
+type Error struct {
+	// Error Error type
+	Error string `json:"error"`
+
+	// Msg Error message
+	Msg *string `json:"msg,omitempty"`
+}
+
 // NotFound defines model for NotFound.
 type NotFound struct {
 	// Id Resource ID
-	Id *string `json:"id,omitempty"`
+	Id string `json:"id"`
 
 	// ResourceType Resource type
-	ResourceType *string `json:"resource-type,omitempty"`
+	ResourceType string `json:"resource-type"`
 }
 
 // PostTenantUuidDeployJSONRequestBody defines body for PostTenantUuidDeploy for application/json ContentType.
-type PostTenantUuidDeployJSONRequestBody = ProdFlowSpec
+type PostTenantUuidDeployJSONRequestBody = MainClusterConfig
 
 // PostTenantUuidFlowCreateJSONRequestBody defines body for PostTenantUuidFlowCreate for application/json ContentType.
-type PostTenantUuidFlowCreateJSONRequestBody = DevFlowSpec
-
-// PostTenantUuidFlowFlowIdDeleteJSONRequestBody defines body for PostTenantUuidFlowFlowIdDelete for application/json ContentType.
-type PostTenantUuidFlowFlowIdDeleteJSONRequestBody = ProdFlowSpec
+type PostTenantUuidFlowCreateJSONRequestBody = FlowSpec

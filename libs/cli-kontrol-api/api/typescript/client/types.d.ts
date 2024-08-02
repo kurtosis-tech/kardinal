@@ -27,17 +27,18 @@ export interface paths {
       /** @description Create a dev flow */
       requestBody: {
         content: {
-          "application/json": components["schemas"]["DevFlowSpec"];
+          "application/json": components["schemas"]["FlowSpec"];
         };
       };
       responses: {
         /** @description Dev flow creation status */
         200: {
           content: {
-            "application/json": components["schemas"]["DevFlow"];
+            "application/json": components["schemas"]["Flow"];
           };
         };
         404: components["responses"]["NotFound"];
+        500: components["responses"]["Error"];
       };
     };
   };
@@ -52,29 +53,25 @@ export interface paths {
         /** @description Dev flow creation status */
         200: {
           content: {
-            "application/json": components["schemas"]["DevFlow"][];
+            "application/json": components["schemas"]["Flow"][];
           };
         };
         404: components["responses"]["NotFound"];
+        500: components["responses"]["Error"];
       };
     };
   };
-  "/tenant/{uuid}/flow/{flow-id}/delete": {
-    post: {
+  "/tenant/{uuid}/flow/{flow-id}": {
+    delete: {
       parameters: {
         path: {
           uuid: components["parameters"]["uuid"];
           "flow-id": components["parameters"]["flow-id"];
         };
       };
-      /** @description Delete dev flow (revert back to prod only) */
-      requestBody: {
-        content: {
-          "application/json": components["schemas"]["ProdFlowSpec"];
-        };
-      };
       responses: {
         404: components["responses"]["NotFound"];
+        500: components["responses"]["Error"];
         /** @description Dev flow deletion status */
         "2xx": {
           content: never;
@@ -92,16 +89,18 @@ export interface paths {
       /** @description Deploy a prod only cluster */
       requestBody: {
         content: {
-          "application/json": components["schemas"]["ProdFlowSpec"];
+          "application/json": components["schemas"]["MainClusterConfig"];
         };
       };
       responses: {
         /** @description Dev flow creation status */
         200: {
           content: {
-            "application/json": components["schemas"]["DevFlow"];
+            "application/json": components["schemas"]["Flow"];
           };
         };
+        404: components["responses"]["NotFound"];
+        500: components["responses"]["Error"];
       };
     };
   };
@@ -120,6 +119,7 @@ export interface paths {
           };
         };
         404: components["responses"]["NotFound"];
+        500: components["responses"]["Error"];
       };
     };
   };
@@ -129,19 +129,19 @@ export type webhooks = Record<string, never>;
 
 export interface components {
   schemas: {
-    ProdFlowSpec: {
+    MainClusterConfig: {
       "service-configs"?: components["schemas"]["ServiceConfig"][];
     };
-    DevFlow: {
-      "dev-flow-id"?: string;
+    Flow: {
+      "flow-id": string;
+      "flow-urls": string[];
     };
-    DevFlowSpec: {
-      /** @example backend-a:latest */
-      "image-locator"?: string;
-      /** @example backend-service-a */
-      "service-name"?: string;
-      "service-configs"?: components["schemas"]["ServiceConfig"][];
-    };
+    FlowSpec: {
+        /** @example backend-a:latest */
+        "image-locator": string;
+        /** @example backend-service-a */
+        "service-name": string;
+      }[];
     Node: {
       /** @description Unique identifier for the node. */
       id: string;
@@ -175,14 +175,25 @@ export interface components {
     };
   };
   responses: {
+    /** @description Error */
+    Error: {
+      content: {
+        "application/json": {
+          /** @description Error type */
+          error: string;
+          /** @description Error message */
+          msg?: string;
+        };
+      };
+    };
     /** @description Resource not found */
     NotFound: {
       content: {
         "application/json": {
           /** @description Resource type */
-          "resource-type"?: string;
+          "resource-type": string;
           /** @description Resource ID */
-          id?: string;
+          id: string;
         };
       };
     };

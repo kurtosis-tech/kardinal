@@ -34,8 +34,8 @@ type ServerInterface interface {
 	// (POST /tenant/{uuid}/flow/create)
 	PostTenantUuidFlowCreate(ctx echo.Context, uuid Uuid) error
 
-	// (POST /tenant/{uuid}/flow/{flow-id}/delete)
-	PostTenantUuidFlowFlowIdDelete(ctx echo.Context, uuid Uuid, flowId FlowId) error
+	// (DELETE /tenant/{uuid}/flow/{flow-id})
+	DeleteTenantUuidFlowFlowId(ctx echo.Context, uuid Uuid, flowId FlowId) error
 
 	// (GET /tenant/{uuid}/flows)
 	GetTenantUuidFlows(ctx echo.Context, uuid Uuid) error
@@ -90,8 +90,8 @@ func (w *ServerInterfaceWrapper) PostTenantUuidFlowCreate(ctx echo.Context) erro
 	return err
 }
 
-// PostTenantUuidFlowFlowIdDelete converts echo context to params.
-func (w *ServerInterfaceWrapper) PostTenantUuidFlowFlowIdDelete(ctx echo.Context) error {
+// DeleteTenantUuidFlowFlowId converts echo context to params.
+func (w *ServerInterfaceWrapper) DeleteTenantUuidFlowFlowId(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "uuid" -------------
 	var uuid Uuid
@@ -110,7 +110,7 @@ func (w *ServerInterfaceWrapper) PostTenantUuidFlowFlowIdDelete(ctx echo.Context
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.PostTenantUuidFlowFlowIdDelete(ctx, uuid, flowId)
+	err = w.Handler.DeleteTenantUuidFlowFlowId(ctx, uuid, flowId)
 	return err
 }
 
@@ -177,18 +177,26 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/health", wrapper.GetHealth)
 	router.POST(baseURL+"/tenant/:uuid/deploy", wrapper.PostTenantUuidDeploy)
 	router.POST(baseURL+"/tenant/:uuid/flow/create", wrapper.PostTenantUuidFlowCreate)
-	router.POST(baseURL+"/tenant/:uuid/flow/:flow-id/delete", wrapper.PostTenantUuidFlowFlowIdDelete)
+	router.DELETE(baseURL+"/tenant/:uuid/flow/:flow-id", wrapper.DeleteTenantUuidFlowFlowId)
 	router.GET(baseURL+"/tenant/:uuid/flows", wrapper.GetTenantUuidFlows)
 	router.GET(baseURL+"/tenant/:uuid/topology", wrapper.GetTenantUuidTopology)
 
 }
 
+type ErrorJSONResponse struct {
+	// Error Error type
+	Error string `json:"error"`
+
+	// Msg Error message
+	Msg *string `json:"msg,omitempty"`
+}
+
 type NotFoundJSONResponse struct {
 	// Id Resource ID
-	Id *string `json:"id,omitempty"`
+	Id string `json:"id"`
 
 	// ResourceType Resource type
-	ResourceType *string `json:"resource-type,omitempty"`
+	ResourceType string `json:"resource-type"`
 }
 
 type GetHealthRequestObject struct {
@@ -216,11 +224,29 @@ type PostTenantUuidDeployResponseObject interface {
 	VisitPostTenantUuidDeployResponse(w http.ResponseWriter) error
 }
 
-type PostTenantUuidDeploy200JSONResponse DevFlow
+type PostTenantUuidDeploy200JSONResponse Flow
 
 func (response PostTenantUuidDeploy200JSONResponse) VisitPostTenantUuidDeployResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostTenantUuidDeploy404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response PostTenantUuidDeploy404JSONResponse) VisitPostTenantUuidDeployResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostTenantUuidDeploy500JSONResponse struct{ ErrorJSONResponse }
+
+func (response PostTenantUuidDeploy500JSONResponse) VisitPostTenantUuidDeployResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -234,7 +260,7 @@ type PostTenantUuidFlowCreateResponseObject interface {
 	VisitPostTenantUuidFlowCreateResponse(w http.ResponseWriter) error
 }
 
-type PostTenantUuidFlowCreate200JSONResponse DevFlow
+type PostTenantUuidFlowCreate200JSONResponse Flow
 
 func (response PostTenantUuidFlowCreate200JSONResponse) VisitPostTenantUuidFlowCreateResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
@@ -252,30 +278,47 @@ func (response PostTenantUuidFlowCreate404JSONResponse) VisitPostTenantUuidFlowC
 	return json.NewEncoder(w).Encode(response)
 }
 
-type PostTenantUuidFlowFlowIdDeleteRequestObject struct {
+type PostTenantUuidFlowCreate500JSONResponse struct{ ErrorJSONResponse }
+
+func (response PostTenantUuidFlowCreate500JSONResponse) VisitPostTenantUuidFlowCreateResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteTenantUuidFlowFlowIdRequestObject struct {
 	Uuid   Uuid   `json:"uuid"`
 	FlowId FlowId `json:"flow-id"`
-	Body   *PostTenantUuidFlowFlowIdDeleteJSONRequestBody
 }
 
-type PostTenantUuidFlowFlowIdDeleteResponseObject interface {
-	VisitPostTenantUuidFlowFlowIdDeleteResponse(w http.ResponseWriter) error
+type DeleteTenantUuidFlowFlowIdResponseObject interface {
+	VisitDeleteTenantUuidFlowFlowIdResponse(w http.ResponseWriter) error
 }
 
-type PostTenantUuidFlowFlowIdDelete2xxResponse struct {
+type DeleteTenantUuidFlowFlowId2xxResponse struct {
 	StatusCode int
 }
 
-func (response PostTenantUuidFlowFlowIdDelete2xxResponse) VisitPostTenantUuidFlowFlowIdDeleteResponse(w http.ResponseWriter) error {
+func (response DeleteTenantUuidFlowFlowId2xxResponse) VisitDeleteTenantUuidFlowFlowIdResponse(w http.ResponseWriter) error {
 	w.WriteHeader(response.StatusCode)
 	return nil
 }
 
-type PostTenantUuidFlowFlowIdDelete404JSONResponse struct{ NotFoundJSONResponse }
+type DeleteTenantUuidFlowFlowId404JSONResponse struct{ NotFoundJSONResponse }
 
-func (response PostTenantUuidFlowFlowIdDelete404JSONResponse) VisitPostTenantUuidFlowFlowIdDeleteResponse(w http.ResponseWriter) error {
+func (response DeleteTenantUuidFlowFlowId404JSONResponse) VisitDeleteTenantUuidFlowFlowIdResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteTenantUuidFlowFlowId500JSONResponse struct{ ErrorJSONResponse }
+
+func (response DeleteTenantUuidFlowFlowId500JSONResponse) VisitDeleteTenantUuidFlowFlowIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -288,7 +331,7 @@ type GetTenantUuidFlowsResponseObject interface {
 	VisitGetTenantUuidFlowsResponse(w http.ResponseWriter) error
 }
 
-type GetTenantUuidFlows200JSONResponse []DevFlow
+type GetTenantUuidFlows200JSONResponse []Flow
 
 func (response GetTenantUuidFlows200JSONResponse) VisitGetTenantUuidFlowsResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
@@ -302,6 +345,15 @@ type GetTenantUuidFlows404JSONResponse struct{ NotFoundJSONResponse }
 func (response GetTenantUuidFlows404JSONResponse) VisitGetTenantUuidFlowsResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetTenantUuidFlows500JSONResponse struct{ ErrorJSONResponse }
+
+func (response GetTenantUuidFlows500JSONResponse) VisitGetTenantUuidFlowsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -332,6 +384,15 @@ func (response GetTenantUuidTopology404JSONResponse) VisitGetTenantUuidTopologyR
 	return json.NewEncoder(w).Encode(response)
 }
 
+type GetTenantUuidTopology500JSONResponse struct{ ErrorJSONResponse }
+
+func (response GetTenantUuidTopology500JSONResponse) VisitGetTenantUuidTopologyResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 
@@ -344,8 +405,8 @@ type StrictServerInterface interface {
 	// (POST /tenant/{uuid}/flow/create)
 	PostTenantUuidFlowCreate(ctx context.Context, request PostTenantUuidFlowCreateRequestObject) (PostTenantUuidFlowCreateResponseObject, error)
 
-	// (POST /tenant/{uuid}/flow/{flow-id}/delete)
-	PostTenantUuidFlowFlowIdDelete(ctx context.Context, request PostTenantUuidFlowFlowIdDeleteRequestObject) (PostTenantUuidFlowFlowIdDeleteResponseObject, error)
+	// (DELETE /tenant/{uuid}/flow/{flow-id})
+	DeleteTenantUuidFlowFlowId(ctx context.Context, request DeleteTenantUuidFlowFlowIdRequestObject) (DeleteTenantUuidFlowFlowIdResponseObject, error)
 
 	// (GET /tenant/{uuid}/flows)
 	GetTenantUuidFlows(ctx context.Context, request GetTenantUuidFlowsRequestObject) (GetTenantUuidFlowsResponseObject, error)
@@ -451,32 +512,26 @@ func (sh *strictHandler) PostTenantUuidFlowCreate(ctx echo.Context, uuid Uuid) e
 	return nil
 }
 
-// PostTenantUuidFlowFlowIdDelete operation middleware
-func (sh *strictHandler) PostTenantUuidFlowFlowIdDelete(ctx echo.Context, uuid Uuid, flowId FlowId) error {
-	var request PostTenantUuidFlowFlowIdDeleteRequestObject
+// DeleteTenantUuidFlowFlowId operation middleware
+func (sh *strictHandler) DeleteTenantUuidFlowFlowId(ctx echo.Context, uuid Uuid, flowId FlowId) error {
+	var request DeleteTenantUuidFlowFlowIdRequestObject
 
 	request.Uuid = uuid
 	request.FlowId = flowId
 
-	var body PostTenantUuidFlowFlowIdDeleteJSONRequestBody
-	if err := ctx.Bind(&body); err != nil {
-		return err
-	}
-	request.Body = &body
-
 	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.PostTenantUuidFlowFlowIdDelete(ctx.Request().Context(), request.(PostTenantUuidFlowFlowIdDeleteRequestObject))
+		return sh.ssi.DeleteTenantUuidFlowFlowId(ctx.Request().Context(), request.(DeleteTenantUuidFlowFlowIdRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "PostTenantUuidFlowFlowIdDelete")
+		handler = middleware(handler, "DeleteTenantUuidFlowFlowId")
 	}
 
 	response, err := handler(ctx, request)
 
 	if err != nil {
 		return err
-	} else if validResponse, ok := response.(PostTenantUuidFlowFlowIdDeleteResponseObject); ok {
-		return validResponse.VisitPostTenantUuidFlowFlowIdDeleteResponse(ctx.Response())
+	} else if validResponse, ok := response.(DeleteTenantUuidFlowFlowIdResponseObject); ok {
+		return validResponse.VisitDeleteTenantUuidFlowFlowIdResponse(ctx.Response())
 	} else if response != nil {
 		return fmt.Errorf("unexpected response type: %T", response)
 	}

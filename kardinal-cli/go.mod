@@ -8,6 +8,7 @@ require (
 	github.com/adrg/xdg v0.4.0
 	github.com/google/uuid v1.5.0
 	github.com/kurtosis-tech/stacktrace v0.0.0-20211028211901-1c67a77b5409
+	github.com/samber/lo v1.46.0
 	github.com/spf13/cobra v1.8.0
 	k8s.io/api v0.30.2
 	k8s.io/apimachinery v0.30.2
@@ -36,7 +37,7 @@ require (
 	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/oauth2 v0.10.0 // indirect
 	golang.org/x/term v0.20.0 // indirect
-	golang.org/x/text v0.15.0 // indirect
+	golang.org/x/text v0.16.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect

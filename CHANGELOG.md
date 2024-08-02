@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.1.7](https://github.com/kurtosis-tech/kardinal/compare/0.1.6...0.1.7) (2024-08-02)
+
+
+### Bug Fixes
+
+* CLI link printing ([#75](https://github.com/kurtosis-tech/kardinal/issues/75)) ([3b0257d](https://github.com/kurtosis-tech/kardinal/commit/3b0257d2f4340c2df5a705c1828bdf4b16a29f5b))
+* flow URL log line ([#73](https://github.com/kurtosis-tech/kardinal/issues/73)) ([26103d0](https://github.com/kurtosis-tech/kardinal/commit/26103d01b30cb78f05144619ae04601791a83569))
+
+## [0.1.6](https://github.com/kurtosis-tech/kardinal/compare/0.1.5...0.1.6) (2024-08-02)
+
+
+### Features
+
+* allows multiple flows ([#68](https://github.com/kurtosis-tech/kardinal/issues/68)) ([ef41abb](https://github.com/kurtosis-tech/kardinal/commit/ef41abb2a820c02ad7be5072d026c0c41721c827))
+* Annotate voting app k8s manifest ([#61](https://github.com/kurtosis-tech/kardinal/issues/61)) ([dc703cb](https://github.com/kurtosis-tech/kardinal/commit/dc703cb5d03e5c0817154c64d16597aa71cc2aa3))
+* fetch and apply authorization policies and envoy filters ([#62](https://github.com/kurtosis-tech/kardinal/issues/62)) ([99829e1](https://github.com/kurtosis-tech/kardinal/commit/99829e11a2e97495e66485ed00181649a89736d3))
+* improvements to cli ([#71](https://github.com/kurtosis-tech/kardinal/issues/71)) ([eb2e0c4](https://github.com/kurtosis-tech/kardinal/commit/eb2e0c4d81bf26c80b359b48d35bcafd7e0bb4da))
+* using IfNotPresent pull policy for local Minikube Kardinal Manager ([#65](https://github.com/kurtosis-tech/kardinal/issues/65)) ([6d2a2ea](https://github.com/kurtosis-tech/kardinal/commit/6d2a2ea61030038947cd727666bbd61db073cde4))
+
+
+### Bug Fixes
+
+* check if envoy filters and auth policies are not nil ([#66](https://github.com/kurtosis-tech/kardinal/issues/66)) ([ef2f3e0](https://github.com/kurtosis-tech/kardinal/commit/ef2f3e041cd3e7f1ed411b14c2828caa5a804456))
+
 ## [0.1.5](https://github.com/kurtosis-tech/kardinal/compare/0.1.4...0.1.5) (2024-07-30)
 
 

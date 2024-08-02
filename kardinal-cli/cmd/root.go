@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"path"
 	"strings"
@@ -13,6 +12,7 @@ import (
 	"kardinal.cli/multi_os_cmd_executor"
 
 	"github.com/kurtosis-tech/stacktrace"
+	"github.com/samber/lo"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"kardinal.cli/deployment"
@@ -36,6 +36,7 @@ const (
 	kontrolTrafficConfigurationURLTmpl = "%s/%s/traffic-configuration"
 
 	localMinikubeKontrolAPIHost = "host.minikube.internal:8080"
+	localKontrolAPIHost         = "localhost:8080"
 	kloudKontrolHost            = "app.kardinal.dev"
 	kloudKontrolAPIHost         = kloudKontrolHost + "/api"
 
@@ -43,7 +44,10 @@ const (
 	httpsScheme = httpSchme + "s"
 )
 
-var kubernetesManifestFile string
+var (
+	kubernetesManifestFile string
+	devMode                bool
+)
 
 var rootCmd = &cobra.Command{
 	Use:   "kardinal",
@@ -78,24 +82,34 @@ var deployCmd = &cobra.Command{
 	},
 }
 
+var listCmd = &cobra.Command{
+	Use:   "ls",
+	Short: "List all active flows",
+	Args:  cobra.ExactArgs(0),
+	Run: func(cmd *cobra.Command, args []string) {
+		tenantUuid, err := tenant.GetOrCreateUserTenantUUID()
+		if err != nil {
+			log.Fatal("Error getting or creating user tenant UUID", err)
+		}
+
+		listDevFlow(tenantUuid.String())
+	},
+}
+
 var createCmd = &cobra.Command{
 	Use:   "create [service name] [image name]",
 	Short: "Create a new service in development mode",
 	Args:  cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		serviceName, imageName := args[0], args[1]
-		serviceConfigs, err := parseKubernetesManifestFile(kubernetesManifestFile)
-		if err != nil {
-			log.Fatalf("Error loading k8s manifest file: %v", err)
-		}
 
 		tenantUuid, err := tenant.GetOrCreateUserTenantUUID()
 		if err != nil {
 			log.Fatal("Error getting or creating user tenant UUID", err)
 		}
 
-		fmt.Printf("Creating service %s with image %s in development mode...\n", serviceName, imageName)
-		createDevFlow(tenantUuid.String(), serviceConfigs, imageName, serviceName)
+		logrus.Infof("Creating service %s with image %s in development mode...\n", serviceName, imageName)
+		createDevFlow(tenantUuid.String(), imageName, serviceName)
 	},
 }
 
@@ -105,16 +119,12 @@ var deleteCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		flowId := args[0]
-		serviceConfigs, err := parseKubernetesManifestFile(kubernetesManifestFile)
-		if err != nil {
-			log.Fatalf("Error loading k8s manifest file: %v", err)
-		}
 
 		tenantUuid, err := tenant.GetOrCreateUserTenantUUID()
 		if err != nil {
 			log.Fatal("Error getting or creating user tenant UUID", err)
 		}
-		deleteFlow(tenantUuid.String(), flowId, serviceConfigs)
+		deleteFlow(tenantUuid.String(), flowId)
 
 		fmt.Print("Deleting dev flow")
 	},
@@ -175,15 +185,18 @@ var dashboardCmd = &cobra.Command{
 }
 
 func init() {
+	devMode = false
+	if os.Getenv("KARDINAL_CLI_DEV_MODE") == "TRUE" {
+		devMode = true
+	}
+
 	rootCmd.AddCommand(flowCmd)
 	rootCmd.AddCommand(managerCmd)
 	rootCmd.AddCommand(deployCmd)
 	rootCmd.AddCommand(dashboardCmd)
-	flowCmd.AddCommand(createCmd, deleteCmd)
+	flowCmd.AddCommand(listCmd, createCmd, deleteCmd)
 	managerCmd.AddCommand(deployManagerCmd, removeManagerCmd)
 
-	flowCmd.PersistentFlags().StringVarP(&kubernetesManifestFile, "k8s-manifest", "k", "", "Path to the K8S manifest file")
-	flowCmd.MarkPersistentFlagRequired("k8s-manifest")
 	deployCmd.PersistentFlags().StringVarP(&kubernetesManifestFile, "k8s-manifest", "k", "", "Path to the K8S manifest file")
 	deployCmd.MarkPersistentFlagRequired("k8s-manifest")
 }
@@ -265,28 +278,62 @@ func getObjectName(obj *metav1.ObjectMeta) string {
 	return obj.GetName()
 }
 
-func createDevFlow(tenantUuid api_types.Uuid, serviceConfigs []api_types.ServiceConfig, imageLocator, serviceName string) {
+func listDevFlow(tenantUuid api_types.Uuid) {
 	ctx := context.Background()
-
-	body := api_types.PostTenantUuidFlowCreateJSONRequestBody{
-		ServiceConfigs: &serviceConfigs,
-		ServiceName:    &serviceName,
-		ImageLocator:   &imageLocator,
-	}
 	client := getKontrolServiceClient()
 
-	resp, err := client.PostTenantUuidFlowCreateWithResponse(ctx, tenantUuid, body)
+	resp, err := client.GetTenantUuidFlowsWithResponse(ctx, tenantUuid)
 	if err != nil {
 		log.Fatalf("Failed to create dev flow: %v", err)
 	}
 
 	if resp.StatusCode() == 200 {
-		fmt.Printf("Create new dev flow: %s\n", string(*resp.JSON200.DevFlowId))
-	} else if resp.StatusCode() == 404 {
-		fmt.Printf("Could not create flow, missing %s: %s\n", *resp.JSON404.ResourceType, *resp.JSON404.Id)
+		printTable(*resp.JSON200)
+		return
+	}
+
+	if resp.StatusCode() == 404 {
+		fmt.Printf("Could not create flow, missing %s: %s\n", resp.JSON404.ResourceType, resp.JSON404.Id)
+	} else if resp.StatusCode() == 500 {
+		fmt.Printf("Could not create flow, error %s: %v\n", resp.JSON500.Error, resp.JSON500.Msg)
 	} else {
 		fmt.Printf("Failed to create dev flow: %s\n", string(resp.Body))
 	}
+	os.Exit(1)
+}
+
+func createDevFlow(tenantUuid api_types.Uuid, imageLocator, serviceName string) {
+	ctx := context.Background()
+
+	devSpec := api_types.FlowSpec{
+		{
+			ServiceName:  serviceName,
+			ImageLocator: imageLocator,
+		},
+	}
+	client := getKontrolServiceClient()
+
+	resp, err := client.PostTenantUuidFlowCreateWithResponse(ctx, tenantUuid, devSpec)
+	if err != nil {
+		log.Fatalf("Failed to create dev flow: %v", err)
+	}
+
+	if resp.StatusCode() == 200 {
+		fmt.Printf("Flow \"%s\" created. Access it on:\n", resp.JSON200.FlowId)
+		for _, url := range resp.JSON200.FlowUrls {
+			fmt.Printf("🌐 http://%s\n", url)
+		}
+		return
+	}
+
+	if resp.StatusCode() == 404 {
+		fmt.Printf("Could not create flow, missing %s: %s\n", resp.JSON404.ResourceType, resp.JSON404.Id)
+	} else if resp.StatusCode() == 500 {
+		fmt.Printf("Could not create flow, error %s: %v\n", resp.JSON500.Error, resp.JSON500.Msg)
+	} else {
+		fmt.Printf("Failed to create dev flow: %s\n", string(resp.Body))
+	}
+	os.Exit(1)
 }
 
 func deploy(tenantUuid api_types.Uuid, serviceConfigs []api_types.ServiceConfig) {
@@ -302,31 +349,48 @@ func deploy(tenantUuid api_types.Uuid, serviceConfigs []api_types.ServiceConfig)
 		log.Fatalf("Failed to deploy: %v", err)
 	}
 
-	fmt.Printf("Response: %s\n", string(resp.Body))
-
 	trafficConfigurationURL, err := getTrafficConfigurationURL(tenantUuid)
 	if err != nil {
 		logrus.Warningf("The command run successfully but it was impossible to print the traffic configuration URL because and error ocurred, please make sure to run the 'kardinal manager deploy' command first")
 		return
 	}
 
-	logrus.Infof("Visit: %s", trafficConfigurationURL)
+	if resp.StatusCode() == 200 {
+		fmt.Printf("Flow \"%s\" created. Access it on:\n", resp.JSON200.FlowId)
+		for _, url := range resp.JSON200.FlowUrls {
+			fmt.Printf("🌐 http://%s\n", url)
+		}
+		fmt.Printf("View and manage flows:\n⚙️  %s", trafficConfigurationURL)
+		return
+	}
+
+	if resp.StatusCode() == 404 {
+		fmt.Printf("Could not create flow, missing %s: %s\n", resp.JSON404.ResourceType, resp.JSON404.Id)
+	} else if resp.StatusCode() == 500 {
+		fmt.Printf("Could not create flow, error %s: %v\n", resp.JSON500.Error, resp.JSON500.Msg)
+	} else {
+		fmt.Printf("Failed to create dev flow: %s\n", string(resp.Body))
+	}
+	os.Exit(1)
 }
 
-func deleteFlow(tenantUuid api_types.Uuid, flowId api_types.FlowId, serviceConfigs []api_types.ServiceConfig) {
+func deleteFlow(tenantUuid api_types.Uuid, flowId api_types.FlowId) {
 	ctx := context.Background()
 
-	body := api_types.PostTenantUuidFlowFlowIdDeleteJSONRequestBody{
-		ServiceConfigs: &serviceConfigs,
-	}
 	client := getKontrolServiceClient()
 
-	resp, err := client.PostTenantUuidFlowFlowIdDeleteWithResponse(ctx, tenantUuid, flowId, body)
+	resp, err := client.DeleteTenantUuidFlowFlowId(ctx, tenantUuid, flowId)
 	if err != nil {
 		log.Fatalf("Failed to delete flow: %v", err)
 	}
 
-	fmt.Printf("Response: %s\n", string(resp.Body))
+	respCode := resp.StatusCode
+	if respCode == 200 || respCode == 204 {
+		fmt.Printf("Dev flow %s has been deleted", flowId)
+	} else {
+		fmt.Printf("Failed to delete dev flow!\n")
+		os.Exit(1)
+	}
 }
 
 func deployManager(tenantUuid api_types.Uuid, kontrolLocation string) error {
@@ -355,23 +419,17 @@ func removeManager() error {
 }
 
 func getKontrolServiceClient() *api.ClientWithResponses {
-	devMode := false
-	if os.Getenv("KARDINAL_CLI_DEV_MODE") == "TRUE" {
-		devMode = true
+	kontrolHostApi, err := getKontrolBaseURL(true)
+	if err != nil {
+		logrus.Fatalf("An error occurred getting the Kontrol location:\n%v", err)
+		os.Exit(1)
 	}
-	if devMode {
-		client, err := api.NewClientWithResponses("http://localhost:8080", api.WithHTTPClient(http.DefaultClient))
-		if err != nil {
-			log.Fatalf("Failed to create client: %v", err)
-		}
-		return client
-	} else {
-		client, err := api.NewClientWithResponses(fmt.Sprintf("https://%s", kloudKontrolAPIHost))
-		if err != nil {
-			log.Fatalf("Failed to create client: %v", err)
-		}
-		return client
+	client, err := api.NewClientWithResponses(kontrolHostApi)
+	if err != nil {
+		log.Fatalf("Failed to create client: %v", err)
+		os.Exit(1)
 	}
+	return client
 }
 
 func getKontrolBaseURL(useApiHost bool) (string, error) {
@@ -389,6 +447,9 @@ func getKontrolBaseURL(useApiHost bool) (string, error) {
 	case kontrol.KontrolLocationLocalMinikube:
 		scheme = httpSchme
 		host = localMinikubeKontrolAPIHost
+		if devMode {
+			host = localKontrolAPIHost
+		}
 	case kontrol.KontrolLocationKloudKontrol:
 		scheme = httpsScheme
 		if useApiHost {
@@ -425,4 +486,51 @@ func getClusterResourcesURL(tenantUuid api_types.Uuid) (string, error) {
 	clusterResourcesURL := fmt.Sprintf(kontrolClusterResourcesEndpointTmpl, kontrolBaseURL, tenantUuid)
 
 	return clusterResourcesURL, nil
+}
+
+func printTable(flows []api_types.Flow) {
+	// Find the maximum width of each column
+	data := lo.Map(flows, func(flow api_types.Flow, _ int) []string {
+		return []string{
+			flow.FlowId,
+			strings.Join(lo.Map(flow.FlowUrls, func(item string, _ int) string { return fmt.Sprintf("http://%s", item) }), ", "),
+		}
+	})
+	header := [][]string{{"Flow ID", "Flow URL"}}
+	data = append(header, data...)
+
+	colWidths := make([]int, len(data[0]))
+	for _, row := range data {
+		for i, cell := range row {
+			if len(cell) > colWidths[i] {
+				colWidths[i] = len(cell)
+			}
+		}
+	}
+
+	for _, width := range colWidths {
+		fmt.Print("|", strings.Repeat("-", width+2))
+	}
+	fmt.Println("|")
+
+	// Print the table
+	for rowNum, row := range data {
+		for i, cell := range row {
+			fmt.Printf("| %-*s ", colWidths[i], cell)
+		}
+		fmt.Println("|")
+
+		// Print separator after header
+		if rowNum == 0 {
+			for _, width := range colWidths {
+				fmt.Print("|", strings.Repeat("-", width+2))
+			}
+			fmt.Println("|")
+		}
+	}
+
+	for _, width := range colWidths {
+		fmt.Print("|", strings.Repeat("-", width+2))
+	}
+	fmt.Println("|")
 }
