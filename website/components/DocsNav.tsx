@@ -17,6 +17,14 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   {
+    path: "getting-started",
+    title: "Getting Started",
+    children: [
+      { path: "demo", title: "Run on a demo app" },
+      { path: "install", title: "Run on your own app" },
+    ],
+  },
+  {
     path: "architecture",
     title: "Architecture",
     children: [{ path: "overview", title: "Overview" }],
