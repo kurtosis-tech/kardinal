@@ -51,7 +51,7 @@ if [ -f "$BIN_FOLDER/$BINARY_NAME" ]; then
         fish)
 	    CONFIG_FILE="$HOME/.config/fish/config.fish"
             if ! echo "set -gx PATH \$PATH $BIN_FOLDER" >> "$CONFIG_FILE" || \
-               ! echo "source <($BIN_FOLDER/$BINARY_NAME completion fish)" >> "$CONFIG_FILE"; then
+               ! echo "source ($BIN_FOLDER/$BINARY_NAME completion fish | psub)" >> "$CONFIG_FILE"; then
                 handle_error
             fi
             ;;
