@@ -34,31 +34,25 @@ echo "Detected parent shell: $PARENT_SHELL"
 if [ -f "$BIN_FOLDER/$BINARY_NAME" ]; then
     case "$PARENT_SHELL" in
         bash|bash)
-            if ! echo "export PATH=\$PATH:$BIN_FOLDER" >> "$HOME/.bashrc" || \
-               ! echo "source <($BIN_FOLDER/$BINARY_NAME completion bash)" >> "$HOME/.bashrc"; then
+	    CONFIG_FILE="$HOME/.bashrc"
+            if ! echo "export PATH=\$PATH:$BIN_FOLDER" >> "$CONFIG_FILE" || \
+               ! echo "source <($BIN_FOLDER/$BINARY_NAME completion bash)" >> "$CONFIG_FILE"; then
                 handle_error
-	    else
-     		echo "Run the following command to load Kardinal in the current shell (new shell will already load it):"
-     		echo "source $HOME/.bashrc"
             fi
             ;;
         zsh|zsh)
-            if ! echo "export PATH=\$PATH:$BIN_FOLDER" >> "$HOME/.zshrc" || \
-               ! echo "autoload -U +X compinit && compinit" >> "$HOME/.zshrc" || \
-               ! echo "source <($BIN_FOLDER/$BINARY_NAME completion zsh)" >> "$HOME/.zshrc"; then
+	    CONFIG_FILE="$HOME/.zshrc"
+            if ! echo "export PATH=\$PATH:$BIN_FOLDER" >> "$CONFIG_FILE" || \
+               ! echo "autoload -U +X compinit && compinit" >> "$CONFIG_FILE" || \
+               ! echo "source <($BIN_FOLDER/$BINARY_NAME completion zsh)" >> "$CONFIG_FILE"; then
                 handle_error
-	    else
-     		echo "Run the following command to load Kardinal in the current shell (new shell will already load it):"
-     		echo "source $HOME/.zshrc"
             fi
             ;;
         fish)
-            if ! echo "set -gx PATH \$PATH $BIN_FOLDER" >> "$HOME/.config/fish/config.fish" || \
-               ! echo "source <($BIN_FOLDER/$BINARY_NAME completion fish)" >> "$HOME/.config/fish/config.fish"; then
+	    CONFIG_FILE="$HOME/.config/fish/config.fish"
+            if ! echo "set -gx PATH \$PATH $BIN_FOLDER" >> "$CONFIG_FILE" || \
+               ! echo "source <($BIN_FOLDER/$BINARY_NAME completion fish)" >> "$CONFIG_FILE"; then
                 handle_error
-	    else
-     		echo "Run the following command to load Kardinal in the current shell (new shell will already load it):"
-     		echo "source $HOME/.config/fish/config.fish"
             fi
             ;;
         *)
@@ -71,3 +65,5 @@ else
 fi
 
 echo "$BINARY_NAME has been installed successfully!"
+echo "Run the following command to load Kardinal in the current shell (new shell will already load it):"
+echo "\n> source $CONFIG_FILE\n"
