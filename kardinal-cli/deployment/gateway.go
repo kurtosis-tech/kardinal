@@ -24,7 +24,7 @@ const (
 	namespace           = "istio-system"
 	service             = "istio-ingressgateway"
 	localPort           = 9080
-	istioGatewayPodPort = 80
+	istioGatewayPodPort = 8080
 )
 
 func StartGateway(host string) error {
@@ -63,18 +63,18 @@ func StartGateway(host string) error {
 	// Start proxy server
 	proxy := createProxy(host)
 	server := &http.Server{
-		Addr:    ":8080",
+		Addr:    ":9060",
 		Handler: proxy,
 	}
 
 	go func() {
-		log.Println("Starting proxy server on :8080")
+		log.Println("Starting proxy server on :9060")
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Failed to start proxy server: %v", err)
 		}
 	}()
 
-	log.Println("Proxy server started on :8080")
+	log.Println("Proxy server started on :9060")
 
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
