@@ -28,8 +28,6 @@ import (
 )
 
 const (
-	projectName = "kardinal"
-
 	kontrolBaseURLTmpl                  = "%s://%s"
 	kontrolClusterResourcesEndpointTmpl = "%s/tenant/%s/cluster-resources"
 
@@ -185,6 +183,18 @@ var dashboardCmd = &cobra.Command{
 	},
 }
 
+var gatewayCmd = &cobra.Command{
+	Use:   "gateway",
+	Short: "Opens a gateway to the given host",
+	Args:  cobra.MatchAll(cobra.ExactArgs(1)),
+	Run: func(cmr *cobra.Command, args []string) {
+		host := args[0]
+		if err := deployment.StartGateway(host); err != nil {
+			log.Fatalf("An error occurred while creating a gateway", err)
+		}
+	},
+}
+
 func init() {
 	devMode = false
 	if os.Getenv("KARDINAL_CLI_DEV_MODE") == "TRUE" {
@@ -195,6 +205,7 @@ func init() {
 	rootCmd.AddCommand(managerCmd)
 	rootCmd.AddCommand(deployCmd)
 	rootCmd.AddCommand(dashboardCmd)
+	rootCmd.AddCommand(gatewayCmd)
 	flowCmd.AddCommand(listCmd, createCmd, deleteCmd)
 	managerCmd.AddCommand(deployManagerCmd, removeManagerCmd)
 
