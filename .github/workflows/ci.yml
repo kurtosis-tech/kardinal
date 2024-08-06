@@ -190,7 +190,7 @@ jobs:
       - name: Verify kardinal command
         run: |
           if [ "${{ matrix.shell }}" = "fish" ]; then
-            fish -c 'source ~/.config/fish/config.fish; if kardinal | grep -q "Kardinal CLI"; then exit 0; else exit 1; end'
+            fish -c 'source ~/.config/fish/config.fish; if kardinal | grep -q "Kardinal CLI"; exit 0; else; exit 1; end'
           elif [ "${{ matrix.shell }}" = "zsh" ]; then
             zsh -c 'source ~/.zshrc; if kardinal | grep -q "Kardinal CLI"; then exit 0; else exit 1; fi'
           else
