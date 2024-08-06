@@ -119,13 +119,13 @@ func assertProdNamespaceReady(client *kubernetes.Clientset, flowId string) error
 		allReady := true
 		flowIdFound := false
 		for _, pod := range pods.Items {
+			if strings.Contains(pod.Name, flowId) {
+				flowIdFound = true
+			}
 			if !isPodReady(&pod) {
 				allReady = false
 				log.Printf("Pod %s is not ready", pod.Name)
 				break
-			}
-			if strings.Contains(pod.Name, flowId) {
-				flowIdFound = true
 			}
 		}
 
