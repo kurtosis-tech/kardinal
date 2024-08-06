@@ -33,7 +33,7 @@ const (
 	prodNamespace       = "prod"
 )
 
-func StartGateway(host string) error {
+func StartGateway(host, flowId string) error {
 	log.Printf("Starting gateway for host: %s", host)
 
 	client, err := createKubernetesClient()
@@ -42,7 +42,7 @@ func StartGateway(host string) error {
 	}
 
 	// Check for pods in the prod namespace
-	err = assertProdNamespaceReady(client.clientSet)
+	err = assertProdNamespaceReady(client.clientSet, flowId)
 	if err != nil {
 		return fmt.Errorf("failed to assert that prod namespace is ready: %v", err)
 	}
@@ -101,7 +101,7 @@ func StartGateway(host string) error {
 	return nil
 }
 
-func assertProdNamespaceReady(client *kubernetes.Clientset) error {
+func assertProdNamespaceReady(client *kubernetes.Clientset, flowId string) error {
 	for retry := 0; retry < maxRetries; retry++ {
 		pods, err := client.CoreV1().Pods(prodNamespace).List(context.Background(), metav1.ListOptions{})
 		if err != nil {
@@ -117,24 +117,34 @@ func assertProdNamespaceReady(client *kubernetes.Clientset) error {
 		}
 
 		allReady := true
+		flowIdFound := false
 		for _, pod := range pods.Items {
 			if !isPodReady(&pod) {
 				allReady = false
 				log.Printf("Pod %s is not ready", pod.Name)
 				break
 			}
+			if strings.Contains(pod.Name, flowId) {
+				flowIdFound = true
+			}
 		}
 
-		if allReady {
-			log.Printf("All pods in namespace %s are ready", prodNamespace)
+		if !flowIdFound {
+			log.Printf("FlowId %s not found in any pod name (attempt %d/%d)", flowId, retry+1, maxRetries)
+			time.Sleep(retryInterval)
+			continue
+		}
+
+		if allReady && flowIdFound {
+			log.Printf("All pods in namespace %s are ready and flowId %s found", prodNamespace, flowId)
 			return nil
 		}
 
-		log.Printf("Waiting for all pods to be ready (attempt %d/%d)", retry+1, maxRetries)
+		log.Printf("Waiting for all pods to be ready and flowId to be found (attempt %d/%d)", retry+1, maxRetries)
 		time.Sleep(retryInterval)
 	}
 
-	return fmt.Errorf("failed to assert all pods are ready in namespace %s after %d attempts", prodNamespace, maxRetries)
+	return fmt.Errorf("failed to assert all pods are ready and flowId %s found in namespace %s after %d attempts", flowId, prodNamespace, maxRetries)
 }
 
 func isPodReady(pod *corev1.Pod) bool {
