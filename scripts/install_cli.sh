@@ -44,7 +44,7 @@ if [ -f "$BIN_FOLDER/$BINARY_NAME" ]; then
 		case "$PARENT_SHELL" in
 		bash)
 			CONFIG_FILE="$HOME/.bashrc"
-			if ! echo "# Kardinal CLI config"; then
+			if ! echo "# Kardinal CLI config" >>"$CONFIG_FILE"; then
 				handle_error
 			fi
 			echo "export PATH=\$PATH:$BIN_FOLDER" >>"$CONFIG_FILE"
@@ -52,7 +52,7 @@ if [ -f "$BIN_FOLDER/$BINARY_NAME" ]; then
 			;;
 		zsh)
 			CONFIG_FILE="$HOME/.zshrc"
-			if ! echo "# Kardinal CLI config"; then
+			if ! echo "# Kardinal CLI config" >>"$CONFIG_FILE"; then
 				handle_error
 			fi
 			echo "export PATH=\$PATH:$BIN_FOLDER" >>"$CONFIG_FILE"
@@ -61,7 +61,7 @@ if [ -f "$BIN_FOLDER/$BINARY_NAME" ]; then
 			;;
 		fish)
 			CONFIG_FILE="$HOME/.config/fish/config.fish"
-			if ! echo "# Kardinal CLI config"; then
+			if ! echo "# Kardinal CLI config" >>"$CONFIG_FILE"; then
 				handle_error
 			fi
 			echo "set -gx PATH \$PATH $BIN_FOLDER" >>"$CONFIG_FILE"
