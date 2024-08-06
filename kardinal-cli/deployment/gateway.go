@@ -3,6 +3,7 @@ package deployment
 import (
 	"context"
 	"fmt"
+	"io"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"log"
@@ -68,13 +69,12 @@ func StartGateway(host string) error {
 	}
 
 	go func() {
-		log.Printf("Starting proxy server on :%d", proxyServerPort)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Failed to start proxy server: %v", err)
 		}
 	}()
 
-	log.Printf("Proxy server started on :%d", proxyServerPort)
+	log.Printf("Proxy server for host %s started on http://localhost:%d", host, proxyServerPort)
 
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
@@ -92,13 +92,11 @@ func StartGateway(host string) error {
 }
 
 func findPodForService(client *kubernetes.Clientset) (string, error) {
-	log.Printf("Finding pod for service %s in namespace %s", service, namespace)
 	svc, err := client.CoreV1().Services(namespace).Get(context.Background(), service, metav1.GetOptions{})
 	if err != nil {
 		return "", fmt.Errorf("error getting service: %v", err)
 	}
 
-	// Convert the service selector to a label selector string
 	var labelSelectors []string
 	for key, value := range svc.Spec.Selector {
 		labelSelectors = append(labelSelectors, fmt.Sprintf("%s=%s", key, value))
@@ -114,9 +112,7 @@ func findPodForService(client *kubernetes.Clientset) (string, error) {
 		return "", fmt.Errorf("no pods found for service %s", service)
 	}
 
-	// Return the name of the first pod found
 	podName := pods.Items[0].Name
-	log.Printf("Found pod %s for service %s", podName, service)
 	return podName, nil
 }
 
@@ -134,17 +130,14 @@ func portForwardPod(config *rest.Config, podName string, stopChan <-chan struct{
 		return fmt.Errorf("failed to parse URL: %v", err)
 	}
 
-	log.Printf("Attempting to connect to pod %s at: %s", podName, serverURL.String())
-
 	dialer := spdy.NewDialer(upgrader, &http.Client{Transport: roundTripper}, http.MethodPost, serverURL)
 
 	ports := []string{fmt.Sprintf("%d:%d", localPort, istioGatewayPodPort)}
-	forwarder, err := portforward.New(dialer, ports, stopChan, readyChan, os.Stdout, os.Stderr)
+	forwarder, err := portforward.New(dialer, ports, stopChan, readyChan, io.Discard, os.Stderr)
 	if err != nil {
 		return fmt.Errorf("failed to create port forwarder: %v", err)
 	}
 
-	log.Printf("Starting port forwarding for pod %s...", podName)
 	return forwarder.ForwardPorts()
 }
 
@@ -157,7 +150,6 @@ func createProxy(host string) *httputil.ReverseProxy {
 		originalDirector(req)
 		req.Host = host // Set the Host header to the provided host
 		req.Header.Set("X-Forwarded-Host", host)
-		log.Printf("Proxying request to: %s%s", req.Host, req.URL.Path)
 	}
 
 	proxy.ModifyResponse = func(resp *http.Response) error {
@@ -165,7 +157,6 @@ func createProxy(host string) *httputil.ReverseProxy {
 		resp.Header.Set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0")
 		resp.Header.Set("Pragma", "no-cache")
 		resp.Header.Set("Expires", "0")
-		log.Printf("Received response with status: %d", resp.StatusCode)
 		return nil
 	}
 

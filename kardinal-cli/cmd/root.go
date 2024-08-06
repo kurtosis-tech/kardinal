@@ -184,8 +184,8 @@ var dashboardCmd = &cobra.Command{
 }
 
 var gatewayCmd = &cobra.Command{
-	Use:   "gateway",
-	Short: "Opens a gateway to the given host",
+	Use:   "gateway [flow-host]",
+	Short: "Opens a gateway to the given host (eg prod.app.localhost, dev-13dcff23.app.localhost)",
 	Args:  cobra.MatchAll(cobra.ExactArgs(1)),
 	Run: func(cmr *cobra.Command, args []string) {
 		host := args[0]
