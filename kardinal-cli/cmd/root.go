@@ -158,7 +158,7 @@ var removeManagerCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := removeManager(); err != nil {
-			log.Fatal("Error removing Kardinal manager\n", err)
+			log.Fatal("Error removing Kardinal manager", err)
 		}
 
 		fmt.Print("Kardinal manager removed from cluster\n")
