@@ -184,13 +184,47 @@ var dashboardCmd = &cobra.Command{
 }
 
 var gatewayCmd = &cobra.Command{
-	Use:   "gateway [flow-host]",
-	Short: "Opens a gateway to the given host (eg prod.app.localhost, dev-13dcff23.app.localhost)",
+	Use:   "gateway <flow-id>",
+	Short: "Opens a gateway to the given flow",
 	Args:  cobra.MatchAll(cobra.ExactArgs(1)),
 	Run: func(cmr *cobra.Command, args []string) {
-		host := args[0]
+		flowId := args[0]
+
+		tenantUuid, err := tenant.GetOrCreateUserTenantUUID()
+		if err != nil {
+			log.Fatal("Error getting or creating user tenant UUID", err)
+		}
+
+		ctx := context.Background()
+		client := getKontrolServiceClient()
+
+		resp, err := client.GetTenantUuidFlowsWithResponse(ctx, tenantUuid.String())
+		if err != nil {
+			log.Fatalf("Failed to list flows: %v", err)
+		}
+
+		if resp == nil {
+			log.Fatalf("List flow response is empty")
+		}
+
+		var host string
+
+		for _, flow := range *resp.JSON200 {
+			if flow.FlowId == flowId {
+				if len(flow.FlowUrls) > 0 {
+					host = flow.FlowUrls[0]
+				} else {
+					log.Fatalf("Flow '%s' has no hosts", flowId)
+				}
+			}
+		}
+
+		if host == "" {
+			log.Fatalf("Couldn't find flow with id '%s'", flowId)
+		}
+
 		if err := deployment.StartGateway(host); err != nil {
-			log.Fatalf("An error occurred while creating a gateway", err)
+			log.Fatal("An error occurred while creating a gateway", err)
 		}
 	},
 }
