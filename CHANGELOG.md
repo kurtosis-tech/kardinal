@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.9](https://github.com/kurtosis-tech/kardinal/compare/0.1.8...0.1.9) (2024-08-06)
+
+
+### Bug Fixes
+
+* Add missing Kardinal CLI print newlines ([#96](https://github.com/kurtosis-tech/kardinal/issues/96)) ([6e318f3](https://github.com/kurtosis-tech/kardinal/commit/6e318f3d37acce0aa0c87787e4cb22fffdf199f3))
+* made the gateway antifragile by asserting prod namespace is alive and healthy ([#100](https://github.com/kurtosis-tech/kardinal/issues/100)) ([642c75e](https://github.com/kurtosis-tech/kardinal/commit/642c75eb26aa229b0bf0fbe414e922d99f1d0897))
+* open traffic configuration directly ([#97](https://github.com/kurtosis-tech/kardinal/issues/97)) ([9ffdd11](https://github.com/kurtosis-tech/kardinal/commit/9ffdd11d740cc087236d8af004216fc53450f786))
+
 ## [0.1.8](https://github.com/kurtosis-tech/kardinal/compare/0.1.7...0.1.8) (2024-08-06)
 
 
