@@ -124,8 +124,6 @@ var deleteCmd = &cobra.Command{
 			log.Fatal("Error getting or creating user tenant UUID", err)
 		}
 		deleteFlow(tenantUuid.String(), flowId)
-
-		fmt.Print("Deleting dev flow")
 	},
 }
 
@@ -160,10 +158,10 @@ var removeManagerCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := removeManager(); err != nil {
-			log.Fatal("Error removing Kardinal manager", err)
+			log.Fatal("Error removing Kardinal manager\n", err)
 		}
 
-		fmt.Print("Kardinal manager removed from cluster")
+		fmt.Print("Kardinal manager removed from cluster\n")
 	},
 }
 
@@ -406,7 +404,7 @@ func deploy(tenantUuid api_types.Uuid, serviceConfigs []api_types.ServiceConfig)
 		for _, url := range resp.JSON200.FlowUrls {
 			fmt.Printf("🌐 http://%s\n", url)
 		}
-		fmt.Printf("View and manage flows:\n⚙️  %s", trafficConfigurationURL)
+		fmt.Printf("View and manage flows:\n⚙️  %s\n", trafficConfigurationURL)
 		return
 	}
 
@@ -432,7 +430,7 @@ func deleteFlow(tenantUuid api_types.Uuid, flowId api_types.FlowId) {
 
 	respCode := resp.StatusCode
 	if respCode == 200 || respCode == 204 {
-		fmt.Printf("Dev flow %s has been deleted", flowId)
+		fmt.Printf("Dev flow %s has been deleted\n", flowId)
 	} else {
 		fmt.Printf("Failed to delete dev flow!\n")
 		os.Exit(1)
