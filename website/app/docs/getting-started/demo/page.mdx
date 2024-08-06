@@ -10,18 +10,18 @@ In this guide, you'll:
 ## Prerequisites
 
 Before you start, make sure you have the following installed:
-- <a href="https://docs.docker.com/get-docker/" target="_blank" rel="noopener noreferrer">Docker</a>
-- <a href="https://minikube.sigs.k8s.io/docs/start/" target="_blank" rel="noopener noreferrer">Minikube</a>
-- <a href="https://kubernetes.io/docs/tasks/tools/install-kubectl/" target="_blank" rel="noopener noreferrer">Kubectl</a>
-- <a href="https://istio.io/latest/docs/setup/getting-started/" target="_blank" rel="noopener noreferrer">Istio</a>
+- [Docker](https://docs.docker.com/get-docker/)
+- [Minikube](https://minikube.sigs.k8s.io/docs/start/)
+- [Kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
+- [Istio](https://istio.io/latest/docs/setup/getting-started/)
 
 You'll need to run Minikube with Istio enabled. To do this, run the following:
 
 ```bash
-minikube start --driver=docker --cpus=10 --memory 8192 --disk-size 32g;
-minikube addons enable ingress;
-minikube addons enable metrics-server;
-istioctl install --set profile=default -y;
+minikube start --driver=docker --cpus=10 --memory 8192 --disk-size 32g
+minikube addons enable ingress
+minikube addons enable metrics-server
+istioctl install --set profile=default -y
 ```
 
 ## Step 1: Install Kardinal
@@ -86,7 +86,7 @@ kardinal dashboard
 and click on the "Traffic configuration" sidebar item.
 
 ### Step 5: Clean up your development flow
-    
+
 When you're done with your development flow, you can delete it by running:
 ```bash
 kardinal flow delete <flow_id>
