@@ -23,7 +23,7 @@ arm64 | aarch64) ARCH="arm64" ;;
 esac
 
 BIN_FOLDER="$HOME/.local/bin"
-mkdir -p $BIN_FOLDER
+mkdir -p "$BIN_FOLDER"
 
 WAS_INTALLED_BEFORE=0
 if [ -f "$BIN_FOLDER/$BINARY_NAME" ]; then
@@ -33,7 +33,7 @@ fi
 LATEST_RELEASE=$(curl -s "https://api.github.com/repos/$REPO/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
 echo "Downloading $BINARY_NAME $LATEST_RELEASE for $OS $ARCH..."
 DOWNLOAD_URL="https://github.com/$REPO/releases/download/$LATEST_RELEASE/${BINARY_NAME}-${OS}-${ARCH}"
-curl -L $DOWNLOAD_URL -o "$BIN_FOLDER/$BINARY_NAME"
+curl -L "$DOWNLOAD_URL" -o "$BIN_FOLDER/$BINARY_NAME"
 chmod +x "$BIN_FOLDER/$BINARY_NAME"
 
 PARENT_SHELL=$(ps -o comm= -p $PPID)
@@ -42,14 +42,14 @@ echo "Detected parent shell: $PARENT_SHELL"
 if [ -f "$BIN_FOLDER/$BINARY_NAME" ]; then
 	if [ $WAS_INTALLED_BEFORE -eq 0 ]; then
 		case "$PARENT_SHELL" in
-		bash | bash)
+		bash)
 			CONFIG_FILE="$HOME/.bashrc"
 			if ! echo "export PATH=\$PATH:$BIN_FOLDER" >>"$CONFIG_FILE" ||
 				! echo "source <($BIN_FOLDER/$BINARY_NAME completion bash)" >>"$CONFIG_FILE"; then
 				handle_error
 			fi
 			;;
-		zsh | zsh)
+		zsh)
 			CONFIG_FILE="$HOME/.zshrc"
 			if ! echo "export PATH=\$PATH:$BIN_FOLDER" >>"$CONFIG_FILE" ||
 				! echo "autoload -U +X compinit && compinit" >>"$CONFIG_FILE" ||
