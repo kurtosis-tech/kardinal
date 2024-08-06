@@ -132,3 +132,6 @@ The flow_id is in the output of the kardinal flow create command, but if you've 
 `kardinal flow ls`
 
 Once you've deleted the flow, you can verify that the resources have been cleaned up by going to the dashboard again.
+
+### Read to test on your own application?
+Check out [our docs](https://kardinal.dev/docs/getting-started/install) to learn how.
