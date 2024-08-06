@@ -24,7 +24,7 @@ import (
 const (
 	namespace           = "istio-system"
 	service             = "istio-ingressgateway"
-	localPort           = 9080
+	localPortForIstio   = 9080
 	istioGatewayPodPort = 8080
 	proxyServerPort     = 9060
 )
@@ -132,7 +132,7 @@ func portForwardPod(config *rest.Config, podName string, stopChan <-chan struct{
 
 	dialer := spdy.NewDialer(upgrader, &http.Client{Transport: roundTripper}, http.MethodPost, serverURL)
 
-	ports := []string{fmt.Sprintf("%d:%d", localPort, istioGatewayPodPort)}
+	ports := []string{fmt.Sprintf("%d:%d", localPortForIstio, istioGatewayPodPort)}
 	forwarder, err := portforward.New(dialer, ports, stopChan, readyChan, io.Discard, os.Stderr)
 	if err != nil {
 		return fmt.Errorf("failed to create port forwarder: %v", err)
@@ -142,7 +142,7 @@ func portForwardPod(config *rest.Config, podName string, stopChan <-chan struct{
 }
 
 func createProxy(host string) *httputil.ReverseProxy {
-	target, _ := url.Parse(fmt.Sprintf("http://localhost:%d", localPort))
+	target, _ := url.Parse(fmt.Sprintf("http://localhost:%d", localPortForIstio))
 	proxy := httputil.NewSingleHostReverseProxy(target)
 
 	originalDirector := proxy.Director
