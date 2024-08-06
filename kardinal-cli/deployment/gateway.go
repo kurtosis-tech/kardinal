@@ -25,10 +25,10 @@ const (
 	service             = "istio-ingressgateway"
 	localPort           = 9080
 	istioGatewayPodPort = 8080
+	proxyServerPort     = 9060
 )
 
 func StartGateway(host string) error {
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	log.Printf("Starting gateway for host: %s", host)
 
 	client, err := createKubernetesClient()
@@ -63,18 +63,18 @@ func StartGateway(host string) error {
 	// Start proxy server
 	proxy := createProxy(host)
 	server := &http.Server{
-		Addr:    ":9060",
+		Addr:    fmt.Sprintf(":%d", proxyServerPort),
 		Handler: proxy,
 	}
 
 	go func() {
-		log.Println("Starting proxy server on :9060")
+		log.Printf("Starting proxy server on :%d", proxyServerPort)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Failed to start proxy server: %v", err)
 		}
 	}()
 
-	log.Println("Proxy server started on :9060")
+	log.Printf("Proxy server started on :%d", proxyServerPort)
 
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
