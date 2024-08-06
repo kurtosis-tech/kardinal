@@ -4,9 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -17,7 +14,10 @@ import (
 	"syscall"
 	"time"
 
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/portforward"
 	"k8s.io/client-go/transport/spdy"
 )
@@ -41,10 +41,10 @@ func StartGateway(host string) error {
 		return fmt.Errorf("an error occurred while creating a kubernetes client:\n %v", err)
 	}
 
-	// Check for services and their health in the prod namespace
-	err = assertProdNamespaceHealthy(client.clientSet)
+	// Check for pods in the prod namespace
+	err = assertProdNamespaceReady(client.clientSet)
 	if err != nil {
-		return fmt.Errorf("failed to that prod namespace has healthy services: %v", err)
+		return fmt.Errorf("failed to assert that prod namespace is ready: %v", err)
 	}
 
 	// Find a pod for the service
@@ -101,71 +101,48 @@ func StartGateway(host string) error {
 	return nil
 }
 
-func assertProdNamespaceHealthy(client *kubernetes.Clientset) error {
+func assertProdNamespaceReady(client *kubernetes.Clientset) error {
 	for retry := 0; retry < maxRetries; retry++ {
-		services, err := client.CoreV1().Services(prodNamespace).List(context.Background(), metav1.ListOptions{})
+		pods, err := client.CoreV1().Pods(prodNamespace).List(context.Background(), metav1.ListOptions{})
 		if err != nil {
-			log.Printf("Error listing services (attempt %d/%d): %v", retry+1, maxRetries, err)
+			log.Printf("Error listing pods in prod namespace (attempt %d/%d): %v", retry+1, maxRetries, err)
 			time.Sleep(retryInterval)
 			continue
 		}
 
-		if len(services.Items) == 0 {
-			log.Printf("No services found in namespace %s (attempt %d/%d)", prodNamespace, retry+1, maxRetries)
+		if len(pods.Items) == 0 {
+			log.Printf("No pods found in namespace %s (attempt %d/%d)", prodNamespace, retry+1, maxRetries)
 			time.Sleep(retryInterval)
 			continue
 		}
 
-		allHealthy := true
-		for _, svc := range services.Items {
-			if !isServiceHealthy(client, &svc) {
-				allHealthy = false
-				log.Printf("Service %s is not healthy", svc.Name)
+		allReady := true
+		for _, pod := range pods.Items {
+			if !isPodReady(&pod) {
+				allReady = false
+				log.Printf("Pod %s is not ready", pod.Name)
 				break
 			}
 		}
 
-		if allHealthy {
-			log.Printf("All services in namespace %s are healthy", namespace)
+		if allReady {
+			log.Printf("All pods in namespace %s are ready", prodNamespace)
 			return nil
 		}
 
-		log.Printf("Waiting for all services to be healthy (attempt %d/%d)", retry+1, maxRetries)
+		log.Printf("Waiting for all pods to be ready (attempt %d/%d)", retry+1, maxRetries)
 		time.Sleep(retryInterval)
 	}
 
-	return fmt.Errorf("failed to assert all services are healthy in namespace %s after %d attempts", namespace, maxRetries)
+	return fmt.Errorf("failed to assert all pods are ready in namespace %s after %d attempts", prodNamespace, maxRetries)
 }
 
-func isServiceHealthy(client *kubernetes.Clientset, svc *corev1.Service) bool {
-	// Check if the service has endpoints
-	endpoints, err := client.CoreV1().Endpoints(namespace).Get(context.Background(), svc.Name, metav1.GetOptions{})
-	if err != nil || len(endpoints.Subsets) == 0 {
-		return false
-	}
-
-	// Check if all pods backing the service are ready
-	var labelSelectors []string
-	for key, value := range svc.Spec.Selector {
-		labelSelectors = append(labelSelectors, fmt.Sprintf("%s=%s", key, value))
-	}
-	selector := strings.Join(labelSelectors, ",")
-	pods, err := client.CoreV1().Pods(namespace).List(context.Background(), metav1.ListOptions{LabelSelector: selector})
-	if err != nil {
-		return false
-	}
-
-	for _, pod := range pods.Items {
-		if !isPodHealthy(&pod) {
-			return false
-		}
-	}
-
-	return true
-}
-
-func isPodHealthy(pod *corev1.Pod) bool {
+func isPodReady(pod *corev1.Pod) bool {
 	if pod.Status.Phase != corev1.PodRunning {
+		return false
+	}
+
+	if len(pod.Status.ContainerStatuses) != 2 {
 		return false
 	}
 
