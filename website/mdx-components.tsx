@@ -1,9 +1,10 @@
-// import { Code } from "bright";
 import { Code } from "bright";
 import type { MDXComponents } from "mdx/types";
 import { IBM_Plex_Mono } from "next/font/google";
 import Image from "next/image";
 import Link from "next/link";
+
+import { titleBar } from "./lib/bright-extensions";
 
 const fontMono = IBM_Plex_Mono({
   subsets: ["latin"],
@@ -15,9 +16,17 @@ const fontMono = IBM_Plex_Mono({
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
     ...components,
-    a: (props) => (
-      <Link {...props} href={props.href ? `/docs/${props.href}` : "/docs"} />
-    ),
+    a: (props) => {
+      const isExternal = props.href?.startsWith("http");
+      return (
+        <Link
+          {...props}
+          href={isExternal ? props.href || "" : `/docs/${props.href}`}
+          target={isExternal ? "_blank" : undefined}
+          rel={isExternal ? "noopener noreferrer" : undefined}
+        />
+      );
+    },
     img: (props) => {
       if (props.src?.includes(".mp4")) {
         return (
@@ -52,6 +61,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
           }}
           theme={"github-dark"}
           className={fontMono.className}
+          extensions={[titleBar]}
         />
       );
     },
