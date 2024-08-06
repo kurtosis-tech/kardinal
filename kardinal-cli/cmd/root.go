@@ -201,7 +201,7 @@ var gatewayCmd = &cobra.Command{
 			log.Fatalf("Failed to list flows: %v", err)
 		}
 
-		if resp == nil {
+		if resp == nil || resp.JSON200 == nill {
 			log.Fatalf("List flow response is empty")
 		}
 

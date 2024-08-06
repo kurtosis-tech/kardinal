@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"log"
@@ -27,6 +28,9 @@ const (
 	localPortForIstio   = 9080
 	istioGatewayPodPort = 8080
 	proxyServerPort     = 9060
+	maxRetries          = 10
+	retryInterval       = 10 * time.Second
+	prodNamespace       = "prod"
 )
 
 func StartGateway(host string) error {
@@ -35,6 +39,12 @@ func StartGateway(host string) error {
 	client, err := createKubernetesClient()
 	if err != nil {
 		return fmt.Errorf("an error occurred while creating a kubernetes client:\n %v", err)
+	}
+
+	// Check for services and their health in the prod namespace
+	err = assertProdNamespaceHealthy(client.clientSet)
+	if err != nil {
+		return fmt.Errorf("failed to that prod namespace has healthy services: %v", err)
 	}
 
 	// Find a pod for the service
@@ -89,6 +99,83 @@ func StartGateway(host string) error {
 	}
 
 	return nil
+}
+
+func assertProdNamespaceHealthy(client *kubernetes.Clientset) error {
+	for retry := 0; retry < maxRetries; retry++ {
+		services, err := client.CoreV1().Services(prodNamespace).List(context.Background(), metav1.ListOptions{})
+		if err != nil {
+			log.Printf("Error listing services (attempt %d/%d): %v", retry+1, maxRetries, err)
+			time.Sleep(retryInterval)
+			continue
+		}
+
+		if len(services.Items) == 0 {
+			log.Printf("No services found in namespace %s (attempt %d/%d)", prodNamespace, retry+1, maxRetries)
+			time.Sleep(retryInterval)
+			continue
+		}
+
+		allHealthy := true
+		for _, svc := range services.Items {
+			if !isServiceHealthy(client, &svc) {
+				allHealthy = false
+				log.Printf("Service %s is not healthy", svc.Name)
+				break
+			}
+		}
+
+		if allHealthy {
+			log.Printf("All services in namespace %s are healthy", namespace)
+			return nil
+		}
+
+		log.Printf("Waiting for all services to be healthy (attempt %d/%d)", retry+1, maxRetries)
+		time.Sleep(retryInterval)
+	}
+
+	return fmt.Errorf("failed to assert all services are healthy in namespace %s after %d attempts", namespace, maxRetries)
+}
+
+func isServiceHealthy(client *kubernetes.Clientset, svc *corev1.Service) bool {
+	// Check if the service has endpoints
+	endpoints, err := client.CoreV1().Endpoints(namespace).Get(context.Background(), svc.Name, metav1.GetOptions{})
+	if err != nil || len(endpoints.Subsets) == 0 {
+		return false
+	}
+
+	// Check if all pods backing the service are ready
+	var labelSelectors []string
+	for key, value := range svc.Spec.Selector {
+		labelSelectors = append(labelSelectors, fmt.Sprintf("%s=%s", key, value))
+	}
+	selector := strings.Join(labelSelectors, ",")
+	pods, err := client.CoreV1().Pods(namespace).List(context.Background(), metav1.ListOptions{LabelSelector: selector})
+	if err != nil {
+		return false
+	}
+
+	for _, pod := range pods.Items {
+		if !isPodHealthy(&pod) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func isPodHealthy(pod *corev1.Pod) bool {
+	if pod.Status.Phase != corev1.PodRunning {
+		return false
+	}
+
+	for _, containerStatus := range pod.Status.ContainerStatuses {
+		if !containerStatus.Ready {
+			return false
+		}
+	}
+
+	return true
 }
 
 func findPodForService(client *kubernetes.Clientset) (string, error) {
