@@ -44,25 +44,28 @@ if [ -f "$BIN_FOLDER/$BINARY_NAME" ]; then
 		case "$PARENT_SHELL" in
 		bash)
 			CONFIG_FILE="$HOME/.bashrc"
-			if ! echo "export PATH=\$PATH:$BIN_FOLDER" >>"$CONFIG_FILE" ||
-				! echo "source <($BIN_FOLDER/$BINARY_NAME completion bash)" >>"$CONFIG_FILE"; then
+			if ! echo "# Kardinal CLI config"; then
 				handle_error
 			fi
+			echo "export PATH=\$PATH:$BIN_FOLDER" >>"$CONFIG_FILE"
+			echo "source <($BIN_FOLDER/$BINARY_NAME completion bash)" >>"$CONFIG_FILE"
 			;;
 		zsh)
 			CONFIG_FILE="$HOME/.zshrc"
-			if ! echo "export PATH=\$PATH:$BIN_FOLDER" >>"$CONFIG_FILE" ||
-				! echo "autoload -U +X compinit && compinit" >>"$CONFIG_FILE" ||
-				! echo "source <($BIN_FOLDER/$BINARY_NAME completion zsh)" >>"$CONFIG_FILE"; then
+			if ! echo "# Kardinal CLI config"; then
 				handle_error
 			fi
+			echo "export PATH=\$PATH:$BIN_FOLDER" >>"$CONFIG_FILE"
+			echo "autoload -U +X compinit && compinit" >>"$CONFIG_FILE"
+			echo "source <($BIN_FOLDER/$BINARY_NAME completion zsh)" >>"$CONFIG_FILE"
 			;;
 		fish)
 			CONFIG_FILE="$HOME/.config/fish/config.fish"
-			if ! echo "set -gx PATH \$PATH $BIN_FOLDER" >>"$CONFIG_FILE" ||
-				! echo "source ($BIN_FOLDER/$BINARY_NAME completion fish | psub)" >>"$CONFIG_FILE"; then
+			if ! echo "# Kardinal CLI config"; then
 				handle_error
 			fi
+			echo "set -gx PATH \$PATH $BIN_FOLDER" >>"$CONFIG_FILE"
+			echo "source ($BIN_FOLDER/$BINARY_NAME completion fish | psub)" >>"$CONFIG_FILE"
 			;;
 		*)
 			echo "Unrecognized shell: $PARENT_SHELL"
