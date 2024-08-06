@@ -6,7 +6,7 @@
 
 The lightest-weight Kubernetes development environments in the world. Stop duplicating everything across your dev, test, and QA Kubernetes clusters. Deploy the minimum resources necessary to develop and test directly in one production-like environment.
 
-## Can't wait to get started?
+## Want to try it out without installing anything?
 
 Visit the [Kardinal playground](https://github.com/kurtosis-tech/kardinal-playground/) to experience a simple demonstration of how Kardinal can enhance your dev flow.
 
