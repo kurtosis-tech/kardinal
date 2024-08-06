@@ -1,6 +1,8 @@
 #!/bin/sh
 set -e
 
+# Install Kardinal CLI - supports bash, zsh, fish and assumes you have curl procps installed
+
 # Function to handle errors
 handle_error() {
 	echo "Ops! Failed to setup integration with your shell. Please add the following lines to
