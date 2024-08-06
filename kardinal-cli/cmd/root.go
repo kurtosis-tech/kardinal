@@ -28,8 +28,6 @@ import (
 )
 
 const (
-	projectName = "kardinal"
-
 	kontrolBaseURLTmpl                  = "%s://%s"
 	kontrolClusterResourcesEndpointTmpl = "%s/tenant/%s/cluster-resources"
 
@@ -185,6 +183,52 @@ var dashboardCmd = &cobra.Command{
 	},
 }
 
+var gatewayCmd = &cobra.Command{
+	Use:   "gateway <flow-id>",
+	Short: "Opens a gateway to the given flow",
+	Args:  cobra.MatchAll(cobra.ExactArgs(1)),
+	Run: func(cmr *cobra.Command, args []string) {
+		flowId := args[0]
+
+		tenantUuid, err := tenant.GetOrCreateUserTenantUUID()
+		if err != nil {
+			log.Fatal("Error getting or creating user tenant UUID", err)
+		}
+
+		ctx := context.Background()
+		client := getKontrolServiceClient()
+
+		resp, err := client.GetTenantUuidFlowsWithResponse(ctx, tenantUuid.String())
+		if err != nil {
+			log.Fatalf("Failed to list flows: %v", err)
+		}
+
+		if resp == nil {
+			log.Fatalf("List flow response is empty")
+		}
+
+		var host string
+
+		for _, flow := range *resp.JSON200 {
+			if flow.FlowId == flowId {
+				if len(flow.FlowUrls) > 0 {
+					host = flow.FlowUrls[0]
+				} else {
+					log.Fatalf("Flow '%s' has no hosts", flowId)
+				}
+			}
+		}
+
+		if host == "" {
+			log.Fatalf("Couldn't find flow with id '%s'", flowId)
+		}
+
+		if err := deployment.StartGateway(host); err != nil {
+			log.Fatal("An error occurred while creating a gateway", err)
+		}
+	},
+}
+
 func init() {
 	devMode = false
 	if os.Getenv("KARDINAL_CLI_DEV_MODE") == "TRUE" {
@@ -195,6 +239,7 @@ func init() {
 	rootCmd.AddCommand(managerCmd)
 	rootCmd.AddCommand(deployCmd)
 	rootCmd.AddCommand(dashboardCmd)
+	rootCmd.AddCommand(gatewayCmd)
 	flowCmd.AddCommand(listCmd, createCmd, deleteCmd)
 	managerCmd.AddCommand(deployManagerCmd, removeManagerCmd)
 
