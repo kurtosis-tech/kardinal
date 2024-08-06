@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -16,7 +14,10 @@ import (
 	"syscall"
 	"time"
 
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/portforward"
 	"k8s.io/client-go/transport/spdy"
 )
@@ -27,14 +28,23 @@ const (
 	localPortForIstio   = 9080
 	istioGatewayPodPort = 8080
 	proxyServerPort     = 9060
+	maxRetries          = 10
+	retryInterval       = 10 * time.Second
+	prodNamespace       = "prod"
 )
 
-func StartGateway(host string) error {
+func StartGateway(host, flowId string) error {
 	log.Printf("Starting gateway for host: %s", host)
 
 	client, err := createKubernetesClient()
 	if err != nil {
 		return fmt.Errorf("an error occurred while creating a kubernetes client:\n %v", err)
+	}
+
+	// Check for pods in the prod namespace
+	err = assertProdNamespaceReady(client.clientSet, flowId)
+	if err != nil {
+		return fmt.Errorf("failed to assert that prod namespace is ready: %v", err)
 	}
 
 	// Find a pod for the service
@@ -89,6 +99,70 @@ func StartGateway(host string) error {
 	}
 
 	return nil
+}
+
+func assertProdNamespaceReady(client *kubernetes.Clientset, flowId string) error {
+	for retry := 0; retry < maxRetries; retry++ {
+		pods, err := client.CoreV1().Pods(prodNamespace).List(context.Background(), metav1.ListOptions{})
+		if err != nil {
+			log.Printf("Error listing pods in prod namespace (attempt %d/%d): %v", retry+1, maxRetries, err)
+			time.Sleep(retryInterval)
+			continue
+		}
+
+		if len(pods.Items) == 0 {
+			log.Printf("No pods found in namespace %s (attempt %d/%d)", prodNamespace, retry+1, maxRetries)
+			time.Sleep(retryInterval)
+			continue
+		}
+
+		allReady := true
+		flowIdFound := false
+		for _, pod := range pods.Items {
+			if strings.Contains(pod.Name, flowId) {
+				flowIdFound = true
+			}
+			if !isPodReady(&pod) {
+				allReady = false
+				log.Printf("Pod %s is not ready", pod.Name)
+				break
+			}
+		}
+
+		if !flowIdFound {
+			log.Printf("FlowId %s not found in any pod name (attempt %d/%d)", flowId, retry+1, maxRetries)
+			time.Sleep(retryInterval)
+			continue
+		}
+
+		if allReady && flowIdFound {
+			log.Printf("All pods in namespace %s are ready and flowId %s found", prodNamespace, flowId)
+			return nil
+		}
+
+		log.Printf("Waiting for all pods to be ready and flowId to be found (attempt %d/%d)", retry+1, maxRetries)
+		time.Sleep(retryInterval)
+	}
+
+	return fmt.Errorf("failed to assert all pods are ready and flowId %s found in namespace %s after %d attempts", flowId, prodNamespace, maxRetries)
+}
+
+func isPodReady(pod *corev1.Pod) bool {
+	if pod.Status.Phase != corev1.PodRunning {
+		return false
+	}
+
+	if len(pod.Status.ContainerStatuses) != 2 {
+		return false
+	}
+
+	for _, containerStatus := range pod.Status.ContainerStatuses {
+		if !containerStatus.Ready {
+			return false
+		}
+	}
+
+	return true
 }
 
 func findPodForService(client *kubernetes.Clientset) (string, error) {

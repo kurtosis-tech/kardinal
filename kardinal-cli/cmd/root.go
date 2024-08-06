@@ -201,7 +201,7 @@ var gatewayCmd = &cobra.Command{
 			log.Fatalf("Failed to list flows: %v", err)
 		}
 
-		if resp == nil {
+		if resp == nil || resp.JSON200 == nil {
 			log.Fatalf("List flow response is empty")
 		}
 
@@ -221,7 +221,7 @@ var gatewayCmd = &cobra.Command{
 			log.Fatalf("Couldn't find flow with id '%s'", flowId)
 		}
 
-		if err := deployment.StartGateway(host); err != nil {
+		if err := deployment.StartGateway(host, flowId); err != nil {
 			log.Fatal("An error occurred while creating a gateway", err)
 		}
 	},
