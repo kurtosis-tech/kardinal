@@ -15,9 +15,16 @@ const fontMono = IBM_Plex_Mono({
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
     ...components,
-    a: (props) => (
-      <Link {...props} href={props.href ? `/docs/${props.href}` : "/docs"} />
-    ),
+    a: (props) => {
+      const isExternal = props.href?.startsWith("http");
+      return (
+        <Link
+          {...props}
+          href={isExternal ? props.href || "" : `/docs/${props.href}`}
+          target={isExternal ? "_blank" : undefined}
+        />
+      );
+    },
     img: (props) => {
       if (props.src?.includes(".mp4")) {
         return (
