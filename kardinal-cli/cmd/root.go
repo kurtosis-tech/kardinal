@@ -175,7 +175,8 @@ var dashboardCmd = &cobra.Command{
 			log.Fatal("Error getting or creating user tenant UUID", err)
 		}
 		tenantUuidStr := tenantUuid.String()
-		if err := multi_os_cmd_executor.OpenFile(path.Join(consts.KardinalDevURL, tenantUuidStr)); err != nil {
+		// TODO support local-minikube deployments
+		if err := multi_os_cmd_executor.OpenFile(path.Join(consts.KardinalDevURL, tenantUuidStr, consts.KardinalTrafficConfigurationSuffix)); err != nil {
 			log.Fatal("Error occurred opening the Kardinal dashboard", err)
 		}
 	},
