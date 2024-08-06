@@ -1,8 +1,100 @@
 # Getting Started with a Demo App
 
 In this guide, you'll:
-1. Install Kardinal on an empty Kubernetes cluster (minikube, EKS, whatever you like)
-2. Deploy a demo microservices application via Kardinal
-3. Create several dev flows to see how Kardinal works
+1. Install the Kardinal CLI on your laptop
+2. Install the Kardinal Manager on an empty Minikube Kubernetes cluster, using the CLI
+3. Deploy a demo microservices application via Kardinal
+4. Create a dev flow to see how Kardinal works
+5. Delete the dev flow to clean up your resources
 
-**The rest of this guide is coming soon - this is a WIP!**
+## Prerequisites
+
+Before you start, make sure you have the following installed:
+- [Docker](https://docs.docker.com/get-docker/)
+- [Minikube](https://minikube.sigs.k8s.io/docs/start/)
+- [Kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
+- [Istio](https://istio.io/latest/docs/setup/getting-started/)
+
+You'll need to have Minikube running with Istio enabled. To do this, run the following:
+
+```bash
+minikube start --driver=docker --cpus=10 --memory 8192 --disk-size 32g;
+minikube addons enable ingress;
+minikube addons enable metrics-server;
+istioctl install --set profile=default -y;
+```
+
+## Step 1: Install Kardinal
+
+To install Kardinal, run the following command:
+
+```bash
+curl get.kardinal.dev -sL | sh
+```
+
+## Step 2: Deploy the Kardinal Manager to your cluster
+
+```bash
+kardinal manager deploy kloud-kontrol
+```
+
+## Step 3: Deploy the demo app
+
+Since this guide is using minikube, you'll need to set up the minikube tunnel to access the frontend of the application you're about to deploy:
+
+```bash
+minikube tunnel
+```
+
+You can leave the tunnel running. In a new terminal window, deploy the demo app via Kardinal:
+
+```bash
+curl https://raw.githubusercontent.com/kurtosis-tech/new-obd/main/release/obd-kardinal.yaml > ./obd-kardinal.yaml;
+kardinal deploy obd-kardinal.yaml
+```
+
+You can view the frontend of the demo app by going to:
+```bash
+http://prod.app.localhost
+```
+Feel free to click around, add items to your cart, and shop!
+
+The Kardinal dashboard will show the architecture of your application, along with any logical environments (flows) you create on top of it. To view the dashboard, run:
+```bash
+kardinal dashboard
+```
+and click on the "Traffic configuration" sidebar item.
+
+## Step 4: Create a lightweight development environment (dev flow)
+
+Create a new flow by specifying a service name and a container image.
+
+Here is an example of creating a dev flow for the frontend service, using an image we've prepared for this demo:
+
+```bash
+kardinal flow create frontend leoporoli/newobd-frontend:0.0.6
+```
+
+This command will output a URL that you can use to access the frontend of the development environment. You can view the frontend of the application by going to the URL provided.
+
+Notice that there are already items in your cart in the development environment. We've configured the development "flow" in this demo to run with it's own database which is seeded with test data. This demonstrates how dev flows can be configured with the data that the development team needs to do their testing work.
+
+To inspect the resources in your cluster, and see how Kardinal is reusing resources in your stable environment in the dev environment, go to the dashboard again:
+```bash
+kardinal dashboard
+```
+and click on the "Traffic configuration" sidebar item.
+
+### Step 5: Clean up your development flow
+    
+When you're done with your development flow, you can delete it by running:
+```bash
+kardinal flow delete <flow_id>
+```
+
+The `flow_id` is in the output of the `kardinal flow create` command, but if you've lost it, you can get it again by running:
+```bash
+kardinal flow ls
+```
+
+Once you've deleted the flow, you can verify that the resources have been cleaned up by going to the dashboard again.
