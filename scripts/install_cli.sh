@@ -69,11 +69,15 @@ if [ -f "$BIN_FOLDER/$BINARY_NAME" ]; then
 		esac
 		echo "$BINARY_NAME has been installed successfully!"
 		echo "Run the following command to load Kardinal in the current shell (new shell will already load it):"
-		echo "\n> source $CONFIG_FILE\n"
+		echo ""
+		echo "> source $CONFIG_FILE"
+		echo ""
 	else
 		echo "Kardinal was installed before, just updated it."
+		echo ""
 	fi
 else
 	echo "Failed to install $BINARY_NAME. Please try again."
+	echo ""
 	exit 1
 fi
