@@ -8,13 +8,12 @@ on:
     tags:
       - "v*.*.*"
     paths-ignore:
-      - 'website/**'
+      - "website/**"
   pull_request:
     branches:
       - main
     paths-ignore:
-      - 'website/**'
-
+      - "website/**"
 
 env:
   MAIN_BRANCH: ${{ 'refs/heads/main' }}
@@ -142,59 +141,58 @@ jobs:
         shell: [bash, fish, zsh]
     runs-on: ubuntu-latest
     steps:
-    - name: git checkout
-      uses: actions/checkout@v3
+      - name: git checkout
+        uses: actions/checkout@v3
 
-    - name: Install ShellCheck and shells
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y shellcheck fish zsh
+      - name: Install ShellCheck and shells
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck fish zsh
 
-    - name: Run ShellCheck
-      run: shellcheck ./scripts/install_cli.sh
+      - name: Run ShellCheck
+        run: shellcheck ./scripts/install_cli.sh
 
-    - name: Run install script with ${{ matrix.shell }}
-      run: |
-        if [ "${{ matrix.shell }}" = "fish" ]; then
-          fish -c 'set -gx SHELL (which fish); cat ./scripts/install_cli.sh | bash'
-        elif [ "${{ matrix.shell }}" = "zsh" ]; then
-          zsh -c 'export SHELL=$(which zsh); cat ./scripts/install_cli.sh | bash'
-        elif [ "${{ matrix.shell }}" = "bash" ]; then
-          bash -c 'export SHELL=$(which bash); cat ./scripts/install_cli.sh | bash'
-        else
-          echo "Unsupported shell: ${{ matrix.shell }}"
-          exit 1
-        fi
+      - name: Run install script with ${{ matrix.shell }}
+        run: |
+          if [ "${{ matrix.shell }}" = "fish" ]; then
+            fish -c 'set -gx SHELL (which fish); cat ./scripts/install_cli.sh | bash'
+          elif [ "${{ matrix.shell }}" = "zsh" ]; then
+            zsh -c 'export SHELL=$(which zsh); cat ./scripts/install_cli.sh | bash'
+          elif [ "${{ matrix.shell }}" = "bash" ]; then
+            bash -c 'export SHELL=$(which bash); cat ./scripts/install_cli.sh | bash'
+          else
+            echo "Unsupported shell: ${{ matrix.shell }}"
+            exit 1
+          fi
 
+      - name: Check if ~/.local/bin exists
+        run: |
+          if [ ! -d ~/.local/bin ]; then
+            echo "~/.local/bin directory was not created"
+            exit 1
+          fi
 
-    - name: Check if ~/.local/bin exists
-      run: |
-        if [ ! -d ~/.local/bin ]; then
-          echo "~/.local/bin directory was not created"
-          exit 1
-        fi
+      - name: Check if config was added
+        run: |
+          if [ "${{ matrix.shell }}" = "fish" ]; then
+            config_file="$HOME/.config/fish/config.fish"
+          elif [ "${{ matrix.shell }}" = "zsh" ]; then
+            config_file="$HOME/.zshrc"
+          else
+            config_file="$HOME/.bashrc"
+          fi
+          if ! grep -q "# Kardinal CLI config" "$config_file"; then
+            echo "CLI tool configuration was not added to $config_file"
+            cat "$config_file"
+            exit 1
+          fi
 
-    - name: Check if config was added
-      run: |
-        if [ "${{ matrix.shell }}" = "fish" ]; then
-          config_file="$HOME/.config/fish/config.fish"
-        elif [ "${{ matrix.shell }}" = "zsh" ]; then
-          config_file="$HOME/.zshrc"
-        else
-          config_file="$HOME/.bashrc"
-        fi
-        if ! grep -q "# Kardinal CLI config" "$config_file"; then
-          echo "CLI tool configuration was not added to $config_file"
-          exit 1
-        fi
-
-    - name: Verify kardinal command
-      run: |
-        if [ "${{ matrix.shell }}" = "fish" ]; then
-          fish -c 'source ~/.config/fish/config.fish; if kardinal | grep -q "Kardinal CLI"; then exit 0; else exit 1; end'
-        elif [ "${{ matrix.shell }}" = "zsh" ]; then
-          zsh -c 'source ~/.zshrc; if kardinal | grep -q "Kardinal CLI"; then exit 0; else exit 1; fi'
-        else
-          bash -c 'source ~/.bashrc; if kardinal | grep -q "Kardinal CLI"; then exit 0; else exit 1; fi'
-        fi
-
+      - name: Verify kardinal command
+        run: |
+          if [ "${{ matrix.shell }}" = "fish" ]; then
+            fish -c 'source ~/.config/fish/config.fish; if kardinal | grep -q "Kardinal CLI"; then exit 0; else exit 1; end'
+          elif [ "${{ matrix.shell }}" = "zsh" ]; then
+            zsh -c 'source ~/.zshrc; if kardinal | grep -q "Kardinal CLI"; then exit 0; else exit 1; fi'
+          else
+            bash -c 'source ~/.bashrc; if kardinal | grep -q "Kardinal CLI"; then exit 0; else exit 1; fi'
+          fi
