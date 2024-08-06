@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.1.8](https://github.com/kurtosis-tech/kardinal/compare/0.1.7...0.1.8) (2024-08-06)
+
+
+### Features
+
+* Add versions to the topology Node object ([#77](https://github.com/kurtosis-tech/kardinal/issues/77)) ([e23afbf](https://github.com/kurtosis-tech/kardinal/commit/e23afbfca95a16508cf7244764ed511f5291d7ea))
+* an inbuilt gateway to handle kubectl host proxying ([#91](https://github.com/kurtosis-tech/kardinal/issues/91)) ([d57503a](https://github.com/kurtosis-tech/kardinal/commit/d57503af53632c5d547c445e2ae4858cd2b87ed0))
+
+
+### Bug Fixes
+
+* docs metadata ([#79](https://github.com/kurtosis-tech/kardinal/issues/79)) ([de822b5](https://github.com/kurtosis-tech/kardinal/commit/de822b56529d9611f8c85be7084c9f10a39e0a33))
+* host setup on CLI across kloud and dev envs ([#80](https://github.com/kurtosis-tech/kardinal/issues/80)) ([5fd4937](https://github.com/kurtosis-tech/kardinal/commit/5fd49371e1d26cb1e27790b80f475c5bbff684f2))
+
 ## [0.1.7](https://github.com/kurtosis-tech/kardinal/compare/0.1.6...0.1.7) (2024-08-02)
 
 
