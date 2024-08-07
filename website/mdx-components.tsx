@@ -1,23 +1,23 @@
-// import { Code } from "bright";
-import { Code } from "bright";
 import type { MDXComponents } from "mdx/types";
-import { IBM_Plex_Mono } from "next/font/google";
 import Image from "next/image";
 import Link from "next/link";
 
-const fontMono = IBM_Plex_Mono({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-mono",
-  weight: "400",
-});
+import CodeBlock from "@/components/CodeBlock";
 
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
     ...components,
-    a: (props) => (
-      <Link {...props} href={props.href ? `/docs/${props.href}` : "/docs"} />
-    ),
+    a: (props) => {
+      const isExternal = props.href?.startsWith("http");
+      return (
+        <Link
+          {...props}
+          href={isExternal ? props.href || "" : `/docs/${props.href}`}
+          target={isExternal ? "_blank" : undefined}
+          rel={isExternal ? "noopener noreferrer" : undefined}
+        />
+      );
+    },
     img: (props) => {
       if (props.src?.includes(".mp4")) {
         return (
@@ -39,22 +39,8 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
         />
       );
     },
-    pre: (props) => {
-      return (
-        <Code
-          {...props}
-          style={{
-            maxWidth: "calc(100vw - 32px)",
-            margin: 0,
-            borderRadius: "8px",
-            padding: 10, // 24px - 1em = 10px
-            backgroundColor: "var(--gray-bg)",
-          }}
-          theme={"github-dark"}
-          className={fontMono.className}
-        />
-      );
-    },
+    // @ts-expect-error children will not be undefined
+    pre: CodeBlock,
     Vimeo: ({ id }: { id: string }) => {
       return (
         <div style={{ padding: "56% 0 0 0 ", position: "relative" }}>
