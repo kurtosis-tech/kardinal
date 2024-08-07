@@ -42,7 +42,7 @@ echo "Detected parent shell: $PARENT_SHELL"
 if [ -f "$BIN_FOLDER/$BINARY_NAME" ]; then
 	if [ $WAS_INTALLED_BEFORE -eq 0 ]; then
 		case "$PARENT_SHELL" in
-		bash)
+		-bash | bash)
 			CONFIG_FILE="$HOME/.bashrc"
 			if ! echo "# Kardinal CLI config" >>"$CONFIG_FILE"; then
 				handle_error
@@ -50,7 +50,7 @@ if [ -f "$BIN_FOLDER/$BINARY_NAME" ]; then
 			echo "export PATH=\$PATH:$BIN_FOLDER" >>"$CONFIG_FILE"
 			echo "source <($BIN_FOLDER/$BINARY_NAME completion bash)" >>"$CONFIG_FILE"
 			;;
-		zsh)
+		-zsh | zsh)
 			CONFIG_FILE="$HOME/.zshrc"
 			if ! echo "# Kardinal CLI config" >>"$CONFIG_FILE"; then
 				handle_error
@@ -59,7 +59,7 @@ if [ -f "$BIN_FOLDER/$BINARY_NAME" ]; then
 			echo "autoload -U +X compinit && compinit" >>"$CONFIG_FILE"
 			echo "source <($BIN_FOLDER/$BINARY_NAME completion zsh)" >>"$CONFIG_FILE"
 			;;
-		fish)
+		-fish | fish)
 			CONFIG_FILE="$HOME/.config/fish/config.fish"
 			if ! echo "# Kardinal CLI config" >>"$CONFIG_FILE"; then
 				handle_error
