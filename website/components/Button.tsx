@@ -54,23 +54,17 @@ const primaryButtonStyles = css<StyledProps>`
   justify-content: center;
   padding: 8px 8px 8px 16px;
   position: relative;
-  transition: all 0.2s ease-in-out;
   z-index: 1;
   text-decoration: none;
   transform: translateY(0);
+  background-size: 100%;
+  transition: all 0.2s ease-in-out;
 
   &:hover:not(:disabled) {
     transform: translateY(-2px);
     border: none;
     color: var(--white-100);
-
-    background: var(--gradient-brand-compact);
-    background-size: auto;
-    background-clip: border-box;
     background-size: 200%;
-    animation-duration: 3s;
-    animation-name: gradient;
-    animation-iteration-count: infinite;
   }
 
   &:disabled {

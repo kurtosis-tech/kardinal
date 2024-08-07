@@ -9,18 +9,14 @@
   /*   "Fira Mono", "Droid Sans Mono", "Courier New", monospace; */
 
   /* color vars */
-  --brand-primary: #ff602c;
+  --brand-primary: #ff7e5f;
   --brand-primary-dark: rgba(168, 50, 5, 0.4);
-  --brand-secondary: #fca061;
+  --brand-secondary: #feb47b;
   --gradient-from-bg: linear-gradient(84deg, transparent 0%, white 100%);
   --gradient-to-bg: linear-gradient(180deg, transparent 0%, white 100%);
 
-  --gradient-brand: linear-gradient(90deg, #fca061 0%, #ff602c 80%);
-  --gradient-brand-compact: linear-gradient(
-    90deg,
-    #fca061 24.54%,
-    #ff602c 65.88%
-  );
+  --gradient-brand: linear-gradient(to right, var(--brand-primary), var(--brand-secondary));
+  --gradient-brand-reverse: linear-gradient(to right, var(--brand-secondary), var(--brand-primary));
 
   --gradient-brand-dark: linear-gradient(90deg, #fca061, rgba(168, 50, 5, 0.4));
   --gray-bg: #1f232a;
@@ -65,12 +61,14 @@
 }
 
 * {
+  -moz-font-feature-settings: "liga" on;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
   box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-  -webkit-font-smoothing: auto;
-  -moz-osx-font-smoothing: auto;
   font-smooth: always;
+  margin: 0;
+  padding: 0;
+  text-rendering: optimizeLegibility;
 }
 
 html,
@@ -90,15 +88,11 @@ a {
 
 em {
   font-weight: 500;
-  background: var(--gradient-brand-compact);
+  background: var(--gradient-brand-reverse);
   background-size: auto;
   background-clip: border-box;
-  background-size: 200%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation-duration: 3s;
-  animation-name: gradient;
-  animation-iteration-count: infinite;
   font-style: normal;
 }
 
@@ -138,26 +132,6 @@ br[data-mobile="true"] {
   }
 }
 
-@keyframes gradient {
-  0% {
-    background-position: 0% 0%;
-  }
-  25% {
-    background-position: 50% 0%;
-  }
-  50% {
-    background-position: 90% 0%;
-  }
-  60% {
-    background-position: 60% 0%;
-  }
-  75% {
-    background-position: 40% 0%;
-  }
-  100% {
-    background-position: 0% 0%;
-  }
-}
 html {
   color-scheme: light;
 }
