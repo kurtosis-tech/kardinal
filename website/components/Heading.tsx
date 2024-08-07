@@ -8,6 +8,7 @@ const commonStyles = `
   line-height: 1.15;
   font-style: normal;
   font-weight: 300;
+  letter-spacing: -1.44px;
 
   @media ${tablet} {
     font-size: 40px;
