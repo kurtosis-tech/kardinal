@@ -35,6 +35,7 @@ To demonstrate how to modify your Kubernetes manifest for Kardinal, we'll start 
 Here's the Kubernetes manifest for an [online boutique store](https://github.com/kurtosis-tech/new-obd) based on the [google microservices demo](https://github.com/GoogleCloudPlatform/microservices-demo/tree/main):
 
 <Collapsible title="Demo Application Kubernetes Manifest">
+
 ```yaml
 
 apiVersion: apps/v1
@@ -91,7 +92,7 @@ spec:
             - name: DB_USERNAME
               value: "postgresuser"
             - name: DB_PASSWORD
-              value: "postgrespass"
+              value: "********"
             - name: DB_HOST
               value: "postgres"
             - name: DB_PORT
@@ -230,7 +231,7 @@ spec:
             - name: POSTGRES_USER
               value: "postgresuser"
             - name: POSTGRES_PASSWORD
-              value: "postgrespass"
+              value: "******"
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
               name: postgres-data
@@ -422,7 +423,7 @@ metadata:
           seed_script: "create table if not exists public.items( id bigserial primary key, created_at timestamp with time zone, updated_at timestamp with time zone, deleted_at timestamp with time zone, user_id    text, product_id text, quantity   integer); INSERT INTO public.items (id, created_at, updated_at, deleted_at, user_id, product_id, quantity) VALUES (1, '2024-08-02 13:02:07.656104 +00:00', '2024-08-02 13:02:07.656104 +00:00', null, '0494c5e0-dde0-48fa-a6d8-f7962f5476bf', '66VCHSJNUP', 1); INSERT INTO public.items (id, created_at, updated_at, deleted_at, user_id, product_id, quantity) VALUES (2, '2024-08-02 13:02:10.891407 +00:00', '2024-08-02 13:02:10.891407 +00:00', null, '0494c5e0-dde0-48fa-a6d8-f7962f5476bf', '2ZYFJ3GM2N', 1); SELECT setval('items_id_seq', (SELECT MAX(id) FROM items));"
           db_name: "cart"
           db_user: "postgresuser"
-          db_password: "postgrespass"
+          db_password: "******"
 ```
 
 Additionally, we can use plugins to handle external services like third party APIs (eg. Stripe, Mailchimp) and managed databases and queues (eg. AWS Postgres).
@@ -512,9 +513,9 @@ spec:
             - name: DB_USERNAME
               value: "tedidb_owner"
             - name: DB_PASSWORD
-              value: "6TJ3sBMkQzcg"
+              value: "*******"
             - name: DB_HOST
-              value: "ep-jolly-sun-a5ve8gh1.us-east-2.aws.neon.tech"
+              value: "******us-east-2.aws.neon.tech"
             - name: DB_PORT
               value: "5432"
             - name: DB_NAME
@@ -668,7 +669,7 @@ spec:
             - name: POSTGRES_USER
               value: "postgresuser"
             - name: POSTGRES_PASSWORD
-              value: "postgrespass"
+              value: "******"
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
               name: postgres-data
@@ -691,7 +692,7 @@ metadata:
           seed_script: ""
           db_name: "cart"
           db_user: "postgresuser"
-          db_password: "postgrespass"
+          db_password: "******"
 spec:
   type: ClusterIP
   ports:
