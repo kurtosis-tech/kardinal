@@ -91,8 +91,7 @@ spec:
               value: "8090"
             - name: DB_USERNAME
               value: "postgresuser"
-            - name: DB_PASSWORD
-              value: "********"
+            - ..postgres creds here
             - name: DB_HOST
               value: "postgres"
             - name: DB_PORT
@@ -228,10 +227,7 @@ spec:
           env:
             - name: POSTGRES_DB
               value: "cart"
-            - name: POSTGRES_USER
-              value: "postgresuser"
-            - name: POSTGRES_PASSWORD
-              value: "******"
+            - ..postgres creds here
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
               name: postgres-data
@@ -423,7 +419,7 @@ metadata:
           seed_script: "create table if not exists public.items( id bigserial primary key, created_at timestamp with time zone, updated_at timestamp with time zone, deleted_at timestamp with time zone, user_id    text, product_id text, quantity   integer); INSERT INTO public.items (id, created_at, updated_at, deleted_at, user_id, product_id, quantity) VALUES (1, '2024-08-02 13:02:07.656104 +00:00', '2024-08-02 13:02:07.656104 +00:00', null, '0494c5e0-dde0-48fa-a6d8-f7962f5476bf', '66VCHSJNUP', 1); INSERT INTO public.items (id, created_at, updated_at, deleted_at, user_id, product_id, quantity) VALUES (2, '2024-08-02 13:02:10.891407 +00:00', '2024-08-02 13:02:10.891407 +00:00', null, '0494c5e0-dde0-48fa-a6d8-f7962f5476bf', '2ZYFJ3GM2N', 1); SELECT setval('items_id_seq', (SELECT MAX(id) FROM items));"
           db_name: "cart"
           db_user: "postgresuser"
-          db_password: "******"
+          ..postgres creds here
 ```
 
 Additionally, we can use plugins to handle external services like third party APIs (eg. Stripe, Mailchimp) and managed databases and queues (eg. AWS Postgres).
@@ -512,8 +508,7 @@ spec:
               value: "8090"
             - name: DB_USERNAME
               value: "tedidb_owner"
-            - name: DB_PASSWORD
-              value: "*******"
+            - ..postgres creds here
             - name: DB_HOST
               value: "******us-east-2.aws.neon.tech"
             - name: DB_PORT
@@ -668,8 +663,7 @@ spec:
               value: "cart"
             - name: POSTGRES_USER
               value: "postgresuser"
-            - name: POSTGRES_PASSWORD
-              value: "******"
+            - ..postgres creds here
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
               name: postgres-data
@@ -692,7 +686,7 @@ metadata:
           seed_script: ""
           db_name: "cart"
           db_user: "postgresuser"
-          db_password: "******"
+          - ..postgres creds here
 spec:
   type: ClusterIP
   ports:
