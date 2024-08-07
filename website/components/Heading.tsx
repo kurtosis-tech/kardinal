@@ -5,7 +5,7 @@ import { mobile, tablet } from "@/constants/breakpoints";
 const commonStyles = `
   color: var(--foreground-dark);
   font-size: 54px;
-  line-height: normal;
+  line-height: 1.15;
   font-style: normal;
   font-weight: 300;
   letter-spacing: -1.44px;
@@ -17,7 +17,6 @@ const commonStyles = `
   @media ${mobile} {
     font-size: 32px;
     line-height: normal;
-    letter-spacing: -0.84px;
   }
 `;
 
