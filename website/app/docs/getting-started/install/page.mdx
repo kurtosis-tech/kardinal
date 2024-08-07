@@ -1,11 +1,855 @@
+import Collapsible from '@/components/Collapsible';
+
 # Getting Started On Your Own App
 
-Kardinal has two main requirements for an application to work with it:
-1. Distributed tracing is implemented in the application
-2. Every service can define its dependencies as annotations in the deployment spec
+**This guide is a work in progress - please reach out to us if you have any questions!**
+
+## Requirements
+
+To work with Kardinal, your application needs to meet two main requirements:
+
+1. You can define a dependency graph of your services
+2. You can integrate with Kardinal tracing (more details provided below)
 
 If you can't yet fulfill these requirements, our [demo app](getting-started/demo) is a great way to experience Kardinal until those two prerequesites are met.
 
 If you have distributed tracing in your application, and you're able to define dependencies per service in your deployment spec, you can install Kardinal today.
 
-**The rest of this guide is coming soon - this is a WIP!**
+# Overview
+
+This guide will help you adjust your Kubernetes manifests to integrate with Kardinal, a tool designed to enhance your development workflow. Follow the instructions below to integrate Kardinal with your Kubernetes resources.
+
+If you haven't read our docs on flows + plugins, please do so!
+
+## Part 1: Kardinal Annotations
+
+Kardinal uses annotations on your Kubernetes manifests to get an understanding of your system and how to handle its various dev and testing workflow needs.
+
+To demonstrate how to modify your Kubernetes manifest for Kardinal, we'll start with an example Kubernetes manifest and incrementally add Kardinal annotations to it.
+
+Here's the Kubernetes manifest for an [online boutique store](https://github.com/kurtosis-tech/new-obd) based on the [google microservices demo](https://github.com/GoogleCloudPlatform/microservices-demo/tree/main):
+
+
+To demonstrate how to modify your Kubernetes manifest for Kardinal, we'll start with an example Kubernetes manifest and incrementally add Kardinal annotations to it.
+
+Here's the Kubernetes manifest for an [online boutique store](https://github.com/kurtosis-tech/new-obd) based on the [google microservices demo](https://github.com/GoogleCloudPlatform/microservices-demo/tree/main):
+
+<Collapsible title="Demo Application Kubernetes Manifest">
+```yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cartservice-v1
+  labels:
+    app: cartservice
+    version: v1
+spec:
+  selector:
+    matchLabels:
+      app: cartservice
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: cartservice
+        version: v1
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+        - name: server
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - all
+            privileged: false
+            readOnlyRootFilesystem: true
+          image: cartservice
+          ports:
+            - containerPort: 8090
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8090
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8090
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          env:
+            - name: PORT
+              value: "8090"
+            - name: DB_USERNAME
+              value: "postgresuser"
+            - name: DB_PASSWORD
+              value: "postgrespass"
+            - name: DB_HOST
+              value: "postgres"
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: "cart"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cartservice
+  labels:
+    app: cartservice
+    version: v1
+spec:
+  type: ClusterIP
+  selector:
+    app: cartservice
+  ports:
+    - name: http
+      port: 8090
+      targetPort: 8090
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-v1
+  labels:
+    app: frontend
+    version: v1
+spec:
+  selector:
+    matchLabels:
+      app: frontend
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: frontend
+        version: v1
+      annotations:
+        sidecar.istio.io/rewriteAppHTTPProbers: "true"
+    spec:
+      containers:
+        - name: server
+          image: frontend
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            initialDelaySeconds: 10
+            httpGet:
+              path: "/_healthz"
+              port: 8080
+              httpHeaders:
+                - name: "Cookie"
+                  value: "shop_session-id=x-readiness-probe"
+          livenessProbe:
+            initialDelaySeconds: 10
+            httpGet:
+              path: "/_healthz"
+              port: 8080
+              httpHeaders:
+                - name: "Cookie"
+                  value: "shop_session-id=x-liveness-probe"
+          env:
+            - name: ADDRESS
+              value: ":8080"
+            - name: FREECURRENCYAPIKEY
+              value: "fca_live_VKZlykCWEiFcpBHnw74pzd4vLi04q1h9JySbVHDF"
+            - name: CARTSERVICEHOST
+              value: cartservice
+            - name: PRODUCTCATALOGSERVICEHOST
+              value: productcatalogservice
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  labels:
+    app: frontend
+    version: v1
+spec:
+  type: ClusterIP
+  selector:
+    app: frontend
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      appProtocol: HTTP
+      targetPort: 8080
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-external
+spec:
+  type: LoadBalancer
+  selector:
+    app: frontend
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-v1
+  labels:
+    app: postgres
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: postgres
+        version: v1
+    spec:
+      containers:
+        - name: postgres
+          image: 'postgres:14'
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: "cart"
+            - name: POSTGRES_USER
+              value: "postgresuser"
+            - name: POSTGRES_PASSWORD
+              value: "postgrespass"
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgres-data
+      volumes:
+        - name: postgres-data
+          emptyDir: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  labels:
+    app: postgres
+    version: v1
+spec:
+  type: ClusterIP
+  ports:
+    - name: tcp
+      port: 5432
+      targetPort: 5432
+  selector:
+    app: postgres
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: productcatalogservice-v1
+  labels:
+    app: productcatalogservice
+    version: v1
+spec:
+  selector:
+    matchLabels:
+      app: productcatalogservice
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: productcatalogservice
+        version: v1
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+        - name: server
+          image: productcatalogservice
+          ports:
+            - containerPort: 8070
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8070
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8070
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          env:
+            - name: PORT
+              value: "8070"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: productcatalogservice
+  labels:
+    app: productcatalogservice
+    version: v1
+spec:
+  type: ClusterIP
+  selector:
+    app: productcatalogservice
+  ports:
+    - name: http
+      port: 8070
+      targetPort: 8070
+```
+</Collapsible>
+
+At a high level, this application consists of:
+
+1. A product catalog service to provide information about available products available
+2. A cart service to manage a users cart
+    1. Cart information is persisted to a Postgres database
+3. A frontend for out storefront that communicates with the cart service and product catalog service to display info
+
+Now, let's add some annotations!
+
+## `kardinal.dev.service/dependencies`
+
+Kardinal needs to understand the dependency graph of an application to understand how services need to be handled when creating flows. 
+
+To do this, add the `kardinal.dev.service/dependencies`annotation to a service with a comma-separated list of the services that it depends on and the protocol it uses to talk to that service. Currently, the annotations supports `tcp` and `http` for protocols.
+
+Here is how we'd update our boutique store application to specify its dependency graph:
+
+```yaml
+
+  ...
+  name: cartservice
+  labels:
+    app: cartservice
+    version: v1
+  annotations:
+    kardinal.dev.service/dependencies: "postgres:tcp"
+  ...
+  metadata:
+    name: frontend
+    labels:
+      app: frontend
+      version: v1
+    annotations:
+      kardinal.dev.service/dependencies: "productcatalogservice:http,cartservice:http"
+  ...
+```
+
+## kardinal.dev.service/ingress and kardinal.dev.service/host
+
+Currently, Kardinal expects there to be at least one service that acts as an entrypoint into the cluster, usually an load balancer or gateway of some sort that routes traffic into the cluster accordingly.
+
+For our application, we're using a simple `LoadBalancer` that routes all traffic to our frontend so we'll define that as our ingress and use the `kardinal.dev.service/host` annotation to give it a hostname we can use to access it
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-external
+  annotations:
+    kardinal.dev.service/ingress: "true"
+    kardinal.dev.service/host: "prod.app.localhost"
+spec:
+  type: LoadBalancer
+  selector:
+    app: frontend
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+```
+
+### kardinal.dev.service/stateful
+
+Kardinal needs to know what services in the cluster hold state or data to be persisted. These are usually databases, caches, and message queues - but it could also be backend services that accrues state in memory. Either way, we tell Kardinal about these via the `stateful` annotation.
+
+The only stateful application in our application is the `postgres` database that stores cart information.
+
+```yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  labels:
+    app: postgres
+    version: v1
+  annotations:
+    kardinal.dev.service/stateful: "true"
+```
+
+### kardinal.dev.service/plugins
+
+To manage persistent state in your system for creating flows, Kardinal uses a plugin ecosystem. These plugins inform Kardinal on how to handle stateful or external applications when creating flows. For more information on plugins, refer to the [plugins doc](../../concepts/plugins).
+
+Our application will leverage the [postgres-seed-plugin](https://github.com/kurtosis-tech/postgres-seed-plugin) to handle our `postgres` database. Anytime a flow is created involving the postgres databse, this plugin will create a dev version of the database seeded with a provided script. The args for it can be found [here](https://github.com/kurtosis-tech/postgres-seed-plugin/blob/d2ff1bef180caa6345b6a890673f3a83a347bce2/main.py#L3), after the `flow_uuid` kwaarg.
+
+We’ll add this plugin to the `postgres` service, specifying the github repo with the plugin logic and args that the plugin expects: 
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  labels:
+    app: postgres
+    version: v1
+  annotations:
+    kardinal.dev.service/stateful: "true"
+    kardinal.dev.service/plugins: |
+      - name: github.com/kurtosis-tech/postgres-seed-plugin
+        args:
+          seed_script: "create table if not exists public.items( id bigserial primary key, created_at timestamp with time zone, updated_at timestamp with time zone, deleted_at timestamp with time zone, user_id    text, product_id text, quantity   integer); INSERT INTO public.items (id, created_at, updated_at, deleted_at, user_id, product_id, quantity) VALUES (1, '2024-08-02 13:02:07.656104 +00:00', '2024-08-02 13:02:07.656104 +00:00', null, '0494c5e0-dde0-48fa-a6d8-f7962f5476bf', '66VCHSJNUP', 1); INSERT INTO public.items (id, created_at, updated_at, deleted_at, user_id, product_id, quantity) VALUES (2, '2024-08-02 13:02:10.891407 +00:00', '2024-08-02 13:02:10.891407 +00:00', null, '0494c5e0-dde0-48fa-a6d8-f7962f5476bf', '2ZYFJ3GM2N', 1); SELECT setval('items_id_seq', (SELECT MAX(id) FROM items));"
+          db_name: "cart"
+          db_user: "postgresuser"
+          db_password: "postgrespass"
+```
+
+Additionally, we can use plugins to handle external services like third party APIs (eg. Stripe, Mailchimp) and managed databases and queues (eg. AWS Postgres).
+
+Our frontend service depends on the [Free Currency API](https://freecurrencyapi.com/). Luckily, dev versions of our frontend will communicate with this API in the same way, but we can still use a plugin + plugin annotation so that Kardinal will display the external API in the dashboard.
+
+We add external service plugins as an annotation on the service that depends on it in the manifest similar to the stateful plugin, but we'll add the `type` and `servicename` fields.
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  labels:
+    app: frontend
+    version: v1
+  annotations:
+    kardinal.dev.service/dependencies: "productcatalogservice:http,cartservice:http"
+    kardinal.dev.service/plugins: |
+      - name: github.com/kurtosis-tech/free-currency-api-plugin
+        type: external
+        servicename: free-currency-api
+        args:
+          api_key: fca_live_VKZlykCWEiFcpBHnw74pzd4vLi04q1h9JySbVHDF
+```
+
+Congrats! You've added all the annotations Kardinal needs to work with your application. We're halfway there. 
+
+The manifest should all together look like:
+
+<Collapsible title="Fully Annotated Demo Kubernetes Manifest">
+
+```yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cartservice-v1
+  labels:
+    app: cartservice
+    version: v1
+spec:
+  selector:
+    matchLabels:
+      app: cartservice
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: cartservice
+        version: v1
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+        - name: server
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - all
+            privileged: false
+            readOnlyRootFilesystem: true
+          image: tedim52/cartservice:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8090
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8090
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8090
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          env:
+            - name: PORT
+              value: "8090"
+            - name: DB_USERNAME
+              value: "tedidb_owner"
+            - name: DB_PASSWORD
+              value: "6TJ3sBMkQzcg"
+            - name: DB_HOST
+              value: "ep-jolly-sun-a5ve8gh1.us-east-2.aws.neon.tech"
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: "cart"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cartservice
+  labels:
+    app: cartservice
+    version: v1
+  annotations:
+    kardinal.dev.service/stateful: "true"
+    kardinal.dev.service/dependencies: "postgres:tcp"
+spec:
+  type: ClusterIP
+  selector:
+    app: cartservice
+  ports:
+    - name: http
+      port: 8090
+      targetPort: 8090
+      protocol: TCP
+      appProtocol: HTTP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-v1
+  labels:
+    app: frontend
+    version: v1
+spec:
+  selector:
+    matchLabels:
+      app: frontend
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: frontend
+        version: v1
+      annotations:
+        sidecar.istio.io/rewriteAppHTTPProbers: "true"
+    spec:
+      containers:
+        - name: server
+          image: leoporoli/newobd-frontend:0.0.5
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            initialDelaySeconds: 10
+            httpGet:
+              path: "/_healthz"
+              port: 8080
+              httpHeaders:
+                - name: "Cookie"
+                  value: "shop_session-id=x-readiness-probe"
+          livenessProbe:
+            initialDelaySeconds: 10
+            httpGet:
+              path: "/_healthz"
+              port: 8080
+              httpHeaders:
+                - name: "Cookie"
+                  value: "shop_session-id=x-liveness-probe"
+          env:
+            - name: ADDRESS
+              value: ":8080"
+            - name: FREECURRENCYAPIKEY
+              value: "fca_live_VKZlykCWEiFcpBHnw74pzd4vLi04q1h9JySbVHDF"
+            - name: CARTSERVICEHOST
+              value: cartservice
+            - name: PRODUCTCATALOGSERVICEHOST
+              value: productcatalogservice
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  labels:
+    app: frontend
+    version: v1
+  annotations:
+    kardinal.dev.service/dependencies: "productcatalogservice:http,cartservice:http"
+    kardinal.dev.service/plugins: |
+      - name: github.com/kurtosis-tech/free-currency-api-plugin
+        type: external
+        servicename: free-currency-api
+        args:
+          api_key: fca_live_VKZlykCWEiFcpBHnw74pzd4vLi04q1h9JySbVHDF
+spec:
+  type: ClusterIP
+  selector:
+    app: frontend
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      appProtocol: HTTP
+      targetPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-external
+  annotations:
+    kardinal.dev.service/ingress: "true"
+    kardinal.dev.service/host: "prod.app.localhost"
+spec:
+  type: LoadBalancer
+  selector:
+    app: frontend
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      protocol: TCP
+      appProtocol: HTTP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-v1
+  labels:
+    app: postgres
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: postgres
+        version: v1
+    spec:
+      containers:
+        - name: postgres
+          image: 'postgres:14'
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: "cart"
+            - name: POSTGRES_USER
+              value: "postgresuser"
+            - name: POSTGRES_PASSWORD
+              value: "postgrespass"
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgres-data
+      volumes:
+        - name: postgres-data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  labels:
+    app: postgres
+    version: v1
+  annotations:
+    kardinal.dev.service/stateful: "true"
+    kardinal.dev/plugins: |
+      - name: github.com/kurtosis-tech/postgres-seed-plugin
+        args:
+          seed_script: ""
+          db_name: "cart"
+          db_user: "postgresuser"
+          db_password: "postgrespass"
+spec:
+  type: ClusterIP
+  ports:
+    - name: tcp
+      port: 5432
+      targetPort: 5432
+      protocol: TCP
+  selector:
+    app: postgres
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: productcatalogservice-v1
+  labels:
+    app: productcatalogservice
+    version: v1
+spec:
+  selector:
+    matchLabels:
+      app: productcatalogservice
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: productcatalogservice
+        version: v1
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+        - name: server
+          image: leoporoli/newobd-productcatalogservice:0.0.3
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8070
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8070
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8070
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          env:
+            - name: PORT
+              value: "8070"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: productcatalogservice
+  labels:
+    app: productcatalogservice
+    version: v1
+spec:
+  type: ClusterIP
+  selector:
+    app: productcatalogservice
+  ports:
+    - name: http
+      port: 8070
+      targetPort: 8070
+      protocol: TCP
+      appProtocol: HTTP
+
+```
+</Collapsible>
+
+## Part 2: Kardinal Tracing
+
+To support multiple flows utilizing the same services, Kardinal uses trace ids on requests that determine which versions of services in a cluster to route traffic to. All applications communicating using Kardinal need to forward the `X-Kardinal-Trace-Id` header along with the trace id from the incoming request onto all outgoing requests. Applications that are non-http will be duplicated and Kardinal will handle routing to duplicated versions. To read more about trace ids and how the mechanism works read here:
+
+Here is an example of how we can add logic to attach Kardinal trace ids to our application. 
+
+### Frontend Boutique Store
+
+The frontend is a Golang HTTP server serving html and communicates with the `cartservice` and `productcatalog` service over HTTP via REST APIs following. Thus, the frontend will need to retrieve the trace id header from incoming requests and add it as a header to outgoing requests to the `cartservice` and `productservice`.
+
+
+To accomplish this, we'll create a middleware function called `getSetgetSetTraceIdHeaderRequestEditorFcn` that retrieves ids from incoming requests, and returns a function that sets that id as the `X-Kardinal-Trace-Id` header on a downstream requets.
+
+```
+func getSetTraceIdHeaderRequestEditorFcn(upsTreamRequest *http.Request) func(ctx context.Context, req *http.Request) error {
+
+	traceID := upsTreamRequest.Header.Get(consts.KardinalTraceIdHeaderKey)
+
+	var setKardinalReqEditorFcn = func(ctx context.Context, req *http.Request) error {
+		req.Header.Set(consts.KardinalTraceIdHeaderKey, traceID)
+		return nil
+	}
+
+	return setKardinalReqEditorFcn
+}
+```
+
+This function then gets added as a `RequestEditorFn` on all outgoing requests eg.
+
+```go
+func (server *frontendServer) productHandler(w http.ResponseWriter, r *http.Request) {
+	setKardinalReqEditorFcn := getSetTraceIdHeaderRequestEditorFcn(r)
+	
+	productResponse, err := server.productCatalogService.GetProductsWithResponse(r.Context(), setKardinalReqEditorFcn)
+	
+	...
+	cartResponse, err := fe.cartService.GetCartUserIdWithResponse(r.Context(), userID, setKardinalReqEditorFcn)
+	...
+}
+```
+
+Details will differ for different stacks and languages but the high level idea is forwarding values `X-Kardinal-Trace-Id` header value from incoming requests to all outgoing ones! If you have questions on integrating Kardinal tracing onto your stack, please reach out to us!
+
+## Part 3: Deploy!
+
+Okay, now that we've got Kardinal integrated, let's deploy our application.
+
+1. Install Kardinal CLI
+    
+    ```yaml
+    curl get.kardinal.dev -sL | sh
+    ```
+    
+2. Deploy the manager to your cluster
+    
+    Make sure your `kubectl` is set to the right context for the cluster you want to deploy to. 
+    Then, run:
+
+    
+    ```yaml
+    kardinal manager deploy kloud-kontrol
+    ```
+    
+3. Deploy your application
+    
+    ```yaml
+    kardinal deploy --k <path to k8s manifest annotated with Kardinal>
+    ```
+    
+    You should now be able to view your application in the Kardinal dashboard!
+    
+    ```yaml
+    https://app.kardinal.dev/<tenant id output by CLI>/traffic-configuration
+    ```
+    
+    or run `kardinal dashboard`
+    
+4. Create a flow! Pick a service in your application to test a dev image on. eg.
+    
+    ```yaml
+    kardinal flow create frontend-service-name your/new-frontend-image:dev
+    ```
+    
+5. View the flow by returning to the `kardinal dashboard`!
