@@ -6,7 +6,7 @@ import Collapsible from '@/components/Collapsible';
 
 To use Kardinal, you will need a development Kubernetes cluster with Istio installed. You will also need `kubectl` installed on your machine, pointing to your cluster.
 
-If you'd like to use a local Kubernetes cluster to try out Kardinal, you can refer to the first 2 steps of our [demo app guide](getting-started/demo) to get a local Kubernetes cluster up and running.
+If you'd like to use a local Kubernetes cluster to try out Kardinal, you can refer to the first step of our [demo app guide](getting-started/demo) to get a local minikube Kubernetes cluster up and running.
 
 To work with Kardinal, your application needs to meet two main requirements:
 
@@ -843,8 +843,6 @@ Okay, now that we've got Kardinal integrated, let's deploy our application.
     kardinal flow create frontend-service-name your/new-frontend-image:dev
     ```
     
-    eg.
-    
     ```bash
     
     INFO[0000] Using tenant UUID 483e3371-ec18-40ca-aaee-54df597d1fd2 
@@ -860,8 +858,6 @@ Okay, now that we've got Kardinal integrated, let's deploy our application.
     
 6. Interact with the new flow by `kardinal gateway <flow-id>`! 
     
-    eg.
-    
     ```bash
     $ kardinal gateway dev-og86aeah47
     
@@ -873,4 +869,4 @@ Okay, now that we've got Kardinal integrated, let's deploy our application.
     
     ```
     
-    This command will open a gateway to the entry point - whatever service of your application was annotated with the `kardinal.dev.service/inress` annotation! Whether the service is a frontend, or api - you can access the dev flow by making requests to the returned endpoint. These requests will flow through your system through only the dev versions of services in for that flow.
+    This command will open a gateway to the entry point - whatever service of your application was annotated with the `kardinal.dev.service/inress` annotation. Whether the service is a frontend, or api - you can access the dev flow by making requests to the returned endpoint. These requests will flow through your system through only the dev versions of services in for that flow.
