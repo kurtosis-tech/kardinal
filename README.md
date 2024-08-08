@@ -4,11 +4,12 @@
 
 ![Kardi B](https://kardinal.dev/_next/static/media/kardinal-orange.65ea335b.png)
 
-The lightest-weight Kubernetes development environments in the world. Stop duplicating everything across your dev, test, and QA Kubernetes clusters. Deploy the minimum resources necessary to develop and test directly in one production-like environment.
+## Guide
+1. [What is Kardinal?](https://github.com/kurtosis-tech/kardinal/edit/main/README.md#what-is-kardinal)
+2. [How it works](https://github.com/kurtosis-tech/kardinal/edit/main/README.md#how-it-works)
+3. [Quick start](https://github.com/kurtosis-tech/kardinal/edit/main/README.md#quick-start-with-a-demo-application)
+4. [Helpful links](https://github.com/kurtosis-tech/kardinal/edit/main/README.md#helpful-links)
 
-## Want to try it out without installing anything?
-
-Visit the [Kardinal playground](https://github.com/kurtosis-tech/kardinal-playground/) to experience a simple demonstration of how Kardinal can enhance your dev flow.
 
 ## What is Kardinal?
 
@@ -43,17 +44,15 @@ Kardinal is implemented as a set of sidecars that are deployed next to your stat
 
 It's easy to install and easy to uninstall - just deploy the the sidecars in your staging cluster, and use the Kardinal control plane to manage your development and test environments. If you want to uninstall Kardinal, just remove the sidecars.
 
-## Resources
-
-- Explore our [docs](https://kardinal.dev/docs) to learn more about how Kardinal works.
-- Ask questions and get help in our community [forum](https://discuss.kardinal.dev).
-- Read our [blog](https://blog.kardinal.dev/) for tips from developers and creators.
-
 ## Quick start with a demo application
+
+### Want to try it out without installing anything?
+
+Visit the [Kardinal playground](https://github.com/kurtosis-tech/kardinal-playground/) to experience a simple demonstration of how Kardinal can enhance your dev flow.
 
 ### Prerequisites
 
-If you want to test without deploying to your machine, check out our [playground](https://github.com/kurtosis-tech/kardinal-playground/). Or if you already have your own application in mind, check out our docs regarding [running on your own application](https://kardinal.dev/docs/getting-started/install).
+If you already have your own application in mind, check out our docs regarding [running on your own application](https://kardinal.dev/docs/getting-started/install).
 
 Before getting started make sure you have the following installed:
 
@@ -135,3 +134,9 @@ Once you've deleted the flow, you can verify that the resources have been cleane
 
 ### Ready to test on your own application?
 Check out [our docs](https://kardinal.dev/docs/getting-started/install) to learn how.
+
+## Helpful links
+
+- Explore our [docs](https://kardinal.dev/docs) to learn more about how Kardinal works.
+- Ask questions and get help in our community [forum](https://discuss.kardinal.dev).
+- Read our [blog](https://blog.kardinal.dev/) for tips from developers and creators.
