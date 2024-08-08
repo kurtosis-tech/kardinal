@@ -66,16 +66,6 @@ const NavLinksAndButton = () => {
           Github
         </S.NavLink>
         <S.NavLink
-          href={"https://blog.kardinal.dev"}
-          onClick={() =>
-            analytics.track("BUTTON_CLICK", { analyticsId: "link_nav_blog" })
-          }
-        >
-          <BiRss size={18} />
-          Blog
-        </S.NavLink>
-
-        <S.NavLink
           href={"https://discuss.kardinal.dev"}
           onClick={() =>
             analytics.track("BUTTON_CLICK", { analyticsId: "link_nav_forum" })
@@ -83,6 +73,15 @@ const NavLinksAndButton = () => {
         >
           <BiChat size={18} />
           Forum
+        </S.NavLink>
+        <S.NavLink
+          href={"https://blog.kardinal.dev"}
+          onClick={() =>
+            analytics.track("BUTTON_CLICK", { analyticsId: "link_nav_blog" })
+          }
+        >
+          <BiRss size={18} />
+          Blog
         </S.NavLink>
         <WaitlistButton />
       </S.NavItemsWrapper>
