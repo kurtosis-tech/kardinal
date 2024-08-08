@@ -46,13 +46,13 @@ It's easy to install and easy to uninstall - just deploy the the sidecars in you
 
 ## Quick start with a demo application
 
-### Want to try it out without installing anything?
+If you already have your own application in mind, check out [our docs](https://kardinal.dev/docs/getting-started/install).
+
+#### Want to try it out without installing anything?
 
 Visit the [Kardinal playground](https://github.com/kurtosis-tech/kardinal-playground/) to experience a simple demonstration of how Kardinal can enhance your dev flow.
 
 ### Prerequisites
-
-If you already have your own application in mind, check out our docs regarding [running on your own application](https://kardinal.dev/docs/getting-started/install).
 
 Before getting started make sure you have the following installed:
 
