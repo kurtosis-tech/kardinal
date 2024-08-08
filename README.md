@@ -23,7 +23,7 @@ There are many ways to isolate different environments in the context of cloud/Ku
 | Separate Namespaces (vclusters) | Fine-grained | Low Cost | Low |
 | Separate Traffic Routes (Kardinal) | Most fine-grained | Lowest Cost | Lowest |
 
-Read more in [documentation](https://kardinal.dev/docs).
+Read more in our [docs](https://kardinal.dev/docs).
 
 ## Try it out in a Playground
 
