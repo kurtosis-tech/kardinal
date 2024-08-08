@@ -2,37 +2,24 @@ import Collapsible from '@/components/Collapsible';
 
 # Getting Started On Your Own App
 
-**This guide is a work in progress - please reach out to us if you have any questions!**
-
-## Requirements
+### Requirements
 
 To work with Kardinal, your application needs to meet two main requirements:
 
 1. You can define a dependency graph of your services
-2. You can integrate with Kardinal tracing (more details provided below)
+2. You have distributed tracing and can integrate with Kardinal tracing (more details provided below)
 
-If you can't yet fulfill these requirements, our [demo app](getting-started/demo) is a great way to experience Kardinal until those two prerequesites are met.
+If you can't yet fulfill these requirements, our [demo app](getting-started/demo) is a great way to explore Kardinal until those two prerequesites are met.
 
 If you have distributed tracing in your application, and you're able to define dependencies per service in your deployment spec, you can install Kardinal today.
 
-# Overview
-
-This guide will help you adjust your Kubernetes manifests to integrate with Kardinal, a tool designed to enhance your development workflow. Follow the instructions below to integrate Kardinal with your Kubernetes resources.
-
-If you haven't read our docs on flows + plugins, please do so!
-
-## Part 1: Kardinal Annotations
+### Part 1: Add Kardinal Annotations to your Manifests
 
 Kardinal uses annotations on your Kubernetes manifests to get an understanding of your system and how to handle its various dev and testing workflow needs.
 
 To demonstrate how to modify your Kubernetes manifest for Kardinal, we'll start with an example Kubernetes manifest and incrementally add Kardinal annotations to it.
 
-Here's the Kubernetes manifest for an [online boutique store](https://github.com/kurtosis-tech/new-obd) based on the [google microservices demo](https://github.com/GoogleCloudPlatform/microservices-demo/tree/main):
-
-
-To demonstrate how to modify your Kubernetes manifest for Kardinal, we'll start with an example Kubernetes manifest and incrementally add Kardinal annotations to it.
-
-Here's the Kubernetes manifest for an [online boutique store](https://github.com/kurtosis-tech/new-obd) based on the [google microservices demo](https://github.com/GoogleCloudPlatform/microservices-demo/tree/main):
+Here's the Kubernetes manifest for an [online boutique store](https://github.com/kurtosis-tech/new-obd) demo:
 
 <Collapsible title="Demo Application Kubernetes Manifest">
 
@@ -315,20 +302,22 @@ spec:
 ```
 </Collapsible>
 
-At a high level, this application consists of:
+This application consists of:
 
 1. A product catalog service to provide information about available products available
 2. A cart service to manage a users cart
-    1. Cart information is persisted to a Postgres database
-3. A frontend for out storefront that communicates with the cart service and product catalog service to display info
+3. A Postgres database for storing cart information
+3. A frontend for the storefront that communicates with the cart service and product catalog service to display info
 
-Now, let's add some annotations!
+Now, let's add some annotations. There are a few different annotations we'll need to add to our application:
+1. *`kardinal.dev.service/dependencies`* to specify the dependency graph
+2. *`kardinal.dev.service/ingress`* and *`kardinal.dev.service/host`* to specify the ingress point
+4. *`kardinal.dev.service/stateful`* to specify what services hold state
+5. *`kardinal.dev.service/plugins`* to specify plugin handlers for external and stateful services
 
-## `kardinal.dev.service/dependencies`
+First, we'll add the *`kardinal.dev.service/dependencies`* annotation to the services that depend on other services.
 
-Kardinal needs to understand the dependency graph of an application to understand how services need to be handled when creating flows. 
-
-To do this, add the `kardinal.dev.service/dependencies`annotation to a service with a comma-separated list of the services that it depends on and the protocol it uses to talk to that service. Currently, the annotations supports `tcp` and `http` for protocols.
+To do this, add the *`kardinal.dev.service/dependencies`* annotation to a service with a comma-separated list of the services that it depends on and the protocol it uses to talk to that service. Currently, the annotations supports `tcp` and `http` for protocols.
 
 Here is how we'd update our boutique store application to specify its dependency graph:
 
@@ -352,11 +341,11 @@ Here is how we'd update our boutique store application to specify its dependency
   ...
 ```
 
-## kardinal.dev.service/ingress and kardinal.dev.service/host
+Now, we'll annotate our ingress service with *`kardinal.dev.service/ingress`* and *`kardinal.dev.service/host`*.
 
-Currently, Kardinal expects there to be at least one service that acts as an entrypoint into the cluster, usually an load balancer or gateway of some sort that routes traffic into the cluster accordingly.
+Kardinal expects there to be at least one service that acts as an entrypoint into the cluster, usually an load balancer or gateway of some sort that routes traffic into the cluster accordingly.
 
-For our application, we're using a simple `LoadBalancer` that routes all traffic to our frontend so we'll define that as our ingress and use the `kardinal.dev.service/host` annotation to give it a hostname we can use to access it
+For our application, we're using a simple `LoadBalancer` that routes all traffic to our frontend so we'll define that as our ingress and use the *`kardinal.dev.service/host`* annotation to give it a hostname we can use to access it.
 
 ```yaml
 apiVersion: v1
@@ -376,7 +365,7 @@ spec:
       targetPort: 8080
 ```
 
-### kardinal.dev.service/stateful
+Next, we'll add the *`kardinal.dev.service/stateful`* annotation to the services that hold state.
 
 Kardinal needs to know what services in the cluster hold state or data to be persisted. These are usually databases, caches, and message queues - but it could also be backend services that accrues state in memory. Either way, we tell Kardinal about these via the `stateful` annotation.
 
@@ -395,13 +384,13 @@ metadata:
     kardinal.dev.service/stateful: "true"
 ```
 
-### kardinal.dev.service/plugins
+Finally, we'll add the *`kardinal.dev.service/plugins`* annotation to the services that need it.
 
 To manage persistent state in your system for creating flows, Kardinal uses a plugin ecosystem. These plugins inform Kardinal on how to handle stateful or external applications when creating flows. For more information on plugins, refer to the [plugins doc](../../concepts/plugins).
 
-Our application will leverage the [postgres-seed-plugin](https://github.com/kurtosis-tech/postgres-seed-plugin) to handle our `postgres` database. Anytime a flow is created involving the postgres databse, this plugin will create a dev version of the database seeded with a provided script. The args for it can be found [here](https://github.com/kurtosis-tech/postgres-seed-plugin/blob/d2ff1bef180caa6345b6a890673f3a83a347bce2/main.py#L3), after the `flow_uuid` kwaarg.
+Our application will leverage the [postgres-seed-plugin](https://github.com/kurtosis-tech/postgres-seed-plugin) to handle our `postgres` database. Anytime a flow is created involving the postgres database, this plugin will create a dev version of the database seeded with a provided script. The args for it can be found [here](https://github.com/kurtosis-tech/postgres-seed-plugin/blob/d2ff1bef180caa6345b6a890673f3a83a347bce2/main.py#L3), after the `flow_uuid` kwaarg.
 
-We’ll add this plugin to the `postgres` service, specifying the github repo with the plugin logic and args that the plugin expects: 
+We'll add this plugin to the `postgres` service, specifying the github repo with the plugin logic and args that the plugin expects: 
 
 ```yaml
 apiVersion: v1
@@ -775,7 +764,7 @@ Here is an example of how we can add logic to attach Kardinal trace ids to our a
 The frontend is a Golang HTTP server serving html and communicates with the `cartservice` and `productcatalog` service over HTTP via REST APIs following. Thus, the frontend will need to retrieve the trace id header from incoming requests and add it as a header to outgoing requests to the `cartservice` and `productservice`.
 
 
-To accomplish this, we'll create a middleware function called `getSetgetSetTraceIdHeaderRequestEditorFcn` that retrieves ids from incoming requests, and returns a function that sets that id as the `X-Kardinal-Trace-Id` header on a downstream requets.
+To accomplish this, we'll create a middleware function called `getSetTraceIdHeaderRequestEditorFcn` that retrieves the trace id from an incoming requests, and returns a function that sets that id value as the `X-Kardinal-Trace-Id` header on a downstream separate request.
 
 ```
 func getSetTraceIdHeaderRequestEditorFcn(upsTreamRequest *http.Request) func(ctx context.Context, req *http.Request) error {
@@ -791,7 +780,7 @@ func getSetTraceIdHeaderRequestEditorFcn(upsTreamRequest *http.Request) func(ctx
 }
 ```
 
-This function then gets added as a `RequestEditorFn` on all outgoing requests eg.
+We call this function in every handler. The returned set function then gets passed as a [`RequestEditorFn`](https://github.com/kurtosis-tech/new-obd/blob/57bd02df92afd140327aa1a27924cc8bb2d9cd00/src/cartservice/api/http_rest/client/client.gen.go#L42) (a parameter provided on OpenAPI-generated Rest API clients for callbacks modifying requests) on all outgoing requests. For example, in the handler for the [/products](https://github.com/kurtosis-tech/new-obd/blob/57bd02df92afd140327aa1a27924cc8bb2d9cd00/src/frontend/handlers.go#L117) endpoint - we call `getSetTraceIdHeaderRequestEditorFcn` once, and pass it to outgoing requests to services in our cluster. This way, the Kardinal trace id header gets added to the request and Kardinal will be able to route the request to the proper versions of services in a flow!
 
 ```go
 func (server *frontendServer) productHandler(w http.ResponseWriter, r *http.Request) {
@@ -805,7 +794,10 @@ func (server *frontendServer) productHandler(w http.ResponseWriter, r *http.Requ
 }
 ```
 
-Details will differ for different stacks and languages but the high level idea is forwarding values `X-Kardinal-Trace-Id` header value from incoming requests to all outgoing ones! If you have questions on integrating Kardinal tracing onto your stack, please reach out to us!
+Details will differ for different stacks and languages but the high level idea is to forward the `X-Kardinal-Trace-Id` header value from incoming HTTP requests to all outgoing ones! If you have questions on integrating Kardinal tracing onto your stack, please reach out to us.
+
+
+Note: Currently, trace IDs are only forwarded for http servers. For servers not communicating using HTTP - Kardinal will detect this (using the `kardinal.service.dev/dependences` annotation) and duplicate the service in the flow to ensure isolation.
 
 ## Part 3: Deploy!
 
@@ -830,21 +822,51 @@ Okay, now that we've got Kardinal integrated, let's deploy our application.
 3. Deploy your application
     
     ```yaml
-    kardinal deploy --k <path to k8s manifest annotated with Kardinal>
+    kardinal deploy --k <path-to-k8s-manifest-annotated-with-Kardinal>
     ```
     
     You should now be able to view your application in the Kardinal dashboard!
     
     ```yaml
-    https://app.kardinal.dev/<tenant id output by CLI>/traffic-configuration
+    https://app.kardinal.dev/<tenant-id-output-by-CLI>/traffic-configuration
     ```
     
-    or run `kardinal dashboard`
+    or run `kardinal dashboard` to get the link!
     
-4. Create a flow! Pick a service in your application to test a dev image on. eg.
+4. Create a flow! Pick a service in your application to test a dev image on
     
     ```yaml
     kardinal flow create frontend-service-name your/new-frontend-image:dev
     ```
     
+    eg.
+    
+    ```bash
+    
+    INFO[0000] Using tenant UUID 483e3371-ec18-40ca-aaee-54df597d1fd2 
+    INFO[0000] Creating service frontend with image leoporoli/newobd-frontend:dev in development mode... 
+    Flow "dev-qlm1214pgt" created. Access it on:
+    🌐 http://dev-qlm1214pgt.app.localhost
+    
+    ```
+    
 5. View the flow by returning to the `kardinal dashboard`!
+    
+    You should now see both prod and dev versions of the service you created a flow on, along with dev versions of services Kardinal determined needed to be duplicated to provide isolation within the cluster (eg. a dev database). These dev versions should have the `flow-id` output by the command next to them.
+    
+6. Interact with the new flow by `kardinal gateway <flow-id>`! 
+    
+    eg.
+    
+    ```bash
+    $ kardinal gateway dev-og86aeah47
+    
+    $ kardinal gateway dev-qlm1214pgt
+    INFO[0000] Using tenant UUID 483e3371-ec18-40ca-aaee-54df597d1fd2 
+    2024/08/07 13:50:52 Starting gateway for host: dev-qlm1214pgt.app.localhost
+    2024/08/07 13:50:52 All pods in namespace prod are ready and flowId dev-qlm1214pgt found
+    2024/08/07 13:50:52 Proxy server for host dev-qlm1214pgt.app.localhost started on http://localhost:9060
+    
+    ```
+    
+    This command will open a gateway to the entry point - whatever service of your application was annotated with the `kardinal.dev.service/inress` annotation! Whether the service is a frontend, or api - you can access the dev flow by making requests to the returned endpoint. These requests will flow through your system through only the dev versions of services in for that flow.
