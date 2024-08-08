@@ -1,5 +1,6 @@
 import Collapsible from '@/components/Collapsible';
 
+
 # Getting Started On Your Own App
 
 ### Requirements
@@ -460,32 +461,33 @@ metadata:
 
 Congrats! You've added all the annotations Kardinal needs to work with your application. We're halfway there.
 
-> ⚠️ Warning: Make sure HTTP ports are marked with appProtocol
->
-> Please mark services that use HTTP with `appProtocol: HTTP` and list them as the first port in your configuration.
->
-> Example:
-> ```yaml
-> apiVersion: v1
-> kind: Service
-> metadata:
->   name: productcatalogservice
->   labels:
->     app: productcatalogservice
->     version: v1
-> spec:
->   type: ClusterIP
->   selector:
->    app: productcatalogservice
->   ports:
->    - name: http
->      port: 8070
->      targetPort: 8070
->      protocol: TCP
->      appProtocol: http
-> ```
->
-> The first port in a given service needs to be marked with `appProtocol: HTTP`; this is a limitation that we are actively working on.
+<Collapsible title="⚠️ Warning: Make sure HTTP ports are marked with appProtocol">
+Please mark services that use HTTP with *`appProtocol: HTTP`* and list them as the first port in your configuration.
+
+Example:
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: productcatalogservice
+  labels:
+    app: productcatalogservice
+    version: v1
+spec:
+  type: ClusterIP
+  selector:
+  app: productcatalogservice
+  ports:
+  - name: http
+    port: 8070
+    targetPort: 8070
+    protocol: TCP
+    appProtocol: http
+```
+
+The first port in a given service needs to be marked with `appProtocol: HTTP`; this is a limitation that we are actively working on.
+</Collapsible>
 
 The manifest should all together look like:
 
