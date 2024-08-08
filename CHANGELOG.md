@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.1.10](https://github.com/kurtosis-tech/kardinal/compare/0.1.9...0.1.10) (2024-08-08)
+
+
+### Features
+
+* copy button for code blocks in docs ([#103](https://github.com/kurtosis-tech/kardinal/issues/103)) ([be8bdde](https://github.com/kurtosis-tech/kardinal/commit/be8bddebca4cd5f19bf62258091433ae183df01f)), closes [#89](https://github.com/kurtosis-tech/kardinal/issues/89)
+* match fonts and gradients to new blog theme ([#107](https://github.com/kurtosis-tech/kardinal/issues/107)) ([0938dc3](https://github.com/kurtosis-tech/kardinal/commit/0938dc308437934044dd8373108c395de1ade2f7))
+
+
+### Bug Fixes
+
+* allow external links in docs ([#101](https://github.com/kurtosis-tech/kardinal/issues/101)) ([701928f](https://github.com/kurtosis-tech/kardinal/commit/701928f0c0b9a0fd972e4c9b15f44f2f657f21b7)), closes [#87](https://github.com/kurtosis-tech/kardinal/issues/87)
+* Improve CLI ([#82](https://github.com/kurtosis-tech/kardinal/issues/82)) ([42c1b69](https://github.com/kurtosis-tech/kardinal/commit/42c1b6960ad1a90c8c340002ab994f91b3085dca))
+
 ## [0.1.9](https://github.com/kurtosis-tech/kardinal/compare/0.1.8...0.1.9) (2024-08-06)
 
 
