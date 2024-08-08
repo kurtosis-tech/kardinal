@@ -82,7 +82,11 @@ spec:
               value: "8090"
             - name: DB_USERNAME
               value: "postgresuser"
-            - ..postgres creds here
+            - name: POSTGRES_USER
+              value: "postgresuser"
+            - name: POSTGRES_PASSWORD
+              value: "postgrespass"
+           volumeMounts:
             - name: DB_HOST
               value: "postgres"
             - name: DB_PORT
@@ -128,7 +132,8 @@ spec:
     spec:
       containers:
         - name: server
-          image: frontend
+          image: leoporoli/newobd-frontend:0.0.6
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
           readinessProbe:
@@ -151,7 +156,7 @@ spec:
             - name: ADDRESS
               value: ":8080"
             - name: FREECURRENCYAPIKEY
-              ...API key here
+              value: "fca_live_nFVVF8CvfxqJhzMHB4N2x1NH7ffVVPwZr9hg3iNl"
             - name: CARTSERVICEHOST
               value: cartservice
             - name: PRODUCTCATALOGSERVICEHOST
@@ -189,6 +194,8 @@ spec:
     - name: http
       port: 80
       targetPort: 8080
+      protocl: TCP
+      appProtocol: HTTP
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -218,7 +225,10 @@ spec:
           env:
             - name: POSTGRES_DB
               value: "cart"
-            - ..postgres creds here
+            - name: POSTGRES_USER
+              value: "postgresuser"
+            - name: POSTGRES_PASSWORD
+              value: "postgrespass"
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
               name: postgres-data
@@ -474,7 +484,8 @@ spec:
                 - all
             privileged: false
             readOnlyRootFilesystem: true
-          image: cartservice
+            image: leoporoli/newobd-cartservice:0.0.3
+            imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8090
           readinessProbe:
@@ -499,7 +510,8 @@ spec:
               value: "8090"
             - name: DB_USERNAME
               value: "postgresuser"
-            - ..postgres creds here
+            - name: DB_PASSWORD
+              value: "postgrespass"
             - name: DB_HOST
               value: "postgres"
             - name: DB_PORT
@@ -584,14 +596,14 @@ metadata:
   labels:
     app: frontend
     version: v1
-    annotations:
-      kardinal.dev.service/dependencies: "productcatalogservice:http,cartservice:http"
-      kardinal.dev.service/plugins: |
-        - name: github.com/kurtosis-tech/free-currency-api-plugin
-          type: external
-          servicename: free-currency-api
-          args:
-            api_key: fca_live_VKZlykCWEiFcpBHnw74pzd4vLi04q1h9JySbVHDF      
+  annotations:
+    kardinal.dev.service/dependencies: "productcatalogservice:http,cartservice:http"
+    kardinal.dev.service/plugins: |
+      - name: github.com/kurtosis-tech/free-currency-api-plugin
+        type: external
+        servicename: free-currency-api
+        args:
+          api_key: fca_live_VKZlykCWEiFcpBHnw74pzd4vLi04q1h9JySbVHDF      
 spec:
   type: ClusterIP
   selector:
@@ -647,7 +659,10 @@ spec:
           env:
             - name: POSTGRES_DB
               value: "cart"
-            - ..postgres creds here
+            - name: POSTGRES_USER
+              value: "postgresuser"
+            - name: POSTGRES_PASSWORD
+              value: "postgrespass"
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
               name: postgres-data
