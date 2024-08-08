@@ -24,7 +24,9 @@ There are many ways to isolate different environments in the context of cloud/Ku
 
 ## Quick start with a demo application
 
-If you already have your own application in mind, check out [our docs](https://kardinal.dev/docs/getting-started/install).
+If you want to get started with your own application, check out [our docs](https://kardinal.dev/docs/getting-started/install).
+
+Otherwise, continue in this section to run Kardinal with a demo application to see how it works before trying it on your own.
 
 #### Want to try it out without installing anything?
 
