@@ -807,7 +807,7 @@ func (server *frontendServer) productHandler(w http.ResponseWriter, r *http.Requ
 Details will differ for different stacks and languages but the high level idea is to forward the `X-Kardinal-Trace-Id` header value from incoming HTTP requests to all internal outgoing HTTP requests! If you have questions on integrating Kardinal tracing onto your stack, please reach out to us.
 
 
-Note: Currently, trace IDs are only forwarded for http servers. For servers not communicating using HTTP - Kardinal will detect this (using the `kardinal.service.dev/dependences` annotation) and duplicate the service in the flow to ensure isolation.
+Note: Currently, trace IDs are only forwarded for http servers. For servers not communicating using HTTP - Kardinal will detect this (using the `kardinal.dev.service/dependencies` annotation) and duplicate the service in the flow to ensure isolation.
 
 ## Part 3: Deploy!
 
