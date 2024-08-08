@@ -30,7 +30,9 @@ Otherwise, continue in this section to run Kardinal with a demo application to s
 
 #### Want to try it out without installing anything?
 
-Visit the [Kardinal playground](https://github.com/kurtosis-tech/kardinal-playground/) to experience a simple demonstration of how Kardinal can enhance your dev flow.
+We have a playground that runs in Github Codespaces so you can try Kardinal right now without installing anything. Click below to open a Codespace with the playground. The default settings for the Codespace will work just fine.
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=818205437&skip_quickstart=true&machine=standardLinux32gb&devcontainer_path=.devcontainer%2Fdevcontainer.json)
 
 ### Prerequisites
 
