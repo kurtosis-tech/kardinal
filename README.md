@@ -5,10 +5,10 @@
 ![Kardi B](https://kardinal.dev/_next/static/media/kardinal-orange.65ea335b.png)
 
 ## Guide
-1. [What is Kardinal?](https://github.com/kurtosis-tech/kardinal/edit/main/README.md#what-is-kardinal)
-2. [How it works](https://github.com/kurtosis-tech/kardinal/edit/main/README.md#how-it-works)
-3. [Quick start](https://github.com/kurtosis-tech/kardinal/edit/main/README.md#quick-start-with-a-demo-application)
-4. [Helpful links](https://github.com/kurtosis-tech/kardinal/edit/main/README.md#helpful-links)
+1. [What is Kardinal?](https://github.com/kurtosis-tech/kardinal?tab=readme-ov-file#what-is-kardinal)
+2. [How it works](https://github.com/kurtosis-tech/kardinal?tab=readme-ov-file#what-is-kardinal)
+3. [Quick start](https://github.com/kurtosis-tech/kardinal?tab=readme-ov-file#quick-start-with-a-demo-application)
+4. [Helpful links](https://github.com/kurtosis-tech/kardinal?tab=readme-ov-file#helpful-links)
 
 
 ## What is Kardinal?
