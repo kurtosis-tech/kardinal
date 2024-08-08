@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.11](https://github.com/kurtosis-tech/kardinal/compare/0.1.10...0.1.11) (2024-08-08)
+
+
+### Features
+
+* new nav items and mobile nav ([#123](https://github.com/kurtosis-tech/kardinal/issues/123)) ([406d1d2](https://github.com/kurtosis-tech/kardinal/commit/406d1d2f794f70d164b92534bd2b924ecb764d45))
+
+
+### Bug Fixes
+
+* add install fallback version ([#114](https://github.com/kurtosis-tech/kardinal/issues/114)) ([3ddb011](https://github.com/kurtosis-tech/kardinal/commit/3ddb011f1ff621b5623d92b3730d43fa8326ff2f))
+
 ## [0.1.10](https://github.com/kurtosis-tech/kardinal/compare/0.1.9...0.1.10) (2024-08-08)
 
 
