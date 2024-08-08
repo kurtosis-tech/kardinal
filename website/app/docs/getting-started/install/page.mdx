@@ -57,7 +57,8 @@ spec:
                 - all
             privileged: false
             readOnlyRootFilesystem: true
-          image: cartservice
+          image: leoporoli/newobd-cartservice:0.0.3
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8090
           readinessProbe:
@@ -276,7 +277,8 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
         - name: server
-          image: productcatalogservice
+          image: leoporoli/newobd-productcatalogservice:0.0.3
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8070
           readinessProbe:
@@ -594,7 +596,8 @@ spec:
     spec:
       containers:
         - name: server
-          image: frontend
+          image: leoporoli/newobd-frontend:0.0.6
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
           readinessProbe:
@@ -754,7 +757,8 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
         - name: server
-          image: productcatalogservice
+          image: leoporoli/newobd-productcatalogservice:0.0.3
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8070
           readinessProbe:
@@ -843,7 +847,7 @@ func (server *frontendServer) productHandler(w http.ResponseWriter, r *http.Requ
 }
 ```
 
-Details will differ for different stacks and languages but the high level idea is to forward the `X-Kardinal-Trace-Id` header value from incoming HTTP requests to all internal outgoing HTTP requests! If you have questions on integrating Kardinal tracing onto your stack, please reach out to us.
+Details will differ for different stacks and languages but the high level idea is to forward the `X-Kardinal-Trace-Id` header value from incoming HTTP requests to all internal(to cluster) outgoing HTTP requests! If you have questions on integrating Kardinal tracing onto your stack, please reach out to us.
 
 
 Note: Currently, trace IDs are only forwarded for http servers. For servers not communicating using HTTP - Kardinal will detect this (using the `kardinal.dev.service/dependencies` annotation) and duplicate the service in the flow to ensure isolation.
