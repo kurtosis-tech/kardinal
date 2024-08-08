@@ -347,7 +347,7 @@ Here is how we'd update our boutique store application to specify its dependency
 
 Now, we'll annotate our ingress service with *`kardinal.dev.service/ingress`* and *`kardinal.dev.service/host`*.
 
-Kardinal expects there to be at least one service that acts as an entrypoint into the cluster, usually an load balancer or gateway of some sort that routes traffic into the cluster accordingly.
+Kardinal expects there to be exactly one service that acts as an entrypoint into the cluster, usually an load balancer or gateway of some sort that routes traffic into the cluster accordingly.
 
 For our application, we're using a simple `LoadBalancer` that routes all traffic to our frontend so we'll define that as our ingress and use the *`kardinal.dev.service/host`* annotation to give it a hostname we can use to access it.
 
@@ -412,9 +412,9 @@ metadata:
           seed_script: "create table if not exists public.items( id bigserial primary key, created_at timestamp with time zone, updated_at timestamp with time zone, deleted_at timestamp with time zone, user_id    text, product_id text, quantity   integer); INSERT INTO public.items (id, created_at, updated_at, deleted_at, user_id, product_id, quantity) VALUES (1, '2024-08-02 13:02:07.656104 +00:00', '2024-08-02 13:02:07.656104 +00:00', null, '0494c5e0-dde0-48fa-a6d8-f7962f5476bf', '66VCHSJNUP', 1); INSERT INTO public.items (id, created_at, updated_at, deleted_at, user_id, product_id, quantity) VALUES (2, '2024-08-02 13:02:10.891407 +00:00', '2024-08-02 13:02:10.891407 +00:00', null, '0494c5e0-dde0-48fa-a6d8-f7962f5476bf', '2ZYFJ3GM2N', 1); SELECT setval('items_id_seq', (SELECT MAX(id) FROM items));"
           db_name: "cart"
           db_user: "postgresuser"
-          ..postgres creds here
+          db_password: "postgrespass"
 ```
-
+Note, the `seed_script` arg is a single line as there is a limitation in current Kardinal which requires arguments to be a single line, we are working on a fix.
 Additionally, we can use plugins to handle external services like third party APIs (eg. Stripe, Mailchimp) and managed databases and queues (eg. AWS Postgres).
 
 Our frontend service depends on the [Free Currency API](https://freecurrencyapi.com/). Luckily, dev versions of our frontend will communicate with this API in the same way, but we can still use a plugin + plugin annotation so that Kardinal will display the external API in the dashboard.
@@ -446,7 +446,6 @@ The manifest should all together look like:
 <Collapsible title="Fully Annotated Demo Kubernetes Manifest">
 
 ```yaml
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -475,8 +474,7 @@ spec:
                 - all
             privileged: false
             readOnlyRootFilesystem: true
-          image: tedim52/cartservice:latest
-          imagePullPolicy: IfNotPresent
+          image: cartservice
           ports:
             - containerPort: 8090
           readinessProbe:
@@ -500,10 +498,10 @@ spec:
             - name: PORT
               value: "8090"
             - name: DB_USERNAME
-              value: "tedidb_owner"
+              value: "postgresuser"
             - ..postgres creds here
             - name: DB_HOST
-              value: "******us-east-2.aws.neon.tech"
+              value: "postgres"
             - name: DB_PORT
               value: "5432"
             - name: DB_NAME
@@ -517,8 +515,7 @@ metadata:
     app: cartservice
     version: v1
   annotations:
-    kardinal.dev.service/stateful: "true"
-    kardinal.dev.service/dependencies: "postgres:tcp"
+    kardinal.dev.service/dependencies: "postgres:tcp"    
 spec:
   type: ClusterIP
   selector:
@@ -527,8 +524,6 @@ spec:
     - name: http
       port: 8090
       targetPort: 8090
-      protocol: TCP
-      appProtocol: HTTP
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -552,8 +547,7 @@ spec:
     spec:
       containers:
         - name: server
-          image: leoporoli/newobd-frontend:0.0.5
-          imagePullPolicy: IfNotPresent
+          image: frontend
           ports:
             - containerPort: 8080
           readinessProbe:
@@ -581,6 +575,7 @@ spec:
               value: cartservice
             - name: PRODUCTCATALOGSERVICEHOST
               value: productcatalogservice
+
 ---
 apiVersion: v1
 kind: Service
@@ -589,14 +584,14 @@ metadata:
   labels:
     app: frontend
     version: v1
-  annotations:
-    kardinal.dev.service/dependencies: "productcatalogservice:http,cartservice:http"
-    kardinal.dev.service/plugins: |
-      - name: github.com/kurtosis-tech/free-currency-api-plugin
-        type: external
-        servicename: free-currency-api
-        args:
-          api_key: fca_live_VKZlykCWEiFcpBHnw74pzd4vLi04q1h9JySbVHDF
+    annotations:
+      kardinal.dev.service/dependencies: "productcatalogservice:http,cartservice:http"
+      kardinal.dev.service/plugins: |
+        - name: github.com/kurtosis-tech/free-currency-api-plugin
+          type: external
+          servicename: free-currency-api
+          args:
+            api_key: fca_live_VKZlykCWEiFcpBHnw74pzd4vLi04q1h9JySbVHDF      
 spec:
   type: ClusterIP
   selector:
@@ -614,7 +609,7 @@ metadata:
   name: frontend-external
   annotations:
     kardinal.dev.service/ingress: "true"
-    kardinal.dev.service/host: "prod.app.localhost"
+    kardinal.dev.service/host: "prod.app.localhost"  
 spec:
   type: LoadBalancer
   selector:
@@ -623,8 +618,6 @@ spec:
     - name: http
       port: 80
       targetPort: 8080
-      protocol: TCP
-      appProtocol: HTTP
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -654,8 +647,6 @@ spec:
           env:
             - name: POSTGRES_DB
               value: "cart"
-            - name: POSTGRES_USER
-              value: "postgresuser"
             - ..postgres creds here
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
@@ -663,6 +654,7 @@ spec:
       volumes:
         - name: postgres-data
           emptyDir: {}
+
 ---
 apiVersion: v1
 kind: Service
@@ -673,20 +665,19 @@ metadata:
     version: v1
   annotations:
     kardinal.dev.service/stateful: "true"
-    kardinal.dev/plugins: |
+    kardinal.dev.service/plugins: |
       - name: github.com/kurtosis-tech/postgres-seed-plugin
         args:
-          seed_script: ""
+          seed_script: "create table if not exists public.items( id bigserial primary key, created_at timestamp with time zone, updated_at timestamp with time zone, deleted_at timestamp with time zone, user_id    text, product_id text, quantity   integer); INSERT INTO public.items (id, created_at, updated_at, deleted_at, user_id, product_id, quantity) VALUES (1, '2024-08-02 13:02:07.656104 +00:00', '2024-08-02 13:02:07.656104 +00:00', null, '0494c5e0-dde0-48fa-a6d8-f7962f5476bf', '66VCHSJNUP', 1); INSERT INTO public.items (id, created_at, updated_at, deleted_at, user_id, product_id, quantity) VALUES (2, '2024-08-02 13:02:10.891407 +00:00', '2024-08-02 13:02:10.891407 +00:00', null, '0494c5e0-dde0-48fa-a6d8-f7962f5476bf', '2ZYFJ3GM2N', 1); SELECT setval('items_id_seq', (SELECT MAX(id) FROM items));"
           db_name: "cart"
           db_user: "postgresuser"
-          - ..postgres creds here
+          db_password: "postgrespass"    
 spec:
   type: ClusterIP
   ports:
     - name: tcp
       port: 5432
       targetPort: 5432
-      protocol: TCP
   selector:
     app: postgres
 ---
@@ -711,8 +702,7 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
         - name: server
-          image: leoporoli/newobd-productcatalogservice:0.0.3
-          imagePullPolicy: IfNotPresent
+          image: productcatalogservice
           ports:
             - containerPort: 8070
           readinessProbe:
@@ -751,9 +741,6 @@ spec:
     - name: http
       port: 8070
       targetPort: 8070
-      protocol: TCP
-      appProtocol: HTTP
-
 ```
 </Collapsible>
 
@@ -770,7 +757,11 @@ The frontend is a Golang HTTP server serving html and communicates with the `car
 
 To accomplish this, we'll create a middleware function called `getSetTraceIdHeaderRequestEditorFcn` that retrieves the trace id from an incoming requests, and returns a function that sets that id value as the `X-Kardinal-Trace-Id` header on a downstream separate request.
 
-```
+```go
+const (
+	KardinalTraceIdHeaderKey = "X-Kardinal-Trace-Id"
+)
+
 func getSetTraceIdHeaderRequestEditorFcn(upsTreamRequest *http.Request) func(ctx context.Context, req *http.Request) error {
 
 	traceID := upsTreamRequest.Header.Get(consts.KardinalTraceIdHeaderKey)
@@ -798,7 +789,7 @@ func (server *frontendServer) productHandler(w http.ResponseWriter, r *http.Requ
 }
 ```
 
-Details will differ for different stacks and languages but the high level idea is to forward the `X-Kardinal-Trace-Id` header value from incoming HTTP requests to all outgoing ones! If you have questions on integrating Kardinal tracing onto your stack, please reach out to us.
+Details will differ for different stacks and languages but the high level idea is to forward the `X-Kardinal-Trace-Id` header value from incoming HTTP requests to all internal outgoing HTTP requests! If you have questions on integrating Kardinal tracing onto your stack, please reach out to us.
 
 
 Note: Currently, trace IDs are only forwarded for http servers. For servers not communicating using HTTP - Kardinal will detect this (using the `kardinal.service.dev/dependences` annotation) and duplicate the service in the flow to ensure isolation.
@@ -843,19 +834,9 @@ Okay, now that we've got Kardinal integrated, let's deploy our application.
     kardinal flow create frontend-service-name your/new-frontend-image:dev
     ```
     ---
-    ```bash
-    
-    INFO[0000] Using tenant UUID 483e3371-ec18-40ca-aaee-54df597d1fd2 
-    INFO[0000] Creating service frontend with image leoporoli/newobd-frontend:dev in development mode... 
-    Flow "dev-qlm1214pgt" created. Access it on:
-    🌐 http://dev-qlm1214pgt.app.localhost
-    
-    ```
-    
     eg.
-    
     ```bash
-    
+    kardinal flow create frontend leoporoli/newobd-frontend:dev
     INFO[0000] Using tenant UUID 483e3371-ec18-40ca-aaee-54df597d1fd2 
     INFO[0000] Creating service frontend with image leoporoli/newobd-frontend:dev in development mode... 
     Flow "dev-qlm1214pgt" created. Access it on:
