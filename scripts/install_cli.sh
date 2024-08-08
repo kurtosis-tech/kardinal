@@ -31,6 +31,9 @@ if [ -f "$BIN_FOLDER/$BINARY_NAME" ]; then
 fi
 
 LATEST_RELEASE=$(curl -s "https://api.github.com/repos/$REPO/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+# TODO: Inject the latest release version here during CI
+LATEST_RELEASE=${LATEST_RELEASE:-0.1.10}
+
 echo "Downloading $BINARY_NAME $LATEST_RELEASE for $OS $ARCH..."
 DOWNLOAD_URL="https://github.com/$REPO/releases/download/$LATEST_RELEASE/${BINARY_NAME}-${OS}-${ARCH}"
 curl -L "$DOWNLOAD_URL" -o "$BIN_FOLDER/$BINARY_NAME"
