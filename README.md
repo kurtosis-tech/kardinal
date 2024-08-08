@@ -6,7 +6,7 @@
 
 ## Guide
 1. [What is Kardinal?](https://github.com/kurtosis-tech/kardinal/?tab=readme-ov-file#what-is-kardinal)
-2. [Playground](https://github.com/kurtosis-tech/kardinal/?tab=readme-ov-file#try-it-out-in-a-playground))
+2. [Playground](https://github.com/kurtosis-tech/kardinal/?tab=readme-ov-file#try-it-out-in-a-playground)
 3. [Quick start](https://github.com/kurtosis-tech/kardinal/?tab=readme-ov-file#quick-start-with-a-demo-application)
 4. [Helpful links](https://github.com/kurtosis-tech/kardinal/?tab=readme-ov-file#helpful-links)
 
