@@ -35,7 +35,7 @@ Some services have multiple distinct versions (5 for `order-service`, 8 for `ana
 
 Because isolation is implemented at the level of traffic routing, you can maximally reuse shared resources, and you can spin up a new logical environment by only deploying the absolute minimum number of changes resources necessary.
 
-The same multi-version deploy and de-duplication mechanism works for stateful services like Postgres or state-bearing external services like Stripe. If an isolated version of Postgres is required in a logical environment, seeded with new test data or a snapshot of data in the stable environment, it will spin up automatically for the logical environments that need it. In the case of external service like Stripe, a proxy that switches requests between dev API keys will provide the necessary isolation between logical environments.
+The same multi-version deploy and de-duplication mechanism works for stateful services like Postgres or state-bearing external services like Stripe. If an isolated version of Postgres is required in a logical environment, seeded with new test data or a snapshot of data in the stable environment, it will spin up automatically for the logical environments that need it.
 
 Stateful services like databases and managed services like external APIs are supported via an open-source plugin ecosystem, so its easy to add support for the set of dependencies you have in your architecture.
 
