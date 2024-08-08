@@ -5,17 +5,13 @@
 ![Kardi B](https://kardinal.dev/_next/static/media/kardinal-orange.65ea335b.png)
 
 ## Guide
-1. [What is Kardinal?](https://github.com/kurtosis-tech/kardinal?tab=readme-ov-file#what-is-kardinal)
-2. [How it works](https://github.com/kurtosis-tech/kardinal?tab=readme-ov-file#what-is-kardinal)
-3. [Quick start](https://github.com/kurtosis-tech/kardinal?tab=readme-ov-file#quick-start-with-a-demo-application)
-4. [Helpful links](https://github.com/kurtosis-tech/kardinal?tab=readme-ov-file#helpful-links)
-
+1. [What is Kardinal?](https://github.com/kurtosis-tech/kardinal/edit/main/README.md#what-is-kardinal)
+3. [Quick start](https://github.com/kurtosis-tech/kardinal/edit/main/README.md#quick-start-with-a-demo-application)
+4. [Helpful links](https://github.com/kurtosis-tech/kardinal/edit/main/README.md#helpful-links)
 
 ## What is Kardinal?
 
-Kardinal is a traffic routing and state isolation tool for Kubernetes that enables engineers to efficiently do development, testing, and QA work within a single stable cluster. Instead of implementing isolation at the cluster level, Kardinal implements isolation by deploying development versions of services side-by-side with their "staging" versions, and creating isolated traffic routes through the cluster.
-
-These traffic routes connect development versions to their appropriate dependencies, and to development versions of any databases, queues, caches, and external APIs that you may need. They are effectively "logical environments" or "views" on top of a single cluster. In Kardinal, these are called "[flows](https://kardinal.dev/docs/concepts/flows)". Flows enable application-level isolation for the purpose of development, testing, and QA with the lowest possible resource footprint. It all happens in one cluster, with the absolute minimum duplication of resources necessary.
+Kardinal allows you to create many logical dev or test environments for your application inside of a single Kubernetes cluster. Instead of implementing isolation between environments at the cluster level, Kardinal implements isolation by deploying development versions of services side-by-side with their "staging" versions, and creating isolated traffic routes through the cluster. Because logical environments in Kardinal are defined by the flow of traffic through a single cluster, we call them [flows](https://kardinal.dev/docs/concepts/flows).
 
 There are many ways to isolate different environments in the context of cloud/Kubernetes deployments. To get an idea of how Kardinal fits into other methods, see the table below:
 
@@ -25,24 +21,6 @@ There are many ways to isolate different environments in the context of cloud/Ku
 | Separate Kubernetes Clusters | Coarse-grained | High Cost | High |
 | Separate Namespaces (vclusters) | Fine-grained | Low Cost | Low |
 | Separate Traffic Routes (Kardinal) | Most fine-grained | Lowest Cost | Lowest |
-
-## How it works
-
-In Kardinal, an application deployment with multiple logical environments (”flows”) running in it may look like the following image. 
-
-![infographic](https://github.com/user-attachments/assets/343a44bc-2119-4368-a338-f27dc2271d8f)
-
-Some services have multiple distinct versions (5 for `order-service`, 8 for `analytics-service`), because there are many version requirements for that service across the set of logical environments. Others only have one version deployed (`entity-service` ). In this example, every single logical environment only depends on the stable version of `entity-service`.
-
-Because isolation is implemented at the level of traffic routing, you can maximally reuse shared resources, and you can spin up a new logical environment by only deploying the absolute minimum number of changes resources necessary.
-
-The same multi-version deploy and de-duplication mechanism works for stateful services like Postgres or state-bearing external services like Stripe. If an isolated version of Postgres is required in a logical environment, seeded with new test data or a snapshot of data in the stable environment, it will spin up automatically for the logical environments that need it.
-
-Stateful services like databases and managed services like external APIs are supported via an open-source plugin ecosystem, so its easy to add support for the set of dependencies you have in your architecture.
-
-Kardinal is implemented as a set of sidecars that are deployed next to your stateless services, and proxies that sit on top of those stateful services or external, managed services (like Stripe or an external API hosted outside of Kubernetes).
-
-It's easy to install and easy to uninstall - just deploy the the sidecars in your staging cluster, and use the Kardinal control plane to manage your development and test environments. If you want to uninstall Kardinal, just remove the sidecars.
 
 ## Quick start with a demo application
 
