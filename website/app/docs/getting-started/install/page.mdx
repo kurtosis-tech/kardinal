@@ -253,6 +253,7 @@ spec:
     - name: tcp
       port: 5432
       targetPort: 5432
+      protocol: TCP
   selector:
     app: postgres
 ---
@@ -519,8 +520,8 @@ spec:
                 - all
             privileged: false
             readOnlyRootFilesystem: true
-            image: leoporoli/newobd-cartservice:0.0.3
-            imagePullPolicy: IfNotPresent
+          image: leoporoli/newobd-cartservice:0.0.3
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8090
           readinessProbe:
@@ -562,7 +563,7 @@ metadata:
     app: cartservice
     version: v1
   annotations:
-    kardinal.dev.service/dependencies: "postgres:tcp"    
+    kardinal.dev.service/dependencies: "postgres:tcp"
 spec:
   type: ClusterIP
   selector:
@@ -641,7 +642,7 @@ metadata:
         type: external
         servicename: free-currency-api
         args:
-          api_key: fca_live_VKZlykCWEiFcpBHnw74pzd4vLi04q1h9JySbVHDF      
+          api_key: fca_live_VKZlykCWEiFcpBHnw74pzd4vLi04q1h9JySbVHDF
 spec:
   type: ClusterIP
   selector:
@@ -659,7 +660,7 @@ metadata:
   name: frontend-external
   annotations:
     kardinal.dev.service/ingress: "true"
-    kardinal.dev.service/host: "prod.app.localhost"  
+    kardinal.dev.service/host: "prod.app.localhost"
 spec:
   type: LoadBalancer
   selector:
@@ -726,13 +727,14 @@ metadata:
           seed_script: "create table if not exists public.items( id bigserial primary key, created_at timestamp with time zone, updated_at timestamp with time zone, deleted_at timestamp with time zone, user_id    text, product_id text, quantity   integer); INSERT INTO public.items (id, created_at, updated_at, deleted_at, user_id, product_id, quantity) VALUES (1, '2024-08-02 13:02:07.656104 +00:00', '2024-08-02 13:02:07.656104 +00:00', null, '0494c5e0-dde0-48fa-a6d8-f7962f5476bf', '66VCHSJNUP', 1); INSERT INTO public.items (id, created_at, updated_at, deleted_at, user_id, product_id, quantity) VALUES (2, '2024-08-02 13:02:10.891407 +00:00', '2024-08-02 13:02:10.891407 +00:00', null, '0494c5e0-dde0-48fa-a6d8-f7962f5476bf', '2ZYFJ3GM2N', 1); SELECT setval('items_id_seq', (SELECT MAX(id) FROM items));"
           db_name: "cart"
           db_user: "postgresuser"
-          db_password: "postgrespass"    
+          db_password: "postgrespass"
 spec:
   type: ClusterIP
   ports:
     - name: tcp
       port: 5432
       targetPort: 5432
+      protocol: TCP
   selector:
     app: postgres
 ---
