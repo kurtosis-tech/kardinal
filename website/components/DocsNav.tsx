@@ -6,8 +6,8 @@ import React from "react";
 import styled from "styled-components";
 
 import Heading from "@/components/Heading";
+import ResponsiveNav from "@/components/ResponsiveNav";
 import { mobile } from "@/constants/breakpoints";
-import { useModal } from "@/context/ModalContext";
 
 interface NavItem {
   path: string;
@@ -89,48 +89,36 @@ const NavItemImpl = ({
 };
 
 const DocsNav = () => {
-  const { isNavOpen } = useModal();
   const pathname = usePathname();
 
   return (
-    <S.DocsNav $isNavOpen={isNavOpen}>
-      <S.ItemGroup>
-        <S.Item $isActive={pathname === "/docs"} style={{ marginLeft: 0 }}>
-          <S.NavLink href={"/docs"} $isActive={pathname === "/docs"}>
-            Introduction
-          </S.NavLink>
-        </S.Item>
-      </S.ItemGroup>
+    <ResponsiveNav>
+      <S.NavItemsWrapper>
+        <S.ItemGroup>
+          <S.Item $isActive={pathname === "/docs"} style={{ marginLeft: 0 }}>
+            <S.NavLink href={"/docs"} $isActive={pathname === "/docs"}>
+              Introduction
+            </S.NavLink>
+          </S.Item>
+        </S.ItemGroup>
 
-      {navItems.map((item) => (
-        <NavItemImpl item={item} parentBaseUrl="/docs" key={item.path} />
-      ))}
-    </S.DocsNav>
+        {navItems.map((item) => (
+          <NavItemImpl item={item} parentBaseUrl="/docs" key={item.path} />
+        ))}
+      </S.NavItemsWrapper>
+    </ResponsiveNav>
   );
 };
 
 namespace S {
-  export const DocsNav = styled.div<{ $isNavOpen: boolean }>`
-    background-color: var(--background);
+  export const NavItemsWrapper = styled.div`
     padding-top: 240px;
+    @media ${mobile} {
+      padding-top: 0;
+    }
     display: flex;
     flex-direction: column;
     gap: 16px;
-    transition: transform 0.3s ease-in-out;
-
-    @media ${mobile} {
-      transform: ${({ $isNavOpen }) =>
-        $isNavOpen ? "translateX(0)" : "translateX(-100%)"};
-      padding: 48px 24px;
-      box-shadow: ${({ $isNavOpen }) =>
-        $isNavOpen ? "0 0 30px 0 rgba(0, 0, 0, 1)" : "none"};
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 80%;
-      height: 100%;
-      z-index: 999;
-    }
   `;
 
   export const ItemGroupHeading = styled(Heading.H3)`
