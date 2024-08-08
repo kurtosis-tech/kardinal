@@ -17,13 +17,14 @@ To manage any persisted state in your cluster, Kardinal relies on a plugin ecosy
 
 There are two kinds of plugins:
 
-- _Stateful service plugins_
+_Stateful service plugins_
 
-  Define state access modes for stateful services that are deployed and managed via Kubernetes, like a Postgres database.
+Define state access modes for stateful services that are deployed and managed via Kubernetes, like a Postgres database.
 
-- _External service plugins_
+_External service plugins_
 
-  Define state access modes for external services that are not managed by Kubernetes, like Stripe or Twilio.
+Define state access modes for external services that are not managed by Kubernetes, like Stripe or Twilio.
 
 These plugins can be installed with Kardinal, enabling you to properly configure your flows to maximally reuse any persisted state in your application across development workflows, allocating new development instances of stateful services whenever necessary.
 
+In order to visualize your cluster, and to support management of multi-user use cases, Kardinal uses a control plane which the Kardinal Manager connects to. The control plane receives your service dependency graph and uses it to display your cluster visually. For now, the control plane is hosted on our cloud, but we're working on making it available on-premise as well.
