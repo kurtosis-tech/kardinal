@@ -109,6 +109,8 @@ spec:
     - name: http
       port: 8090
       targetPort: 8090
+      protocol: TCP
+      appProtocol: HTTP
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -313,6 +315,8 @@ spec:
     - name: http
       port: 8070
       targetPort: 8070
+      protocol: TCP
+      appProtocol: http
 ```
 </Collapsible>
 
@@ -377,6 +381,8 @@ spec:
     - name: http
       port: 80
       targetPort: 8080
+      protocl: TCP
+      appProtocol: HTTP
 ```
 
 Next, we'll add the *`kardinal.dev.service/stateful`* annotation to the services that hold state.
