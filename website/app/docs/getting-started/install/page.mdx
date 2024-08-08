@@ -3,10 +3,13 @@ import Collapsible from '@/components/Collapsible';
 # Getting Started On Your Own App
 
 ### Requirements
+<<<<<<< HEAD
 
 To use Kardinal, you will need a development Kubernetes cluster with Istio installed. You will also need `kubectl` installed on your machine, pointing to your cluster.
 
 If you'd like to use a local Kubernetes cluster to try out Kardinal, you can refer to the first step of our [demo app guide](getting-started/demo) to get a local minikube Kubernetes cluster up and running.
+=======
+>>>>>>> main
 
 To work with Kardinal, your application needs to meet two main requirements:
 
@@ -843,6 +846,17 @@ Okay, now that we've got Kardinal integrated, let's deploy our application.
     kardinal flow create frontend-service-name your/new-frontend-image:dev
     ```
     ---
+    ```bash
+    
+    INFO[0000] Using tenant UUID 483e3371-ec18-40ca-aaee-54df597d1fd2 
+    INFO[0000] Creating service frontend with image leoporoli/newobd-frontend:dev in development mode... 
+    Flow "dev-qlm1214pgt" created. Access it on:
+    🌐 http://dev-qlm1214pgt.app.localhost
+    
+    ```
+    
+    eg.
+    
     ```bash
     
     INFO[0000] Using tenant UUID 483e3371-ec18-40ca-aaee-54df597d1fd2 
