@@ -23,6 +23,8 @@ There are many ways to isolate different environments in the context of cloud/Ku
 | Separate Namespaces (vclusters) | Fine-grained | Low Cost | Low |
 | Separate Traffic Routes (Kardinal) | Most fine-grained | Lowest Cost | Lowest |
 
+Read more in [documentation](https://kardinal.dev/docs).
+
 ## Try it out in a Playground
 
 We have a playground that runs in Github Codespaces so you can try Kardinal right now without installing anything. Click below to open a Codespace with the playground. The default settings for the Codespace will work just fine.
