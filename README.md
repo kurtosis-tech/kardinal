@@ -9,7 +9,6 @@
 3. [Quick start](https://github.com/kurtosis-tech/kardinal/edit/main/README.md#quick-start-with-a-demo-application)
 4. [Helpful links](https://github.com/kurtosis-tech/kardinal/edit/main/README.md#helpful-links)
 
-
 ## What is Kardinal?
 
 Kardinal allows you to create many logical dev or test environments for your application inside of a single Kubernetes cluster. Instead of implementing isolation between environments at the cluster level, Kardinal implements isolation by deploying development versions of services side-by-side with their "staging" versions, and creating isolated traffic routes through the cluster. Because logical environments in Kardinal are defined by the flow of traffic through a single cluster, we call them [flows](https://kardinal.dev/docs/concepts/flows).
@@ -25,13 +24,13 @@ There are many ways to isolate different environments in the context of cloud/Ku
 
 ## Quick start with a demo application
 
-### Want to try it out without installing anything?
+If you already have your own application in mind, check out [our docs](https://kardinal.dev/docs/getting-started/install).
+
+#### Want to try it out without installing anything?
 
 Visit the [Kardinal playground](https://github.com/kurtosis-tech/kardinal-playground/) to experience a simple demonstration of how Kardinal can enhance your dev flow.
 
 ### Prerequisites
-
-If you already have your own application in mind, check out our docs regarding [running on your own application](https://kardinal.dev/docs/getting-started/install).
 
 Before getting started make sure you have the following installed:
 
