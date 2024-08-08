@@ -16,7 +16,7 @@ To work with Kardinal, your application needs to meet two main requirements:
 
 If you can't yet fulfill these requirements, our [demo app](getting-started/demo) is a great way to explore Kardinal until those two prerequesites are met.
 
-If you have distributed tracing in your application, and you're able to define dependencies per service in your deployment spec, you can install Kardinal today.
+If you have distributed tracing in your application (or can integrate it), and you're able to define dependencies per service in your deployment spec, you can install Kardinal today.
 
 ### Part 1: Add Kardinal Annotations to your Manifests
 
@@ -808,7 +808,21 @@ spec:
 
 ## Part 2: Kardinal Tracing
 
-To support multiple flows utilizing the same services, Kardinal uses trace ids on requests that determine which versions of services in a cluster to route traffic to. All applications communicating using Kardinal need to forward the `X-Kardinal-Trace-Id` header along with the trace id from the incoming request onto all outgoing requests. Applications that are non-http will be duplicated and Kardinal will handle routing to duplicated versions. To read more about trace ids and how the mechanism works read here:
+To support multiple flows utilizing the same services, Kardinal uses trace ids on requests that determine which versions of services in a cluster to route traffic to. Already have distributed tracing implemented? Great! Currently, we support the following trace ids:
+
+```
+"x-b3-traceid",           -- Zipkin B3
+"x-request-id",           -- General request ID, often used for tracing
+"x-cloud-trace-context",  -- Google Cloud Trace
+"x-amzn-trace-id",        -- AWS X-Ray
+"traceparent",            -- W3C Trace Context
+"uber-trace-id",          -- Jaeger
+"x-datadog-trace-id"      -- Datadog
+```
+
+If any of these trace ids are used for tracing throughout your application, Kardinal will use these to route requests for varying flows.
+
+Otherwise, you can integrate Kardinals trace id header by having all HTTP applications forward the `X-Kardinal-Trace-Id` header along with the trace id from the incoming request onto all outgoing requests. Applications that are non-http will be duplicated and Kardinal will handle routing to duplicated versions. To read more about trace ids and how the mechanism works read here:
 
 Here is an example of how we can add logic to attach Kardinal trace ids to our application. 
 
