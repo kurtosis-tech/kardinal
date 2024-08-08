@@ -5,18 +5,24 @@ import Collapsible from '@/components/Collapsible';
 
 ### Requirements
 
-To use Kardinal, you will need a development Kubernetes cluster with Istio installed. You will also need `kubectl` installed on your machine, pointing to your cluster.
+*Cluster Requirements*
+
+To use Kardinal, you will need a Kubernetes cluster with Istio installed. You will also need `kubectl` installed on your machine, pointing to your cluster.
 
 If you'd like to use a local Kubernetes cluster to try out Kardinal, you can refer to the first step of our [demo app guide](getting-started/demo) to get a local minikube Kubernetes cluster up and running.
+
+*Application Requirements*
 
 To work with Kardinal, your application needs to meet two main requirements:
 
 1. You can define a dependency graph of your services
-2. You have distributed tracing and can integrate with Kardinal tracing (more details provided below)
+2. You have distributed tracing in your services
 
-If you can't yet fulfill these requirements, our [demo app](getting-started/demo) is a great way to explore Kardinal until those two prerequesites are met.
+If you can't yet fulfill these requirements, our [demo app](getting-started/demo) is a great way to explore Kardinal until those two prerequisites are met.
 
-If you have distributed tracing in your application (or can integrate it), and you're able to define dependencies per service in your deployment spec, you can install Kardinal today.
+<Collapsible title="⚠️ Note: Defining dependencies for all your services">
+Right now, Kardinal requires a complete dependency graph to be defined in your Kubernetes manifests for you to get started. We're working on removing this requirement, but for now, it's a must.
+</Collapsible>
 
 ### Part 1: Add Kardinal Annotations to your Manifests
 

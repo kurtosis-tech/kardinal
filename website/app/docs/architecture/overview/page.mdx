@@ -27,3 +27,4 @@ There are two kinds of plugins:
 
 These plugins can be installed with Kardinal, enabling you to properly configure your flows to maximally reuse any persisted state in your application across development workflows, allocating new development instances of stateful services whenever necessary.
 
+In order to visualize your cluster, and to support management of multi-user use cases, Kardinal uses a control plane which the Kardinal Manager connects to. The control plane receives your service dependency graph and uses it to visualzie your cluster for you. For now, the control plane is hosted on our cloud, but we're working on making it available on-premise as well.
