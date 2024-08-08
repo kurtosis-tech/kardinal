@@ -5,9 +5,10 @@
 ![Kardi B](https://kardinal.dev/_next/static/media/kardinal-orange.65ea335b.png)
 
 ## Guide
-1. [What is Kardinal?](https://github.com/kurtosis-tech/kardinal/edit/main/README.md#what-is-kardinal)
-3. [Quick start](https://github.com/kurtosis-tech/kardinal/edit/main/README.md#quick-start-with-a-demo-application)
-4. [Helpful links](https://github.com/kurtosis-tech/kardinal/edit/main/README.md#helpful-links)
+1. [What is Kardinal?](https://github.com/kurtosis-tech/kardinal/?tab=readme-ov-file#what-is-kardinal)
+2. [Playground](https://github.com/kurtosis-tech/kardinal/?tab=readme-ov-file#try-it-out-in-a-playground))
+3. [Quick start](https://github.com/kurtosis-tech/kardinal/?tab=readme-ov-file#quick-start-with-a-demo-application)
+4. [Helpful links](https://github.com/kurtosis-tech/kardinal/?tab=readme-ov-file#helpful-links)
 
 ## What is Kardinal?
 
@@ -22,17 +23,18 @@ There are many ways to isolate different environments in the context of cloud/Ku
 | Separate Namespaces (vclusters) | Fine-grained | Low Cost | Low |
 | Separate Traffic Routes (Kardinal) | Most fine-grained | Lowest Cost | Lowest |
 
+## Try it out in a Playground
+
+We have a playground that runs in Github Codespaces so you can try Kardinal right now without installing anything. Click below to open a Codespace with the playground. The default settings for the Codespace will work just fine.
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=818205437&skip_quickstart=true&machine=standardLinux32gb&devcontainer_path=.devcontainer%2Fdevcontainer.json)
+
+
 ## Quick start with a demo application
 
 If you want to get started with your own application, check out [our docs](https://kardinal.dev/docs/getting-started/install).
 
 Otherwise, continue in this section to run Kardinal with a demo application to see how it works before trying it on your own.
-
-#### Want to try it out without installing anything?
-
-We have a playground that runs in Github Codespaces so you can try Kardinal right now without installing anything. Click below to open a Codespace with the playground. The default settings for the Codespace will work just fine.
-
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=818205437&skip_quickstart=true&machine=standardLinux32gb&devcontainer_path=.devcontainer%2Fdevcontainer.json)
 
 ### Prerequisites
 
