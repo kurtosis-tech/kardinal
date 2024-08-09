@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.12](https://github.com/kurtosis-tech/kardinal/compare/0.1.11...0.1.12) (2024-08-09)
+
+
+### Features
+
+* add multi-service support ([#128](https://github.com/kurtosis-tech/kardinal/issues/128)) ([720d61e](https://github.com/kurtosis-tech/kardinal/commit/720d61e05b14b8db4a51bf9486c32c0cc73d90ab))
+
 ## [0.1.11](https://github.com/kurtosis-tech/kardinal/compare/0.1.10...0.1.11) (2024-08-08)
 
 
