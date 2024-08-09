@@ -85,6 +85,10 @@ prompt_user() {
 }
 
 post_install_questions() {
+  # Optionally skip post-install questions and analytics, used in the playground
+  if [ -n "$SKIP_KARDINAL_POST_INSTALL" ]; then
+    return 0
+  fi
   if is_interactive_shell; then
     if prompt_user "Would you like to help us improve Kardinal by anonymously reporting your install?"; then
       "$BIN_FOLDER/$BINARY_NAME" report-install
