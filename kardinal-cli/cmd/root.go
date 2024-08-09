@@ -46,6 +46,7 @@ const (
 var (
 	kubernetesManifestFile string
 	devMode                bool
+	serviceImagePairs      []string
 )
 
 var rootCmd = &cobra.Command{
@@ -102,13 +103,20 @@ var createCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		serviceName, imageName := args[0], args[1]
 
+		pairsMap := parsePairs(serviceImagePairs)
+		pairsMap[serviceName] = imageName
+
+		for key, value := range pairsMap {
+			fmt.Printf("%s: %s\n", key, value)
+		}
+
 		tenantUuid, err := tenant.GetOrCreateUserTenantUUID()
 		if err != nil {
 			log.Fatal("Error getting or creating user tenant UUID", err)
 		}
 
 		logrus.Infof("Creating service %s with image %s in development mode...\n", serviceName, imageName)
-		createDevFlow(tenantUuid.String(), imageName, serviceName)
+		createDevFlow(tenantUuid.String(), pairsMap)
 	},
 }
 
@@ -242,6 +250,8 @@ func init() {
 	flowCmd.AddCommand(listCmd, createCmd, deleteCmd)
 	managerCmd.AddCommand(deployManagerCmd, removeManagerCmd)
 
+	createCmd.Flags().StringSliceVarP(&serviceImagePairs, "service-image", "s", []string{}, "Extra service and respective image to include in the same flow (can be used multiple times)")
+
 	deployCmd.PersistentFlags().StringVarP(&kubernetesManifestFile, "k8s-manifest", "k", "", "Path to the K8S manifest file")
 	deployCmd.MarkPersistentFlagRequired("k8s-manifest")
 }
@@ -257,6 +267,17 @@ func loadKubernetesManifestFile(filename string) ([]byte, error) {
 	}
 
 	return fileBytes, nil
+}
+
+func parsePairs(pairs []string) map[string]string {
+	pairsMap := make(map[string]string)
+	for _, pair := range pairs {
+		kv := strings.SplitN(pair, "=", 2)
+		if len(kv) == 2 {
+			pairsMap[kv[0]] = kv[1]
+		}
+	}
+	return pairsMap
 }
 
 func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.ServiceConfig, error) {
@@ -347,15 +368,20 @@ func listDevFlow(tenantUuid api_types.Uuid) {
 	os.Exit(1)
 }
 
-func createDevFlow(tenantUuid api_types.Uuid, imageLocator, serviceName string) {
+func createDevFlow(tenantUuid api_types.Uuid, pairsMap map[string]string) {
 	ctx := context.Background()
 
-	devSpec := api_types.FlowSpec{
-		{
-			ServiceName:  serviceName,
+	devSpec := api_types.FlowSpec{}
+	for serviceName, imageLocator := range pairsMap {
+		devSpec = append(devSpec, struct {
+			ImageLocator string `json:"image-locator"`
+			ServiceName  string `json:"service-name"`
+		}{
 			ImageLocator: imageLocator,
-		},
+			ServiceName:  serviceName,
+		})
 	}
+
 	client := getKontrolServiceClient()
 
 	resp, err := client.PostTenantUuidFlowCreateWithResponse(ctx, tenantUuid, devSpec)
