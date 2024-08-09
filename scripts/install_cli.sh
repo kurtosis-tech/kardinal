@@ -142,7 +142,6 @@ if [ -f "$BIN_FOLDER/$BINARY_NAME" ]; then
 	else
 		echo "Kardinal was installed before, just updated it."
 		echo ""
-    post_install_questions
 	fi
 else
 	echo "Failed to install $BINARY_NAME. Please try again."
