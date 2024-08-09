@@ -1,10 +1,11 @@
 export const metadata = {
-  title: "Kardinal Docs | Stateful Service Plugins",
+  title: "Kardinal Docs | Plugins",
 };
 
-# Stateful Service Plugins
+# Plugins
 
-The Plugin System allow developers to write Python-based plugins that can dynamically alter Kubernetes deployment specs, providing a way to handle stateful services and managed services in a safer manner.
+Kardinal leverages a plugin system that allows developers to encode logic of how dev versions of stateful services (databases, queues, APIs) and external services (Stripe API, Mailchimp, managed database like Amazon RDS or Neon DB) should be handled.
+Plugins work by offering developers an api to write Python-based scripts that can dynamically alter Kubernetes deployment specs, providing a way to handle stateful and external services in a safer manner.
 
 ## How It Works
 
@@ -80,7 +81,6 @@ def delete_flow(config_map, flow_uuid):
 1. **Error Handling**: Implement proper error handling; raise an error and a non zero exit code if the plugin fails
 1. **Config Map Usage**: Use the config map to store any information that might be needed during the delete_flow operation.
 
-
 ## Associating Plugins with Kubernetes Services
 
 In the Kardinal system, plugins are associated with specific services in your Kubernetes cluster using annotations. This allows you to specify which plugins should be applied to each service, providing fine-grained control over your deployment modifications.
@@ -116,10 +116,12 @@ spec:
 
 ### Annotation Structure
 
-The `kardinal.dev.service/plugins` annotation uses a YAML-formatted list of plugins. Each plugin in the list has two main parts:
+The `kardinal.dev.service/plugins` annotation uses a YAML-formatted list of plugins. Each plugin in the list has four main parameters:
 
 1. `name`: This is the GitHub repository URL of the plugin.
 2. `args`: These are the arguments that will be passed to the plugin's `create_flow` function.
+3. `type`: The type of service a plugin is being used for - currently the two options are `stateful` and `external` (optional)
+4. `serviceName`: The name to refer to this service as in the Kardinal topology. (required only for `external` services)
 
 You can specify multiple plugins for a single service by adding more items to the list:
 
@@ -136,13 +138,16 @@ annotations:
 
 ### Plugin Execution
 
-When Kardinal processes your service, it will:
+When creating a dev flow, Kardinal determines which services to create a dev version of. For all services that require a dev version, Kardinal will:
 
 1. Read the `kardinal.dev.service/plugins` annotation.
 2. For each plugin listed:
    - Fetch the plugin code from the specified GitHub repository.
    - Execute the plugin's `create_flow` function, passing in the service spec, deployment spec, a generated flow UUID, and any arguments specified in the `args` section.
-   - Apply the modifications returned by the plugin to the deployment spec.
+   - Create a dev version of the service based on the deployment spec returned by the plugin.
+
+When deleting the dev flow and removing dev versions of services, Kardinal will call the `delete_flow` function on all plugins to clean up resources.
+For example, in the `neondb-plugin`, the `delete_flow` operation cleans up the Neon database branch created for that dev flow.
 
 ### Plugin Annotation Best Practices
 
@@ -151,8 +156,223 @@ When Kardinal processes your service, it will:
 
 By using annotations in your Kubernetes service specs, you can easily associate Kardinal plugins with specific services. This allows for powerful, targeted modifications to your deployments, enhancing the flexibility and manageability of your Kubernetes applications.
 
+## Types of Plugins
+
+Currently, there are two ways to use plugins in your Kubernetes application - on a stateful service inside the cluster or on an external service.
+The usage of plugins for these cases slightly differs.
+
+### Stateful Service Plugins
+
+In order for Kardinal to guarantee data isolation and safety, Kardinal needs to know how to create "dev" versions of stateful services in your cluster.
+The level of data isolation and semantics of "dev" version will be highly dependent on your service, application, and development needs.
+This is where we can leverage a plugin to encode this information.
+
+For example, say we have a `postgres` database in our cluster. When creating dev flows, we'll avoid touching the "prod" postgres database by using the [`postgres-seed-plugin`](https://github.com/kurtosis-tech/postgres-seed-plugin) like so:
+
+```
+...
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-v1
+  labels:
+    app: postgres
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: postgres
+        version: v1
+    spec:
+      containers:
+        - name: postgres
+          image: 'postgres:14'
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: "cart"
+            - name: POSTGRES_USER
+              value: "postgresuser"
+            - name: POSTGRES_PASSWORD
+              value: "postgrespass"
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgres-data
+      volumes:
+        - name: postgres-data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  labels:
+    app: postgres
+    version: v1
+  annotations:
+    kardinal.dev.service/stateful: "true"
+    kardinal.dev.service/plugins: |
+      - name: github.com/kurtosis-tech/postgres-seed-plugin
+        args:
+          seed_script: |
+            --  create the table
+            CREATE TABLE IF NOT EXISTS public.items(
+                id bigserial PRIMARY KEY,
+                created_at TIMESTAMP WITH TIME ZONE,
+                updated_at TIMESTAMP WITH TIME ZONE,
+                deleted_at TIMESTAMP WITH TIME ZONE,
+                user_id TEXT,
+                product_id TEXT,
+                quantity INTEGER
+            );
+            INSERT INTO public.items (id, created_at, updated_at, deleted_at, user_id, product_id, quantity)
+            VALUES (1, '2024-08-02 13:02:07.656104 +00:00', '2024-08-02 13:02:07.656104 +00:00', null, '0494c5e0-dde0-48fa-a6d8-f7962f5476bf', '66VCHSJNUP', 1);
+            INSERT INTO public.items (id, created_at, updated_at, deleted_at, user_id, product_id, quantity)
+            VALUES (2, '2024-08-02 13:02:10.891407 +00:00', '2024-08-02 13:02:10.891407 +00:00', null, '0494c5e0-dde0-48fa-a6d8-f7962f5476bf', '2ZYFJ3GM2N', 1);
+            -- Set the sequence to the correct value after inserting records
+            SELECT setval('public.items_id_seq', (SELECT MAX(id) FROM public.items));
+          db_name: "cart"
+          db_user: "postgresuser"
+          db_password: "postgrespass"
+spec:
+  type: ClusterIP
+  ports:
+    - name: tcp
+      port: 5432
+      targetPort: 5432
+      protocol: TCP
+  selector:
+    app: postgres
+---
+...
+```
+
+Anytime a dev version of `postgres` is called, the `postgres-seed-plugin` is called that will return a deployment spec starting a fresh instance of postgres using the provided seed script.
+This deployment spec will then be used to create the dev postgres instance. Notice how the plugin encapsulates the semantics of the "dev" version of postgres in our instance - and can be updated in case our requirements ever change.
+
+### External Service Plugins
+
+External services are any service outside a clusters that a service inside depends on. This can be managed databases or queues or APIs like Stripe or Mailchimpthat a service inside depends on. (Note external services can also be stateful!) This can be managed databases or queues or APIs like Stripe or Mailchimp.
+Using plugins to handle dev versions of external services works very similarly.
+
+The difference is that the plugin annotation gets added to the service spec of the service that depends on the external service. Accordingly, when writing the plugin, the plugin will be modifying the deployment spec of the dependent service.
+
+For example, say we have a `cartservice` in our app that depends on an external [Neon](neon.tech) DB. When creating dev flows, we'll avoid touching the "prod" Neon database by using the [`neondb-plugin`](https://github.com/kurtosis-tech/neondb-plugin) like so:
+
+```
+...
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cartservice-v1
+  labels:
+    app: cartservice
+    version: v1
+spec:
+  selector:
+    matchLabels:
+      app: cartservice
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: cartservice
+        version: v1
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+        - name: server
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - all
+            privileged: false
+            readOnlyRootFilesystem: true
+          image: tedim52/newobd-cartservice:0.0.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8090
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8090
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8090
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          env:
+            # if POSTGRES is set, uses this to connect
+            # otherwise uses environment variables below
+            - name: POSTGRES
+              value: ""
+            - name: PORT
+              value: "8090"
+            - name: DB_USERNAME
+              value: "postgresuser"
+            - name: DB_PASSWORD
+              value: "postgrespass"
+            - name: DB_HOST
+              value: "postgres"
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: "cart"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cartservice
+  labels:
+    app: cartservice
+    version: v1
+  annotations:
+    kardinal.dev.service/plugins: |
+      - name: https://github.com/kurtosis-tech/neondb-plugin.git
+        type: external
+        servicename: neon-postgres-db
+        args:
+          NEON_API_KEY: ""
+          NEON_PROJECT_ID: ""
+          NEON_FORK_FROM_BRANCH_ID: ""
+spec:
+  type: ClusterIP
+  selector:
+    app: cartservice
+  ports:
+    - name: http
+      port: 8090
+      targetPort: 8090
+      protocol: TCP
+      appProtocol: HTTP
+---
+...
+```
+
+Anytime a dev version of `cartservice` is called, the `neondb-plugin` is called. The plugin will create a dev database branch, forked off of main. It will then return a modified deployment spec starting a dev version of the cartservice that points to the dev database branch.
+Notice how here, the plugin annotation goes on the service depending on the external service and this is the deployment spec being modified, in this case, the `cartservice`.
+Also, notice we add `type:external` and `serviceName:neon-postgres-db` to tell Kardinal this service is external and how to refer to it.
+
 ## Existing plugins
 
-1. [Redis Sidecar Plugin](https://github.com/kurtosis-tech/redis-sidecar-plugin) - Adds a  thin layer over redis that  allows for shared reads and isolated writes
+1. [Redis Sidecar Plugin](https://github.com/kurtosis-tech/redis-sidecar-plugin) - Adds a thin layer over redis that allows for shared reads and isolated writes
 1. [Neon DB Plugin](https://github.com/kurtosis-tech/neondb-plugin) - Creates a new branch for the database you are using
 1. [Postgres Seed Plugin](https://github.com/kurtosis-tech/postgres-seed-plugin) - Allows you to spin up a postgres database with seeded data
