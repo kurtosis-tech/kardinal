@@ -3,16 +3,16 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"kardinal.cli/consts"
+	"kardinal.cli/multi_os_cmd_executor"
 	"log"
 	"os"
 	"path"
 	"strings"
 
-	"kardinal.cli/consts"
-	"kardinal.cli/multi_os_cmd_executor"
-
 	"github.com/kurtosis-tech/stacktrace"
 	"github.com/samber/lo"
+	"github.com/segmentio/analytics-go/v3"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"kardinal.cli/deployment"
@@ -236,6 +236,28 @@ var gatewayCmd = &cobra.Command{
 	},
 }
 
+var reportInstall = &cobra.Command{
+	Use:   "report-install",
+	Short: "Help us improve and grow Kardinal by anonymously reporting your install",
+	Args:  cobra.ExactArgs(0),
+	Run: func(cmr *cobra.Command, args []string) {
+		tenantUuid, err := tenant.GetOrCreateUserTenantUUID()
+		if err != nil {
+			log.Fatal("Error getting or creating user tenant UUID", err)
+		}
+		// This write key is not sensitive. It is equivalent to a public key.
+		analyticsClient := analytics.New("IMYNcUACcPpcIJuS6ChHpMd4z4ZpvVFq")
+		defer analyticsClient.Close()
+
+		analyticsClient.Enqueue(analytics.Track{
+			Event:      "install_cli",
+			UserId:     tenantUuid.String(),
+			Properties: analytics.NewProperties(),
+		})
+		log.Println("Thank you for helping us improve Kardinal! 🧡")
+	},
+}
+
 func init() {
 	devMode = false
 	if os.Getenv("KARDINAL_CLI_DEV_MODE") == "TRUE" {
@@ -247,6 +269,7 @@ func init() {
 	rootCmd.AddCommand(deployCmd)
 	rootCmd.AddCommand(dashboardCmd)
 	rootCmd.AddCommand(gatewayCmd)
+	rootCmd.AddCommand(reportInstall)
 	flowCmd.AddCommand(listCmd, createCmd, deleteCmd)
 	managerCmd.AddCommand(deployManagerCmd, removeManagerCmd)
 
@@ -254,6 +277,7 @@ func init() {
 
 	deployCmd.PersistentFlags().StringVarP(&kubernetesManifestFile, "k8s-manifest", "k", "", "Path to the K8S manifest file")
 	deployCmd.MarkPersistentFlagRequired("k8s-manifest")
+
 }
 
 func Execute() error {
