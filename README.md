@@ -12,7 +12,7 @@
 
 ## What is Kardinal?
 
-Kardinal allows you to create many logical dev or test environments for your application inside of a single Kubernetes cluster. Instead of implementing isolation between environments at the cluster level, Kardinal implements isolation by deploying development versions of services side-by-side with their "staging" versions, and creating isolated traffic routes through the cluster. Because logical environments in Kardinal are defined by the flow of traffic through a single cluster, we call them [flows](https://kardinal.dev/docs/concepts/flows).
+Kardinal allows you to create many logical dev or test environments for your application inside of a single Kubernetes cluster. Instead of implementing isolation between environments at the cluster level, Kardinal implements isolation by deploying development versions of services side-by-side with their "stable" versions, and creating isolated traffic routes through the cluster. Because logical environments in Kardinal are defined by the flow of traffic through a single cluster, we call them [flows](https://kardinal.dev/docs/concepts/flows).
 
 There are many ways to isolate different environments in the context of cloud/Kubernetes deployments. To get an idea of how Kardinal fits into other methods, see the table below:
 
