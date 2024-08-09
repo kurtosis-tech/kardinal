@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.12](https://github.com/kurtosis-tech/kardinal/compare/0.1.11...0.1.12) (2024-08-09)
+
+
+### Features
+
+* add multi-service support ([#128](https://github.com/kurtosis-tech/kardinal/issues/128)) ([720d61e](https://github.com/kurtosis-tech/kardinal/commit/720d61e05b14b8db4a51bf9486c32c0cc73d90ab))
+* add option to anonymously report install ([#133](https://github.com/kurtosis-tech/kardinal/issues/133)) ([48384f6](https://github.com/kurtosis-tech/kardinal/commit/48384f627db52c5fc18b03b017e46b6e03853613))
+
+
+### Bug Fixes
+
+* dont hide the nav on docs ([#134](https://github.com/kurtosis-tech/kardinal/issues/134)) ([0695a09](https://github.com/kurtosis-tech/kardinal/commit/0695a09baf4f032c94bee2b8f1a6afa9b3ec960f))
+
 ## [0.1.11](https://github.com/kurtosis-tech/kardinal/compare/0.1.10...0.1.11) (2024-08-08)
 
 
