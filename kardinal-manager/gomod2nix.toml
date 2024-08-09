@@ -364,6 +364,15 @@ schema = 3
   [mod."github.com/schollz/closestmatch"]
     version = "v2.1.0+incompatible"
     hash = "sha256-SpWqGfqlMkZPQ6TSf7NTaYMbQllBaBgPM8oxTBOTn7w="
+  [mod."github.com/segmentio/analytics-go/v3"]
+    version = "v3.3.0"
+    hash = "sha256-4uaqp8P59nvmihaLwJFBBCFREjHe1q969plWS8qIyHw="
+  [mod."github.com/segmentio/backo-go"]
+    version = "v1.0.0"
+    hash = "sha256-zeabw/evmjj+0Enxug+KzvJQk2LFXz8Yd3t1mJ1YHyI="
+  [mod."github.com/segmentio/conf"]
+    version = "v1.2.0"
+    hash = "sha256-eInV5kwGAToAkh+rQcVatK768cbciEcgo7/k3o7bvYA="
   [mod."github.com/sirupsen/logrus"]
     version = "v1.9.3"
     hash = "sha256-EnxsWdEUPYid+aZ9H4/iMTs1XMvCLbXZRDyvj89Ebms="
