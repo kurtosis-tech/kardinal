@@ -75,6 +75,12 @@ Here is an example of creating a dev flow for the frontend service, using an ima
 kardinal flow create frontend leoporoli/newobd-frontend:0.0.6
 ```
 
+If more than one service is required for your development environment, you can specify multiple services in the same command with the flag `-s`. For example, to create a dev flow with the frontend and cart services:
+
+```bash
+kardinal flow create frontend leoporoli/newobd-frontend:0.0.6 -s productcatalogservice=leoporoli/newobd-productcatalogservice:0.0.3 -s cartservice=leoporoli/newobd-cartservice:0.0.3
+```
+
 This command will output a URL that you can use to access the frontend of the development environment. You can view the frontend of the application by going to the URL provided.
 
 Notice that there are already items in your cart in the development environment. We've configured the development "flow" in this demo to run with it's own database which is seeded with test data. This demonstrates how dev flows can be configured with the data that the development team needs to do their testing work.
