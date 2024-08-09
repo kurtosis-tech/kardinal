@@ -9,24 +9,33 @@ import Collapsible from '@/components/Collapsible';
 
 To use Kardinal, you will need a Kubernetes cluster with Istio installed. You will also need `kubectl` installed on your machine, pointing to your cluster.
 
-If you'd like to use a local Kubernetes cluster to try out Kardinal, you can refer to the first step of our [demo app guide](getting-started/demo) to get a local minikube Kubernetes cluster up and running.
+If you'd like to use a local Kubernetes cluster to try out Kardinal, you can refer to the first step of our [demo app guide](getting-started/demo) to get a local minikube Kubernetes cluster with Istio up and running.
 
 *Application Requirements*
 
-To work with Kardinal, your application needs to meet two main requirements:
+Kardinal uses trace IDs to route requests between different development versions of services. To work with Kardinal, your application just needs to have distributed tracing.
 
-1. You can define a dependency graph of your services
-2. You have distributed tracing in your services
+Kardinal integrates with the following trace headers (tracing systems) out of the box:
 
-If you can't yet fulfill these requirements, our [demo app](getting-started/demo) is a great way to explore Kardinal until those two prerequisites are met.
+<Collapsible title="Supported Distributed Tracing Systems">
+```
+"x-b3-traceid",           -- Zipkin B3
+"x-request-id",           -- General request ID, often used for tracing
+"x-cloud-trace-context",  -- Google Cloud Trace
+"x-amzn-trace-id",        -- AWS X-Ray
+"traceparent",            -- W3C Trace Context
+"uber-trace-id",          -- Jaeger
+"x-datadog-trace-id"      -- Datadog
+```
 
-<Collapsible title="⚠️ Note: Defining dependencies for all your services">
-Right now, Kardinal requires a complete service dependency graph to be defined in your Kubernetes manifests for you to get started. We will remove this requirement very soon, but for now, it's a must.
+If you want to use a tracing system that isn't listed here, you can submit an [issue](https://github.com/kurtosis-tech/kardinal/issues) or a [PR](https://github.com/kurtosis-tech/kardinal/pulls) and we'll add it.
 </Collapsible>
 
 ### Part 1: Add Kardinal Annotations to your Manifests
 
 Kardinal uses annotations on your Kubernetes manifests to get an understanding of your system and how to handle its various dev and testing workflow needs.
+
+To get started, you just need to add the `kardinal.dev.service/ingress` and `kardinal.dev.service/host` annotations to your Kubernetes manifests.
 
 To demonstrate how to modify your Kubernetes manifest for Kardinal, we'll start with an example Kubernetes manifest and incrementally add Kardinal annotations to it.
 
@@ -338,10 +347,10 @@ This application consists of:
 3. A frontend for the storefront that communicates with the cart service and product catalog service to display info
 
 Now, let's add some annotations. There are a few different annotations we'll need to add to our application:
-1. *`kardinal.dev.service/dependencies`* to specify the dependency graph
-2. *`kardinal.dev.service/ingress`* and *`kardinal.dev.service/host`* to specify the ingress point
-4. *`kardinal.dev.service/stateful`* to specify what services hold state
-5. *`kardinal.dev.service/plugins`* to specify plugin handlers for external and stateful services
+1. *`kardinal.dev.service/ingress`* and *`kardinal.dev.service/host`* to specify the ingress point
+2. *`kardinal.dev.service/dependencies`* to specify the dependency graph
+3. *`kardinal.dev.service/stateful`* to specify what services hold state
+4. *`kardinal.dev.service/plugins`* to specify plugin handlers for external and stateful services
 
 First, we'll add the *`kardinal.dev.service/dependencies`* annotation to the services that depend on other services.
 
