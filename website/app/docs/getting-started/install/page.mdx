@@ -3,6 +3,12 @@ import Collapsible from '@/components/Collapsible';
 
 # Getting Started On Your Own App
 
+Getting started takes just a few minutes, assuming your application already implements distributed tracing. This guide will walk you through the steps to get started:
+
+1. Annotate your application entrypoint
+2. Deploy your application in a dev cluster via Kardinal
+3. Create a dev flow
+
 ### Requirements
 
 *Cluster Requirements*
@@ -31,13 +37,9 @@ Kardinal integrates with the following trace headers (tracing systems) out of th
 If you want to use a tracing system that isn't listed here, you can submit an [issue](https://github.com/kurtosis-tech/kardinal/issues) or a [PR](https://github.com/kurtosis-tech/kardinal/pulls) and we'll add it.
 </Collapsible>
 
-### Part 1: Add Kardinal Annotations to your Manifests
+*A follow-along example*
 
-Kardinal uses annotations on your Kubernetes manifests to get an understanding of your system and how to handle its various dev and testing workflow needs.
-
-To get started, you just need to add the `kardinal.dev.service/ingress` and `kardinal.dev.service/host` annotations to your Kubernetes manifests.
-
-To demonstrate how to modify your Kubernetes manifest for Kardinal, we'll start with an example Kubernetes manifest and incrementally add Kardinal annotations to it.
+To demonstrate how to modify your Kubernetes manifest for Kardinal, we'll start with an example Kubernetes manifest and add Kardinal annotations to it.
 
 Here's the Kubernetes manifest for an [online boutique store](https://github.com/kurtosis-tech/new-obd) demo:
 
@@ -346,41 +348,13 @@ This application consists of:
 3. A Postgres database for storing cart information
 3. A frontend for the storefront that communicates with the cart service and product catalog service to display info
 
-Now, let's add some annotations. There are a few different annotations we'll need to add to our application:
-1. *`kardinal.dev.service/ingress`* and *`kardinal.dev.service/host`* to specify the ingress point
-2. *`kardinal.dev.service/dependencies`* to specify the dependency graph
-3. *`kardinal.dev.service/stateful`* to specify what services hold state
-4. *`kardinal.dev.service/plugins`* to specify plugin handlers for external and stateful services
+### Step 1: Annotate the Application Entrypoint
 
-First, we'll add the *`kardinal.dev.service/dependencies`* annotation to the services that depend on other services.
-
-To do this, add the *`kardinal.dev.service/dependencies`* annotation to a service with a comma-separated list of the services that it depends on and the protocol it uses to talk to that service. Currently, the annotations supports `tcp` and `http` for protocols.
-
-Here is how we'd update our boutique store application to specify its dependency graph:
-
-```yaml
-
-  ...
-  name: cartservice
-  labels:
-    app: cartservice
-    version: v1
-  annotations:
-    kardinal.dev.service/dependencies: "postgres:tcp"
-  ...
-  metadata:
-    name: frontend
-    labels:
-      app: frontend
-      version: v1
-    annotations:
-      kardinal.dev.service/dependencies: "productcatalogservice:http,cartservice:http"
-  ...
-```
-
-Now, we'll annotate our ingress service with *`kardinal.dev.service/ingress`* and *`kardinal.dev.service/host`*.
+Kardinal uses annotations on your Kubernetes manifests to get an understanding of your system and how to handle its various dev and testing workflow needs.
 
 Kardinal expects there to be exactly one service that acts as an entrypoint into the cluster, usually an load balancer or gateway of some sort that routes traffic into the cluster accordingly.
+
+To get started, you just need to add the `kardinal.dev.service/ingress` and `kardinal.dev.service/host` annotations to mark the main application entrypoint into your cluster.
 
 For our application, we're using a simple `LoadBalancer` that routes all traffic to our frontend so we'll define that as our ingress and use the *`kardinal.dev.service/host`* annotation to give it a hostname we can use to access it.
 
@@ -391,7 +365,7 @@ metadata:
   name: frontend-external
   annotations:
     kardinal.dev.service/ingress: "true"
-    kardinal.dev.service/host: "prod.app.localhost"
+    kardinal.dev.service/host: "main.app.localhost"
 spec:
   type: LoadBalancer
   selector:
@@ -404,513 +378,9 @@ spec:
       appProtocol: HTTP
 ```
 
-Next, we'll add the *`kardinal.dev.service/stateful`* annotation to the services that hold state.
+You can do the same for your application entrypoint. The host name you use here will be the hostname you use to access your application - `main.app.localhost` will work great if you're using a local Kubernetes cluster.
 
-Kardinal needs to know what services in the cluster hold state or data to be persisted. These are usually databases, caches, and message queues - but it could also be backend services that accrues state in memory. Either way, we tell Kardinal about these via the `stateful` annotation.
-
-The only stateful application in our application is the `postgres` database that stores cart information.
-
-```yaml
-
-apiVersion: v1
-kind: Service
-metadata:
-  name: postgres
-  labels:
-    app: postgres
-    version: v1
-  annotations:
-    kardinal.dev.service/stateful: "true"
-```
-
-Finally, we'll add the *`kardinal.dev.service/plugins`* annotation to the services that need it.
-
-To manage persistent state in your system for creating flows, Kardinal uses a plugin ecosystem. These plugins inform Kardinal on how to handle stateful or external applications when creating flows. For more information on plugins, refer to the [plugins doc](../../concepts/plugins).
-
-Our application will leverage the [postgres-seed-plugin](https://github.com/kurtosis-tech/postgres-seed-plugin) to handle our `postgres` database. Anytime a flow is created involving the postgres database, this plugin will create a dev version of the database seeded with a provided script. The args for it can be found [here](https://github.com/kurtosis-tech/postgres-seed-plugin/blob/d2ff1bef180caa6345b6a890673f3a83a347bce2/main.py#L3), after the `flow_uuid` kwaarg.
-
-We'll add this plugin to the `postgres` service, specifying the github repo with the plugin logic and args that the plugin expects: 
-
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: postgres
-  labels:
-    app: postgres
-    version: v1
-  annotations:
-    kardinal.dev.service/stateful: "true"
-    kardinal.dev.service/plugins: |
-      - name: github.com/kurtosis-tech/postgres-seed-plugin
-        args:
-        args:
-          seed_script: |
-            --  create the table
-            CREATE TABLE IF NOT EXISTS public.items(
-                id bigserial PRIMARY KEY,
-                created_at TIMESTAMP WITH TIME ZONE,
-                updated_at TIMESTAMP WITH TIME ZONE,
-                deleted_at TIMESTAMP WITH TIME ZONE,
-                user_id TEXT,
-                product_id TEXT,
-                quantity INTEGER
-            );
-            INSERT INTO public.items (id, created_at, updated_at, deleted_at, user_id, product_id, quantity) 
-            VALUES (1, '2024-08-02 13:02:07.656104 +00:00', '2024-08-02 13:02:07.656104 +00:00', null, '0494c5e0-dde0-48fa-a6d8-f7962f5476bf', '66VCHSJNUP', 1);
-            INSERT INTO public.items (id, created_at, updated_at, deleted_at, user_id, product_id, quantity) 
-            VALUES (2, '2024-08-02 13:02:10.891407 +00:00', '2024-08-02 13:02:10.891407 +00:00', null, '0494c5e0-dde0-48fa-a6d8-f7962f5476bf', '2ZYFJ3GM2N', 1);
-            -- Set the sequence to the correct value after inserting records
-```
-
-Additionally, we can use plugins to handle external services like third party APIs (eg. Stripe, Mailchimp) and managed databases and queues (eg. AWS Postgres).
-
-Our frontend service depends on the [Free Currency API](https://freecurrencyapi.com/). Luckily, dev versions of our frontend will communicate with this API in the same way, but we can still use a plugin + plugin annotation so that Kardinal will display the external API in the dashboard.
-
-We add external service plugins as an annotation on the service that depends on it in the manifest similar to the stateful plugin, but we'll add the `type` and `servicename` fields.
-
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: frontend
-  labels:
-    app: frontend
-    version: v1
-  annotations:
-    kardinal.dev.service/dependencies: "productcatalogservice:http,cartservice:http"
-    kardinal.dev.service/plugins: |
-      - name: github.com/kurtosis-tech/free-currency-api-plugin
-        type: external
-        servicename: free-currency-api
-        args:
-          api_key: fca_live_VKZlykCWEiFcpBHnw74pzd4vLi04q1h9JySbVHDF
-```
-
-Congrats! You've added all the annotations Kardinal needs to work with your application. We're halfway there.
-
-<Collapsible title="⚠️ Warning: Make sure HTTP ports are marked with appProtocol">
-Please mark services that use HTTP with *`appProtocol: HTTP`* and list them as the first port in your configuration.
-
-Example:
-
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: productcatalogservice
-  labels:
-    app: productcatalogservice
-    version: v1
-spec:
-  type: ClusterIP
-  selector:
-  app: productcatalogservice
-  ports:
-  - name: http
-    port: 8070
-    targetPort: 8070
-    protocol: TCP
-    appProtocol: http
-```
-
-The first port in a given service needs to be marked with `appProtocol: HTTP`; this is a limitation that we are actively working on.
-</Collapsible>
-
-The manifest should all together look like:
-
-<Collapsible title="Fully Annotated Demo Kubernetes Manifest">
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: cartservice-v1
-  labels:
-    app: cartservice
-    version: v1
-spec:
-  selector:
-    matchLabels:
-      app: cartservice
-      version: v1
-  template:
-    metadata:
-      labels:
-        app: cartservice
-        version: v1
-    spec:
-      terminationGracePeriodSeconds: 5
-      containers:
-        - name: server
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - all
-            privileged: false
-            readOnlyRootFilesystem: true
-          image: leoporoli/newobd-cartservice:0.0.3
-          imagePullPolicy: IfNotPresent
-          ports:
-            - containerPort: 8090
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 8090
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 3
-            successThreshold: 1
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 8090
-            initialDelaySeconds: 15
-            periodSeconds: 20
-            timeoutSeconds: 5
-            failureThreshold: 3
-          env:
-            - name: PORT
-              value: "8090"
-            - name: DB_USERNAME
-              value: "postgresuser"
-            - name: DB_PASSWORD
-              value: "postgrespass"
-            - name: DB_HOST
-              value: "postgres"
-            - name: DB_PORT
-              value: "5432"
-            - name: DB_NAME
-              value: "cart"
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: cartservice
-  labels:
-    app: cartservice
-    version: v1
-  annotations:
-    kardinal.dev.service/dependencies: "postgres:tcp"
-spec:
-  type: ClusterIP
-  selector:
-    app: cartservice
-  ports:
-    - name: http
-      port: 8090
-      targetPort: 8090
-      protocol: TCP
-      appProtocol: HTTP
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: frontend-v1
-  labels:
-    app: frontend
-    version: v1
-spec:
-  selector:
-    matchLabels:
-      app: frontend
-      version: v1
-  template:
-    metadata:
-      labels:
-        app: frontend
-        version: v1
-      annotations:
-        sidecar.istio.io/rewriteAppHTTPProbers: "true"
-    spec:
-      containers:
-        - name: server
-          image: leoporoli/newobd-frontend:0.0.6
-          imagePullPolicy: IfNotPresent
-          ports:
-            - containerPort: 8080
-          readinessProbe:
-            initialDelaySeconds: 10
-            httpGet:
-              path: "/_healthz"
-              port: 8080
-              httpHeaders:
-                - name: "Cookie"
-                  value: "shop_session-id=x-readiness-probe"
-          livenessProbe:
-            initialDelaySeconds: 10
-            httpGet:
-              path: "/_healthz"
-              port: 8080
-              httpHeaders:
-                - name: "Cookie"
-                  value: "shop_session-id=x-liveness-probe"
-          env:
-            - name: ADDRESS
-              value: ":8080"
-            - name: FREECURRENCYAPIKEY
-              value: "fca_live_nFVVF8CvfxqJhzMHB4N2x1NH7ffVVPwZr9hg3iNl"
-            - name: CARTSERVICEHOST
-              value: cartservice
-            - name: PRODUCTCATALOGSERVICEHOST
-              value: productcatalogservice
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: frontend
-  labels:
-    app: frontend
-    version: v1
-  annotations:
-    kardinal.dev.service/dependencies: "productcatalogservice:http,cartservice:http"
-    kardinal.dev.service/plugins: |
-      - name: github.com/kurtosis-tech/free-currency-api-plugin
-        type: external
-        servicename: free-currency-api
-        args:
-          api_key: fca_live_VKZlykCWEiFcpBHnw74pzd4vLi04q1h9JySbVHDF
-spec:
-  type: ClusterIP
-  selector:
-    app: frontend
-  ports:
-    - name: http
-      port: 80
-      protocol: TCP
-      appProtocol: HTTP
-      targetPort: 8080
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: frontend-external
-  annotations:
-    kardinal.dev.service/ingress: "true"
-    kardinal.dev.service/host: "prod.app.localhost"
-spec:
-  type: LoadBalancer
-  selector:
-    app: frontend
-  ports:
-    - name: http
-      port: 80
-      targetPort: 8080
-      protocol: TCP
-      appProtocol: HTTP
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: postgres-v1
-  labels:
-    app: postgres
-    version: v1
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: postgres
-      version: v1
-  template:
-    metadata:
-      labels:
-        app: postgres
-        version: v1
-    spec:
-      containers:
-        - name: postgres
-          image: 'postgres:14'
-          imagePullPolicy: IfNotPresent
-          ports:
-            - containerPort: 5432
-          env:
-            - name: POSTGRES_DB
-              value: "cart"
-            - name: POSTGRES_USER
-              value: "postgresuser"
-            - name: POSTGRES_PASSWORD
-              value: "postgrespass"
-          volumeMounts:
-            - mountPath: /var/lib/postgresql/data
-              name: postgres-data
-      volumes:
-        - name: postgres-data
-          emptyDir: {}
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: postgres
-  labels:
-    app: postgres
-    version: v1
-  annotations:
-    kardinal.dev.service/stateful: "true"
-    kardinal.dev.service/plugins: |
-      - name: github.com/kurtosis-tech/postgres-seed-plugin
-        args:
-          seed_script: |
-            --  create the table
-            CREATE TABLE IF NOT EXISTS public.items(
-                id bigserial PRIMARY KEY,
-                created_at TIMESTAMP WITH TIME ZONE,
-                updated_at TIMESTAMP WITH TIME ZONE,
-                deleted_at TIMESTAMP WITH TIME ZONE,
-                user_id TEXT,
-                product_id TEXT,
-                quantity INTEGER
-            );
-            INSERT INTO public.items (id, created_at, updated_at, deleted_at, user_id, product_id, quantity) 
-            VALUES (1, '2024-08-02 13:02:07.656104 +00:00', '2024-08-02 13:02:07.656104 +00:00', null, '0494c5e0-dde0-48fa-a6d8-f7962f5476bf', '66VCHSJNUP', 1);
-            INSERT INTO public.items (id, created_at, updated_at, deleted_at, user_id, product_id, quantity) 
-            VALUES (2, '2024-08-02 13:02:10.891407 +00:00', '2024-08-02 13:02:10.891407 +00:00', null, '0494c5e0-dde0-48fa-a6d8-f7962f5476bf', '2ZYFJ3GM2N', 1);
-            -- Set the sequence to the correct value after inserting records
-spec:
-  type: ClusterIP
-  ports:
-    - name: tcp
-      port: 5432
-      targetPort: 5432
-      protocol: TCP
-  selector:
-    app: postgres
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: productcatalogservice-v1
-  labels:
-    app: productcatalogservice
-    version: v1
-spec:
-  selector:
-    matchLabels:
-      app: productcatalogservice
-      version: v1
-  template:
-    metadata:
-      labels:
-        app: productcatalogservice
-        version: v1
-    spec:
-      terminationGracePeriodSeconds: 5
-      containers:
-        - name: server
-          image: leoporoli/newobd-productcatalogservice:0.0.3
-          imagePullPolicy: IfNotPresent
-          ports:
-            - containerPort: 8070
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 8070
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 3
-            successThreshold: 1
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 8070
-            initialDelaySeconds: 15
-            periodSeconds: 20
-            timeoutSeconds: 5
-            failureThreshold: 3
-          env:
-            - name: PORT
-              value: "8070"
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: productcatalogservice
-  labels:
-    app: productcatalogservice
-    version: v1
-spec:
-  type: ClusterIP
-  selector:
-    app: productcatalogservice
-  ports:
-    - name: http
-      port: 8070
-      targetPort: 8070
-      protocol: TCP
-      appProtocol: HTTP
-```
-</Collapsible>
-
-## Part 2: Kardinal Tracing
-
-To support multiple flows utilizing the same services, Kardinal uses trace ids on requests that determine which versions of services in a cluster to route traffic to. Already have distributed tracing implemented? Great! Currently, we support the following trace ids:
-
-```
-"x-b3-traceid",           -- Zipkin B3
-"x-request-id",           -- General request ID, often used for tracing
-"x-cloud-trace-context",  -- Google Cloud Trace
-"x-amzn-trace-id",        -- AWS X-Ray
-"traceparent",            -- W3C Trace Context
-"uber-trace-id",          -- Jaeger
-"x-datadog-trace-id"      -- Datadog
-```
-
-If any of these trace ids are used for tracing throughout your application, Kardinal will use these to route requests for varying flows.
-
-Otherwise, you can integrate Kardinals trace id header by having all HTTP applications forward the `X-Kardinal-Trace-Id` header along with the trace id from the incoming request onto all outgoing requests. Applications that are non-http will be duplicated and Kardinal will handle routing to duplicated versions. To read more about trace ids and how the mechanism works read here:
-
-Here is an example of how we can add logic to attach Kardinal trace ids to our application. 
-
-### Frontend Boutique Store
-
-The frontend is a Golang HTTP server serving html and communicates with the `cartservice` and `productcatalog` service over HTTP via REST APIs following. Thus, the frontend will need to retrieve the trace id header from incoming requests and add it as a header to outgoing requests to the `cartservice` and `productservice`.
-
-
-To accomplish this, we'll create a middleware function called `getSetTraceIdHeaderRequestEditorFcn` that retrieves the trace id from an incoming requests, and returns a function that sets that id value as the `X-Kardinal-Trace-Id` header on a downstream separate request.
-
-```go
-const (
-	KardinalTraceIdHeaderKey = "X-Kardinal-Trace-Id"
-)
-
-func getSetTraceIdHeaderRequestEditorFcn(upsTreamRequest *http.Request) func(ctx context.Context, req *http.Request) error {
-
-	traceID := upsTreamRequest.Header.Get(consts.KardinalTraceIdHeaderKey)
-
-	var setKardinalReqEditorFcn = func(ctx context.Context, req *http.Request) error {
-		req.Header.Set(consts.KardinalTraceIdHeaderKey, traceID)
-		return nil
-	}
-
-	return setKardinalReqEditorFcn
-}
-```
-
-We call this function in every handler. The returned set function then gets passed as a [`RequestEditorFn`](https://github.com/kurtosis-tech/new-obd/blob/57bd02df92afd140327aa1a27924cc8bb2d9cd00/src/cartservice/api/http_rest/client/client.gen.go#L42) (a parameter provided on OpenAPI-generated Rest API clients for callbacks modifying requests) on all outgoing requests. For example, in the handler for the [/products](https://github.com/kurtosis-tech/new-obd/blob/57bd02df92afd140327aa1a27924cc8bb2d9cd00/src/frontend/handlers.go#L117) endpoint - we call `getSetTraceIdHeaderRequestEditorFcn` once, and pass it to outgoing requests to services in our cluster. This way, the Kardinal trace id header gets added to the request and Kardinal will be able to route the request to the proper versions of services in a flow!
-
-```go
-func (server *frontendServer) productHandler(w http.ResponseWriter, r *http.Request) {
-	setKardinalReqEditorFcn := getSetTraceIdHeaderRequestEditorFcn(r)
-	
-	productResponse, err := server.productCatalogService.GetProductsWithResponse(r.Context(), setKardinalReqEditorFcn)
-	
-	...
-	cartResponse, err := fe.cartService.GetCartUserIdWithResponse(r.Context(), userID, setKardinalReqEditorFcn)
-	...
-}
-```
-
-Details will differ for different stacks and languages but the high level idea is to forward the `X-Kardinal-Trace-Id` header value from incoming HTTP requests to all internal(to cluster) outgoing HTTP requests! If you have questions on integrating Kardinal tracing onto your stack, please reach out to us.
-
-
-Note: Currently, trace IDs are only forwarded for http servers. For servers not communicating using HTTP - Kardinal will detect this (using the `kardinal.dev.service/dependencies` annotation) and duplicate the service in the flow to ensure isolation.
-
-## Part 3: Deploy!
+## Step 2: Deploy the main version of your application
 
 Okay, now that we've got Kardinal integrated, let's deploy our application.
 
@@ -942,15 +412,18 @@ Okay, now that we've got Kardinal integrated, let's deploy our application.
     https://app.kardinal.dev/<tenant-id-output-by-CLI>/traffic-configuration
     ```
     
-    or run `kardinal dashboard` to get the link!
+    or run `kardinal dashboard` to get the link.
+
+
+### Step 3: Create a dev flow
     
-4. Create a flow! Pick a service in your application to test a dev image on
+1. Create a flow! Pick a service in your application to test a dev image on
     
     ```yaml
     kardinal flow create frontend-service-name your/new-frontend-image:dev
     ```
     ---
-    eg.
+    In our example, the command would be:
     ```bash
     kardinal flow create frontend leoporoli/newobd-frontend:dev
     INFO[0000] Using tenant UUID 483e3371-ec18-40ca-aaee-54df597d1fd2 
@@ -960,11 +433,12 @@ Okay, now that we've got Kardinal integrated, let's deploy our application.
     
     ```
     
-5. View the flow by returning to the `kardinal dashboard`!
+2. View the flow by returning to the `kardinal dashboard`!
     
-    You should now see both prod and dev versions of the service you created a flow on, along with dev versions of services Kardinal determined needed to be duplicated to provide isolation within the cluster (eg. a dev database). These dev versions should have the `flow-id` output by the command next to them.
     
-6. Interact with the new flow by `kardinal gateway <flow-id>`! 
+    You should now see both main and dev versions of the service you created a flow with. These dev versions should have the `flow-id` output by the command next to them.
+    
+3. Interact with the new flow by `kardinal gateway <flow-id>`! 
     
     ```bash
     $ kardinal gateway dev-qlm1214pgt
@@ -975,4 +449,4 @@ Okay, now that we've got Kardinal integrated, let's deploy our application.
     
     ```
     
-    This command will open a gateway to the entry point - whatever service of your application was annotated with the `kardinal.dev.service/ingress` annotation. Whether the service is a frontend, or api - you can access the dev flow by making requests to the returned endpoint. These requests will flow through your system through only the dev versions of services in for that flow.
+    This command will open a gateway to the entry point - whatever service of your application was annotated with the `kardinal.dev.service/ingress` annotation. Whether the service is a frontend, or api - you can access the dev flow by making requests to the returned endpoint. These requests will flow through your system through only the dev versions of services for that flow.
