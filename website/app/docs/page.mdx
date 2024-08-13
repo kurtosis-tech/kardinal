@@ -6,7 +6,7 @@ export const metadata = {
 
 Kardinal is a framework for creating extremely lightweight development environments within a shared Kubernetes cluster.
 
-In Kardinal, an environment is called a "[flow](concepts/flow)" because it represents a path that a request takes through the cluster. Versions of services that are under development are deployed on-demand, and then shared across all development work that depends on that version.
+In Kardinal, an environment is called a "[flow](concepts/flows)" because it represents a path that a request takes through the cluster. Versions of services that are under development are deployed on-demand, and then shared across all development work that depends on that version.
 
 To test a new feature, Kardinal will deploy the set of services that are changing that feature. Then, when you create a flow, any requests related to testing that feature are routed to those versions.
 
