@@ -33,7 +33,7 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
         "200":
-          description: Dev flow creation status
+          description: Template creation status
           content:
             application/json:
               schema:
@@ -108,6 +108,30 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ClusterTopology"
+
+  /tenant/{uuid}/templates/create:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/uuid"
+      requestBody:
+        description: Create a new template
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TemplateConfig"
+      responses:
+        "500":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "200":
+          description: Dev flow creation status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Template"
+
 
 components:
   responses:
@@ -269,3 +293,31 @@ components:
       required:
         - service
         - deployment
+
+    TemplateConfig:
+      type: object
+      properties:
+        service:
+          type: array
+          items:
+            x-go-type: corev1.Service
+            x-go-type-import:
+              path: k8s.io/api/core/v1
+              name: corev1
+        name:
+            x-go-type: string
+            description: The name to give the template
+        description:
+            x-go-type: string
+            description: The description of the template
+      required:
+        - service
+        - name
+
+    Template:
+      type: object
+      properties:
+        template-id:
+          type: string
+      required:
+        - template-id
