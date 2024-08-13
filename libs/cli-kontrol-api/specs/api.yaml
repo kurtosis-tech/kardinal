@@ -126,7 +126,7 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
         "200":
-          description: Dev flow creation status
+          description: Template creation status
           content:
             application/json:
               schema:
