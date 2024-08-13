@@ -206,7 +206,7 @@ export interface components {
       }[];
     TemplateSpec: {
       /** @description name of the template */
-      "template-id": string;
+      template_name?: string;
       arguments?: {
         [key: string]: unknown;
       };

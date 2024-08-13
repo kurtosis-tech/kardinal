@@ -263,7 +263,7 @@ components:
     TemplateSpec:
       type: object
       properties:
-        template-id:
+        template_name:
           type: string
           description: name of the template
         arguments:
