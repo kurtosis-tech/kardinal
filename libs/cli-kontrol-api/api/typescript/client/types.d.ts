@@ -137,7 +137,7 @@ export interface paths {
         };
       };
       responses: {
-        /** @description Dev flow creation status */
+        /** @description Template creation status */
         200: {
           content: {
             "application/json": components["schemas"]["Template"];
