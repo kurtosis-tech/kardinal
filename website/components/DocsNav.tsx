@@ -20,8 +20,8 @@ const navItems: NavItem[] = [
     path: "getting-started",
     title: "Getting Started",
     children: [
-      { path: "demo", title: "Run on a demo app" },
-      { path: "install", title: "Run on your own app" },
+      { path: "install", title: "Install" },
+      { path: "own-app", title: "Create your first flow" },
     ],
   },
   {
@@ -35,24 +35,6 @@ const navItems: NavItem[] = [
     children: [
       { path: "flows", title: "Flows" },
       { path: "plugins", title: "Stateful Service Plugins" },
-    ],
-  },
-  {
-    path: "use-cases",
-    title: "Use Cases",
-    children: [
-      {
-        path: "isolated-dev-sandbox-flows",
-        title: "Isolated Dev Sandbox Flows",
-      },
-      {
-        path: "preview-and-feature-branch-flows",
-        title: "Preview and Feature Branch Flows",
-      },
-      {
-        path: "qa-flows",
-        title: "QA Flows",
-      },
     ],
   },
 ];

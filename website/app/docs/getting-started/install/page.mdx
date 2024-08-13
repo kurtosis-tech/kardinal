@@ -1,452 +1,52 @@
 import Collapsible from '@/components/Collapsible';
 
+# Install Kardinal
 
-# Getting Started On Your Own App
+In this guide, you'll:
+1. Install the Kardinal CLI on your laptop
+2. Set up a development Kubernetes cluster
+3. Install the Kardinal Manager on your cluster, using the CLI
 
-Getting started takes just a few minutes, assuming your application already implements distributed tracing. This guide will walk you through the steps to get started:
+### Step 1: Install Kardinal
 
-1. Annotate your application entrypoint
-2. Deploy your application in a dev cluster via Kardinal
-3. Create a dev flow
+To install Kardinal, run the following command:
 
-### Requirements
-
-*Cluster Requirements*
-
-To use Kardinal, you will need a Kubernetes cluster with Istio installed. You will also need `kubectl` installed on your machine, pointing to your cluster.
-
-If you'd like to use a local Kubernetes cluster to try out Kardinal, you can refer to the first step of our [demo app guide](getting-started/demo) to get a local minikube Kubernetes cluster with Istio up and running.
-
-*Application Requirements*
-
-Kardinal uses trace IDs to route requests between different development versions of services. To work with Kardinal, your application just needs to have distributed tracing.
-
-Kardinal integrates with the following trace headers (tracing systems) out of the box:
-
-<Collapsible title="Supported Distributed Tracing Systems">
-```
-"x-b3-traceid",           -- Zipkin B3
-"x-request-id",           -- General request ID, often used for tracing
-"x-cloud-trace-context",  -- Google Cloud Trace
-"x-amzn-trace-id",        -- AWS X-Ray
-"traceparent",            -- W3C Trace Context
-"uber-trace-id",          -- Jaeger
-"x-datadog-trace-id"      -- Datadog
+```bash
+curl get.kardinal.dev -sL | sh
 ```
 
-If you want to use a tracing system that isn't listed here, you can submit an [issue](https://github.com/kurtosis-tech/kardinal/issues) or a [PR](https://github.com/kurtosis-tech/kardinal/pulls) and we'll add it.
+### Step 2: Set up a development Kubernetes cluster
+
+All you need is a Kubernetes cluster with Istio enabled, and `kubectl` installed on your machine, pointing to your cluster.
+
+For instructions on how to set up a local cluster that meets these requirements, see below:
+
+<Collapsible title="Minikube with Docker">
+
+Install the following on your machine:
+
+- [Docker](https://docs.docker.com/get-docker/)
+- [Minikube](https://minikube.sigs.k8s.io/docs/start/)
+- [Kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
+- [Istio](https://istio.io/latest/docs/setup/getting-started/)
+
+
+
+Then, run Minikube with Istio enabled:
+
+```bash
+minikube start --driver=docker --cpus=10 --memory 8192 --disk-size 32g
+minikube addons enable ingress
+minikube addons enable metrics-server
+istioctl install --set profile=default -y
+```
+
 </Collapsible>
 
-*A follow-along example*
+### Step 3: Deploy the Kardinal Manager to your cluster
 
-To demonstrate how to modify your Kubernetes manifest for Kardinal, we'll start with an example Kubernetes manifest and add Kardinal annotations to it.
+Make sure that `kubectl` is pointing to your cluster, and then run the following command:
 
-Here's the Kubernetes manifest for an [online boutique store](https://github.com/kurtosis-tech/new-obd) demo:
-
-<Collapsible title="Demo Application Kubernetes Manifest">
-
-```yaml
-
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: cartservice-v1
-  labels:
-    app: cartservice
-    version: v1
-spec:
-  selector:
-    matchLabels:
-      app: cartservice
-      version: v1
-  template:
-    metadata:
-      labels:
-        app: cartservice
-        version: v1
-    spec:
-      terminationGracePeriodSeconds: 5
-      containers:
-        - name: server
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - all
-            privileged: false
-            readOnlyRootFilesystem: true
-          image: leoporoli/newobd-cartservice:0.0.3
-          imagePullPolicy: IfNotPresent
-          ports:
-            - containerPort: 8090
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 8090
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 3
-            successThreshold: 1
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 8090
-            initialDelaySeconds: 15
-            periodSeconds: 20
-            timeoutSeconds: 5
-            failureThreshold: 3
-          env:
-            - name: PORT
-              value: "8090"
-            - name: DB_USERNAME
-              value: "postgresuser"
-            - name: POSTGRES_USER
-              value: "postgresuser"
-            - name: POSTGRES_PASSWORD
-              value: "postgrespass"
-           volumeMounts:
-            - name: DB_HOST
-              value: "postgres"
-            - name: DB_PORT
-              value: "5432"
-            - name: DB_NAME
-              value: "cart"
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: cartservice
-  labels:
-    app: cartservice
-    version: v1
-spec:
-  type: ClusterIP
-  selector:
-    app: cartservice
-  ports:
-    - name: http
-      port: 8090
-      targetPort: 8090
-      protocol: TCP
-      appProtocol: HTTP
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: frontend-v1
-  labels:
-    app: frontend
-    version: v1
-spec:
-  selector:
-    matchLabels:
-      app: frontend
-      version: v1
-  template:
-    metadata:
-      labels:
-        app: frontend
-        version: v1
-      annotations:
-        sidecar.istio.io/rewriteAppHTTPProbers: "true"
-    spec:
-      containers:
-        - name: server
-          image: leoporoli/newobd-frontend:0.0.6
-          imagePullPolicy: IfNotPresent
-          ports:
-            - containerPort: 8080
-          readinessProbe:
-            initialDelaySeconds: 10
-            httpGet:
-              path: "/_healthz"
-              port: 8080
-              httpHeaders:
-                - name: "Cookie"
-                  value: "shop_session-id=x-readiness-probe"
-          livenessProbe:
-            initialDelaySeconds: 10
-            httpGet:
-              path: "/_healthz"
-              port: 8080
-              httpHeaders:
-                - name: "Cookie"
-                  value: "shop_session-id=x-liveness-probe"
-          env:
-            - name: ADDRESS
-              value: ":8080"
-            - name: FREECURRENCYAPIKEY
-              value: "fca_live_nFVVF8CvfxqJhzMHB4N2x1NH7ffVVPwZr9hg3iNl"
-            - name: CARTSERVICEHOST
-              value: cartservice
-            - name: PRODUCTCATALOGSERVICEHOST
-              value: productcatalogservice
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: frontend
-  labels:
-    app: frontend
-    version: v1
-spec:
-  type: ClusterIP
-  selector:
-    app: frontend
-  ports:
-    - name: http
-      port: 80
-      protocol: TCP
-      appProtocol: HTTP
-      targetPort: 8080
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: frontend-external
-spec:
-  type: LoadBalancer
-  selector:
-    app: frontend
-  ports:
-    - name: http
-      port: 80
-      targetPort: 8080
-      protocl: TCP
-      appProtocol: HTTP
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: postgres-v1
-  labels:
-    app: postgres
-    version: v1
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: postgres
-      version: v1
-  template:
-    metadata:
-      labels:
-        app: postgres
-        version: v1
-    spec:
-      containers:
-        - name: postgres
-          image: 'postgres:14'
-          imagePullPolicy: IfNotPresent
-          ports:
-            - containerPort: 5432
-          env:
-            - name: POSTGRES_DB
-              value: "cart"
-            - name: POSTGRES_USER
-              value: "postgresuser"
-            - name: POSTGRES_PASSWORD
-              value: "postgrespass"
-          volumeMounts:
-            - mountPath: /var/lib/postgresql/data
-              name: postgres-data
-      volumes:
-        - name: postgres-data
-          emptyDir: {}
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: postgres
-  labels:
-    app: postgres
-    version: v1
-spec:
-  type: ClusterIP
-  ports:
-    - name: tcp
-      port: 5432
-      targetPort: 5432
-      protocol: TCP
-  selector:
-    app: postgres
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: productcatalogservice-v1
-  labels:
-    app: productcatalogservice
-    version: v1
-spec:
-  selector:
-    matchLabels:
-      app: productcatalogservice
-      version: v1
-  template:
-    metadata:
-      labels:
-        app: productcatalogservice
-        version: v1
-    spec:
-      terminationGracePeriodSeconds: 5
-      containers:
-        - name: server
-          image: leoporoli/newobd-productcatalogservice:0.0.3
-          imagePullPolicy: IfNotPresent
-          ports:
-            - containerPort: 8070
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 8070
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 3
-            successThreshold: 1
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 8070
-            initialDelaySeconds: 15
-            periodSeconds: 20
-            timeoutSeconds: 5
-            failureThreshold: 3
-          env:
-            - name: PORT
-              value: "8070"
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: productcatalogservice
-  labels:
-    app: productcatalogservice
-    version: v1
-spec:
-  type: ClusterIP
-  selector:
-    app: productcatalogservice
-  ports:
-    - name: http
-      port: 8070
-      targetPort: 8070
-      protocol: TCP
-      appProtocol: http
+```bash
+kardinal manager deploy kloud-kontrol
 ```
-</Collapsible>
-
-This application consists of:
-
-1. A product catalog service to provide information about available products available
-2. A cart service to manage a users cart
-3. A Postgres database for storing cart information
-3. A frontend for the storefront that communicates with the cart service and product catalog service to display info
-
-### Step 1: Annotate the Application Entrypoint
-
-Kardinal uses annotations on your Kubernetes manifests to get an understanding of your system and how to handle its various dev and testing workflow needs.
-
-Kardinal expects there to be exactly one service that acts as an entrypoint into the cluster, usually an load balancer or gateway of some sort that routes traffic into the cluster accordingly.
-
-To get started, you just need to add the `kardinal.dev.service/ingress` and `kardinal.dev.service/host` annotations to mark the main application entrypoint into your cluster.
-
-For our application, we're using a simple `LoadBalancer` that routes all traffic to our frontend so we'll define that as our ingress and use the *`kardinal.dev.service/host`* annotation to give it a hostname we can use to access it.
-
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: frontend-external
-  annotations:
-    kardinal.dev.service/ingress: "true"
-    kardinal.dev.service/host: "main.app.localhost"
-spec:
-  type: LoadBalancer
-  selector:
-    app: frontend
-  ports:
-    - name: http
-      port: 80
-      targetPort: 8080
-      protocl: TCP
-      appProtocol: HTTP
-```
-
-You can do the same for your application entrypoint. The host name you use here will be the hostname you use to access your application - `main.app.localhost` will work great if you're using a local Kubernetes cluster.
-
-## Step 2: Deploy the main version of your application
-
-Okay, now that we've got Kardinal integrated, let's deploy our application.
-
-1. Install Kardinal CLI
-    
-    ```yaml
-    curl get.kardinal.dev -sL | sh
-    ```
-    
-2. Deploy the manager to your cluster
-    
-    Make sure your `kubectl` is set to the right context for the cluster you want to deploy to. 
-    Then, run:
-
-    
-    ```yaml
-    kardinal manager deploy kloud-kontrol
-    ```
-    
-3. Deploy your application
-    
-    ```yaml
-    kardinal deploy -k <path-to-k8s-manifest-annotated-with-Kardinal>
-    ```
-    
-    You should now be able to view your application in the Kardinal dashboard!
-    
-    ```yaml
-    https://app.kardinal.dev/<tenant-id-output-by-CLI>/traffic-configuration
-    ```
-    
-    or run `kardinal dashboard` to get the link.
-
-
-### Step 3: Create a dev flow
-    
-1. Create a flow! Pick a service in your application to test a dev image on
-    
-    ```yaml
-    kardinal flow create frontend-service-name your/new-frontend-image:dev
-    ```
-    ---
-    In our example, the command would be:
-    ```bash
-    kardinal flow create frontend leoporoli/newobd-frontend:dev
-    INFO[0000] Using tenant UUID 483e3371-ec18-40ca-aaee-54df597d1fd2 
-    INFO[0000] Creating service frontend with image leoporoli/newobd-frontend:dev in development mode... 
-    Flow "dev-qlm1214pgt" created. Access it on:
-    🌐 http://dev-qlm1214pgt.app.localhost
-    
-    ```
-    
-2. View the flow by returning to the `kardinal dashboard`!
-    
-    
-    You should now see both main and dev versions of the service you created a flow with. These dev versions should have the `flow-id` output by the command next to them.
-    
-3. Interact with the new flow by `kardinal gateway <flow-id>`! 
-    
-    ```bash
-    $ kardinal gateway dev-qlm1214pgt
-    INFO[0000] Using tenant UUID 483e3371-ec18-40ca-aaee-54df597d1fd2 
-    2024/08/07 13:50:52 Starting gateway for host: dev-qlm1214pgt.app.localhost
-    2024/08/07 13:50:52 All pods in namespace prod are ready and flowId dev-qlm1214pgt found
-    2024/08/07 13:50:52 Proxy server for host dev-qlm1214pgt.app.localhost started on http://localhost:9060
-    
-    ```
-    
-    This command will open a gateway to the entry point - whatever service of your application was annotated with the `kardinal.dev.service/ingress` annotation. Whether the service is a frontend, or api - you can access the dev flow by making requests to the returned endpoint. These requests will flow through your system through only the dev versions of services for that flow.
