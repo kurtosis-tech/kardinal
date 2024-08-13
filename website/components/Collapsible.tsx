@@ -60,6 +60,18 @@ namespace S {
     color: var(--foreground);
     font-size: 14px;
     line-height: 1.6;
+
+    p {
+      margin-bottom: 1rem;
+    }
+
+    ul, ol {
+      margin-bottom: 1rem;
+    }
+
+    li:last-child {
+      margin-bottom: 1rem;
+    }
   `;
 }
 

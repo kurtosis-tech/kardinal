@@ -4,13 +4,18 @@ export const metadata = {
 
 # Flows
 
-In Kardinal, a “flow” is a set of traffic routing rules paired with a data isolation layer that achieves the appropriate levels of isolation and data exposure for a version of deployable software.
+In Kardinal, a flow is an ephemeral environment that developers can use for development, testing, or QA.
 
-Anything you do with an “environment” across the software delivery lifecycle can be done with a “flow” in Kardinal. For example:
+The default flow in Kardinal is called `stable`, and typically contains the latest versions of each service that you have in your staging cluster, i.e. the latest changes that are about to be promoted to production.
 
-- Isolated Dev Sandbox → [Isolated Dev Flow](use-cases/isolated-dev-sandbox-flows)
-- Preview Environment → [Preview Flow](use-cases/preview-and-feature-branch-flows)
-- QA Environment → [QA Flow](use-cases/qa-flows)
+When Kardinal creates a flow, it will deploy the set of services that encompass the changes being made for a given feature. Kardinal will also create an ingress point for the developer to use.
 
-_Flows are possible because Kardinal links traffic routing/mirroring rules with data access and isolation policies_. When both are combined, you can effectively create virtual views over an environment (we call them flows) where both the traffic and the data that are sent through the flow are isolated to a particular workflow (dev, test, QA).
+Any communication made through the ingress point will be routed to the versions of the services that are a part of the flow. Any services that are a part of the application, but aren't being changed as a part of the feature, will still be available from the `stable` flow.
 
+This basic use case is similar to deploying new versions of services in a separate namespace and sharing everything else with a shared dev cluster. However, Kardinal gets more interesting once you're fully onboarded and have defined your entire service dependency graph.
+
+Once your service dependency graph is defined, Kardinal can provide state isolation between flows via [stateful service plugins](./concepts/plugins).
+
+The cost savings of this use case (isolating state between flows) can reach into the millions of dollars for large organizations who use ephemeral environments or isolated dev sandboxes.
+
+With Kardinal, for every dev, test, or QA need, you will only ever deploy the minimum possible resources needed to test the feature, and you will reuse everything else across your development team.
