@@ -148,6 +148,43 @@ export interface paths {
       };
     };
   };
+  "/tenant/{uuid}/templates": {
+    get: {
+      parameters: {
+        path: {
+          uuid: components["parameters"]["uuid"];
+        };
+      };
+      responses: {
+        /** @description List of templates for the given tenant */
+        200: {
+          content: {
+            "application/json": components["schemas"]["Template"][];
+          };
+        };
+        404: components["responses"]["NotFound"];
+        500: components["responses"]["Error"];
+      };
+    };
+  };
+  "/tenant/{uuid}/templates/{template-id}": {
+    delete: {
+      parameters: {
+        path: {
+          uuid: components["parameters"]["uuid"];
+          "template-id": components["parameters"]["template-id"];
+        };
+      };
+      responses: {
+        404: components["responses"]["NotFound"];
+        500: components["responses"]["Error"];
+        /** @description Template deletion status */
+        "2xx": {
+          content: never;
+        };
+      };
+    };
+  };
 }
 
 export type webhooks = Record<string, never>;
@@ -247,6 +284,8 @@ export interface components {
     uuid: string;
     /** @description Flow identifier */
     "flow-id": string;
+    /** @description Template identifier */
+    "template-id": string;
   };
   requestBodies: never;
   headers: never;

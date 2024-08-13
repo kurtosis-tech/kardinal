@@ -98,6 +98,9 @@ type TemplateConfig struct {
 // FlowId defines model for flow-id.
 type FlowId = string
 
+// TemplateId defines model for template-id.
+type TemplateId = string
+
 // Uuid defines model for uuid.
 type Uuid = string
 

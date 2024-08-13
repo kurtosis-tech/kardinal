@@ -40,8 +40,14 @@ type ServerInterface interface {
 	// (GET /tenant/{uuid}/flows)
 	GetTenantUuidFlows(ctx echo.Context, uuid Uuid) error
 
+	// (GET /tenant/{uuid}/templates)
+	GetTenantUuidTemplates(ctx echo.Context, uuid Uuid) error
+
 	// (POST /tenant/{uuid}/templates/create)
 	PostTenantUuidTemplatesCreate(ctx echo.Context, uuid Uuid) error
+
+	// (DELETE /tenant/{uuid}/templates/{template-id})
+	DeleteTenantUuidTemplatesTemplateId(ctx echo.Context, uuid Uuid, templateId TemplateId) error
 
 	// (GET /tenant/{uuid}/topology)
 	GetTenantUuidTopology(ctx echo.Context, uuid Uuid) error
@@ -133,6 +139,22 @@ func (w *ServerInterfaceWrapper) GetTenantUuidFlows(ctx echo.Context) error {
 	return err
 }
 
+// GetTenantUuidTemplates converts echo context to params.
+func (w *ServerInterfaceWrapper) GetTenantUuidTemplates(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "uuid" -------------
+	var uuid Uuid
+
+	err = runtime.BindStyledParameterWithOptions("simple", "uuid", ctx.Param("uuid"), &uuid, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter uuid: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetTenantUuidTemplates(ctx, uuid)
+	return err
+}
+
 // PostTenantUuidTemplatesCreate converts echo context to params.
 func (w *ServerInterfaceWrapper) PostTenantUuidTemplatesCreate(ctx echo.Context) error {
 	var err error
@@ -146,6 +168,30 @@ func (w *ServerInterfaceWrapper) PostTenantUuidTemplatesCreate(ctx echo.Context)
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.PostTenantUuidTemplatesCreate(ctx, uuid)
+	return err
+}
+
+// DeleteTenantUuidTemplatesTemplateId converts echo context to params.
+func (w *ServerInterfaceWrapper) DeleteTenantUuidTemplatesTemplateId(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "uuid" -------------
+	var uuid Uuid
+
+	err = runtime.BindStyledParameterWithOptions("simple", "uuid", ctx.Param("uuid"), &uuid, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter uuid: %s", err))
+	}
+
+	// ------------- Path parameter "template-id" -------------
+	var templateId TemplateId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "template-id", ctx.Param("template-id"), &templateId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter template-id: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.DeleteTenantUuidTemplatesTemplateId(ctx, uuid, templateId)
 	return err
 }
 
@@ -198,7 +244,9 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.POST(baseURL+"/tenant/:uuid/flow/create", wrapper.PostTenantUuidFlowCreate)
 	router.DELETE(baseURL+"/tenant/:uuid/flow/:flow-id", wrapper.DeleteTenantUuidFlowFlowId)
 	router.GET(baseURL+"/tenant/:uuid/flows", wrapper.GetTenantUuidFlows)
+	router.GET(baseURL+"/tenant/:uuid/templates", wrapper.GetTenantUuidTemplates)
 	router.POST(baseURL+"/tenant/:uuid/templates/create", wrapper.PostTenantUuidTemplatesCreate)
+	router.DELETE(baseURL+"/tenant/:uuid/templates/:template-id", wrapper.DeleteTenantUuidTemplatesTemplateId)
 	router.GET(baseURL+"/tenant/:uuid/topology", wrapper.GetTenantUuidTopology)
 
 }
@@ -378,6 +426,41 @@ func (response GetTenantUuidFlows500JSONResponse) VisitGetTenantUuidFlowsRespons
 	return json.NewEncoder(w).Encode(response)
 }
 
+type GetTenantUuidTemplatesRequestObject struct {
+	Uuid Uuid `json:"uuid"`
+}
+
+type GetTenantUuidTemplatesResponseObject interface {
+	VisitGetTenantUuidTemplatesResponse(w http.ResponseWriter) error
+}
+
+type GetTenantUuidTemplates200JSONResponse []Template
+
+func (response GetTenantUuidTemplates200JSONResponse) VisitGetTenantUuidTemplatesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetTenantUuidTemplates404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetTenantUuidTemplates404JSONResponse) VisitGetTenantUuidTemplatesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetTenantUuidTemplates500JSONResponse struct{ ErrorJSONResponse }
+
+func (response GetTenantUuidTemplates500JSONResponse) VisitGetTenantUuidTemplatesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type PostTenantUuidTemplatesCreateRequestObject struct {
 	Uuid Uuid `json:"uuid"`
 	Body *PostTenantUuidTemplatesCreateJSONRequestBody
@@ -408,6 +491,42 @@ func (response PostTenantUuidTemplatesCreate404JSONResponse) VisitPostTenantUuid
 type PostTenantUuidTemplatesCreate500JSONResponse struct{ ErrorJSONResponse }
 
 func (response PostTenantUuidTemplatesCreate500JSONResponse) VisitPostTenantUuidTemplatesCreateResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteTenantUuidTemplatesTemplateIdRequestObject struct {
+	Uuid       Uuid       `json:"uuid"`
+	TemplateId TemplateId `json:"template-id"`
+}
+
+type DeleteTenantUuidTemplatesTemplateIdResponseObject interface {
+	VisitDeleteTenantUuidTemplatesTemplateIdResponse(w http.ResponseWriter) error
+}
+
+type DeleteTenantUuidTemplatesTemplateId2xxResponse struct {
+	StatusCode int
+}
+
+func (response DeleteTenantUuidTemplatesTemplateId2xxResponse) VisitDeleteTenantUuidTemplatesTemplateIdResponse(w http.ResponseWriter) error {
+	w.WriteHeader(response.StatusCode)
+	return nil
+}
+
+type DeleteTenantUuidTemplatesTemplateId404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response DeleteTenantUuidTemplatesTemplateId404JSONResponse) VisitDeleteTenantUuidTemplatesTemplateIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteTenantUuidTemplatesTemplateId500JSONResponse struct{ ErrorJSONResponse }
+
+func (response DeleteTenantUuidTemplatesTemplateId500JSONResponse) VisitDeleteTenantUuidTemplatesTemplateIdResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(500)
 
@@ -467,8 +586,14 @@ type StrictServerInterface interface {
 	// (GET /tenant/{uuid}/flows)
 	GetTenantUuidFlows(ctx context.Context, request GetTenantUuidFlowsRequestObject) (GetTenantUuidFlowsResponseObject, error)
 
+	// (GET /tenant/{uuid}/templates)
+	GetTenantUuidTemplates(ctx context.Context, request GetTenantUuidTemplatesRequestObject) (GetTenantUuidTemplatesResponseObject, error)
+
 	// (POST /tenant/{uuid}/templates/create)
 	PostTenantUuidTemplatesCreate(ctx context.Context, request PostTenantUuidTemplatesCreateRequestObject) (PostTenantUuidTemplatesCreateResponseObject, error)
+
+	// (DELETE /tenant/{uuid}/templates/{template-id})
+	DeleteTenantUuidTemplatesTemplateId(ctx context.Context, request DeleteTenantUuidTemplatesTemplateIdRequestObject) (DeleteTenantUuidTemplatesTemplateIdResponseObject, error)
 
 	// (GET /tenant/{uuid}/topology)
 	GetTenantUuidTopology(ctx context.Context, request GetTenantUuidTopologyRequestObject) (GetTenantUuidTopologyResponseObject, error)
@@ -622,6 +747,31 @@ func (sh *strictHandler) GetTenantUuidFlows(ctx echo.Context, uuid Uuid) error {
 	return nil
 }
 
+// GetTenantUuidTemplates operation middleware
+func (sh *strictHandler) GetTenantUuidTemplates(ctx echo.Context, uuid Uuid) error {
+	var request GetTenantUuidTemplatesRequestObject
+
+	request.Uuid = uuid
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetTenantUuidTemplates(ctx.Request().Context(), request.(GetTenantUuidTemplatesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetTenantUuidTemplates")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(GetTenantUuidTemplatesResponseObject); ok {
+		return validResponse.VisitGetTenantUuidTemplatesResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
 // PostTenantUuidTemplatesCreate operation middleware
 func (sh *strictHandler) PostTenantUuidTemplatesCreate(ctx echo.Context, uuid Uuid) error {
 	var request PostTenantUuidTemplatesCreateRequestObject
@@ -647,6 +797,32 @@ func (sh *strictHandler) PostTenantUuidTemplatesCreate(ctx echo.Context, uuid Uu
 		return err
 	} else if validResponse, ok := response.(PostTenantUuidTemplatesCreateResponseObject); ok {
 		return validResponse.VisitPostTenantUuidTemplatesCreateResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// DeleteTenantUuidTemplatesTemplateId operation middleware
+func (sh *strictHandler) DeleteTenantUuidTemplatesTemplateId(ctx echo.Context, uuid Uuid, templateId TemplateId) error {
+	var request DeleteTenantUuidTemplatesTemplateIdRequestObject
+
+	request.Uuid = uuid
+	request.TemplateId = templateId
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteTenantUuidTemplatesTemplateId(ctx.Request().Context(), request.(DeleteTenantUuidTemplatesTemplateIdRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteTenantUuidTemplatesTemplateId")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(DeleteTenantUuidTemplatesTemplateIdResponseObject); ok {
+		return validResponse.VisitDeleteTenantUuidTemplatesTemplateIdResponse(ctx.Response())
 	} else if response != nil {
 		return fmt.Errorf("unexpected response type: %T", response)
 	}
@@ -681,27 +857,28 @@ func (sh *strictHandler) GetTenantUuidTopology(ctx echo.Context, uuid Uuid) erro
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/8xY3W7bNhR+FYLbpWwlWwcMvtuSdjPWFcWSXBW9YKhjmY1EsiTlxAj07gN/JEsi7dgN",
-	"1vkigELyfOc7vzz0M6ailoIDNxovnrEkitRgQLn/VpV4nLHCfhagqWLSMMHxAr+rxCNiBXDDVgwUzjCz",
-	"y5KYNc4wJzXgRS+dYQVfG6agwAujGsiwpmuoiYU1W2mPaqMYL3HbZrhpUgrv7pbXSKyQWQNSoEWjKKS1",
-	"OvlTVLb2sJaCa3BGv1VKKPtBBTfAjf0kUlaMEksm/6Ito+cBolRCgjLMy0MnP7bAwSKnPJtyyHCty30i",
-	"NWhNyoRUO7TyU9D7uT8m7r8ANd7ABK7V+kGYd6LhxSusTQXrnxAgtLxO2drFb+Z39kqnfTWxegyWWT7H",
-	"uKBXwoVBK+cDe8hb6Qy7qhptQN0KKSpRbhNxLsrgAgO1+/hRwQov8A/5rqbygJi/LUqwxgdmRCmytf9z",
-	"UZyA8kEUCZSJSzxkFgjG3siwIxMZVJF7qOJ4vLfLaGWTdw3Igs5TUQ01GYnfrmHQKboa7r1fQLe0F9kQ",
-	"VYI5FtmfPgZ54ra+qQR9KcfZvhc7btAmI/Jur1HVOMaxjYcCumukO7R97G4k0JGqSbnWpIRZJSgxvknB",
-	"E6llZXHuCX0AXszIoiIGtEkGGdSGUZj5XpuS7k6QF/09pjLBTpk3LZ2/CeOhSq8EX7EyNrfDpG7/+Dq7",
-	"8XIBNhWfiJ0rzaPa4x1nX5tR6nbFZZM2WQJHleZeaUlU6Oxj8Y9u3ckl6y7Znm+3si+sIAm8qW1ES2Lg",
-	"kWx3sRxEdQNKWwCbAwUb5u9OYTijY6XWuajfzr61kFwNuROp/BoHPQplAbIS2zp48mlWilmnTMrN5fx6",
-	"t5/ttmeslkI5kTCguNM482PLAj/8qudM5ESynEip882lv4mCByeqqFCwuZzf9P49oMifTWqyW17TtAn2",
-	"wANzU866hVraPpHy0yByiQh1vSMOXYBMt9IJ0eHhgHmI5v6gjsjGF8xgpb9hOtOzUWhiC2M0u4OMQCXb",
-	"wHFYgzzok/4/TYgXSmiXIHt8bgUYXwkXQmbc5XD1fpn/JbhRokK/fVzivtTxAl/OL+YX1lIhgRPJ8AL/",
-	"7JY8TWdwvgZSWcrRO0Qo5PcQXQN9QNRrwRkOI4MNtptklwVe4D/A/OmhJkP/TxcXJw3BiUfEmNlNQylo",
-	"vWoq1Cmyx9oM5wY44SZ/ti+VNvd15jJT6ATlj0KbWydx17DCNxnnm91D7VP6Mtsdyd2jqP3sQwna/C6K",
-	"7Un2Hros43s44Q9PHBEklSiQ4NUWUS8TPdbaV8bmEFc3wCXpbZAdrhBV4HCRNsQ02ibmm4s3+2B7nnn/",
-	"lGoz/IsnfFggPMJSKWGJ5I4IHJsX1q4rL3FWudGPpAmfe76IoCI4/ywyobsxzicTnsP83/r+V4FPi3E6",
-	"XLv1cULYv2XxjQmRvXiue5b43BmG6ekpbtV9hTkLzsCvjuq+W2LsSP2aonpF/h71VvGJHF3b593iurlH",
-	"n9jnuurU59jsJsPmoZbH4XE4+32/ttfP7WefIYMf3l6u0v5nuv+nUA95fPpDYurOCXvIDs6qdlq+h9Pb",
-	"9t8AAAD//7HVgvEAGAAA",
+	"H4sIAAAAAAAC/9RYW2/bthf/KgT//0fZSrYOGPy2Je1mrCuCJXkq+sBIxzIbiWRJyolh6LsPvIjWhXbk",
+	"Bm29hwAKyXP9nat3OOOV4AyYVnixw4JIUoEGaf9blfxpRnPzmYPKJBWacoYX+F3JnxDNgWm6oiBxgqk5",
+	"FkSvcYIZqQAvAnWCJXypqYQcL7SsIcEqW0NFDFu9Feap0pKyAjdNgjVUoiQaonLv/OWLsrtcTpNf1zHB",
+	"9/fLa8RXSK8BSVC8lhnEJVv6U0Q25rESnCmwTn8rJZfmI+NMA9PmkwhR0owYZdLPymi063AUkguQmjp6",
+	"aOn7Fli2yApPhjokuFLFIZIKlCJFhKrpWvnRy/0UnvGHz5BpZ2CEr5H6get3vGb5K6yNgfWPBwgtr2O2",
+	"tvjN3M1B6rivBlb3mSVGnykuCEIY12hlfWAeOSutYVdlrTTIOy54yYttBOe88C7QUNmP/0tY4QX+X7rP",
+	"6dRzTN/mBRjjvWZESrI1/zOen8DlA88jXAYucSwTr+DYGwm2yowMKskDlGM83ptjtDLBuwZkmM5jqPqc",
+	"HJeMdbdatDkcvJ9De3SQsyayAD2Vs3s9hfPAbaGoeHkxx5m6O3Zcp0yPlLd3tSz7GI9tPAbovpDvuR3S",
+	"7lZA1hM1SNeKFDAreUa0K1LwTCpRGj4PJHsEls/IwhRupaMgg9zQDGau1sao2xfkRX/3VRnwjpk3TJ2/",
+	"CWU+S684W9FibG7LM7P30/Ps1tF5tjF8RtrZ1JxUHu8Z/VL3QrdNLhO00RSYlJoHqQWRvrL3yW/suaWL",
+	"5l20PN9tRUgsTwmsrgyiBdHwRLZ7LDuobkAqw8DEQE678bsX6N+osVDjXBSuk69NJJtD9kUsvvqgj6DM",
+	"QZR8W3lPPs8KPmuFCbG5nF/v75P99YxWgktL4gcU+xonbmxZ4Mdf1ZzylAiaEiFUurl0nch7cCAq4xI2",
+	"l/Pb4N8jgtzbqCRz5SQNi2Bg3DE35qx2Eoz5qYNcBKG2doyh60+ex6tHf8A8WDNaNQ+D2lN23GA6J6HD",
+	"tKYnPWjGFo65mRukOSroBqbx6sRBCPpvGhAvpNA+QA743BBQtuIWQqptc7h6v0z/4kxLXqLfbpY4pDpe",
+	"4Mv5xfzCWMoFMCIoXuCf7ZFT0xqcroGURuXRHsQlcncoW0P2iDInBSfYjwwGbDvJLnO8wH+A/tOxGgz9",
+	"P11cnDQER5aIvma3dZaBUqu6RK0g86xJcKqBEabTndlUmtTlmY1MriIq33Cl7yzFfU1zV2Ssb/aL4sd4",
+	"M9s/Se1S1HxyUILSv/N8e5K9x5rluA9H/OEURwQJyXPEWblFmaMZLWvNK7E5pqsd4KLqbZAZrlAmwfJF",
+	"ShNdKxOYby7eHGIb9EzDKtUk+Ben8HECv4TFQsIoklpFYGpcGLuuHMVZxUYYSSM+d/oignLv/LOIhPAT",
+	"x9lEws7P/42rfyW4sOiHw7U97weE+VvmXxkQyYvv2rXExU4XpufncakOGWYtOAO/WlUPdYm+I9VrkuoV",
+	"8TtpV3GBPGrb513i2rlnIgh34fkZAxFG4glgvKdK23myNSxscWY0ZMh568dCc2ILChidYx8a7AHHuhGD",
+	"p+5Y/v060j5+/ivJm+46a9hJ7SkES/vxDftUd1Wc1qvCDHAOvUp3foGeUCnb1z+mUB6L7+Ev6rHhy98h",
+	"s0HKykr5Hk5vmn8DAAD//4Fp2EaJGwAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

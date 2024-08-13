@@ -132,6 +132,36 @@ paths:
               schema:
                 $ref: "#/components/schemas/Template"
 
+  /tenant/{uuid}/templates:
+    get:
+      parameters:
+        - $ref: "#/components/parameters/uuid"
+      responses:
+        "500":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "200":
+          description: List of templates for the given tenant
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Template"
+
+  /tenant/{uuid}/templates/{template-id}:
+    delete:
+      parameters:
+        - $ref: "#/components/parameters/uuid"
+        - $ref: "#/components/parameters/template-id"
+      responses:
+        "500":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "2xx":
+          description: Template deletion status
 
 components:
   responses:
@@ -181,6 +211,15 @@ components:
       in: path
       required: true
       description: Flow identifier
+      schema:
+        type: string
+
+
+    template-id:
+      name: template-id
+      in: path
+      required: true
+      description: Template identifier
       schema:
         type: string
 
