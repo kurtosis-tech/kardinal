@@ -31,7 +31,7 @@ export interface paths {
         };
       };
       responses: {
-        /** @description Dev flow creation status */
+        /** @description Template creation status */
         200: {
           content: {
             "application/json": components["schemas"]["Flow"];
@@ -123,6 +123,31 @@ export interface paths {
       };
     };
   };
+  "/tenant/{uuid}/templates/create": {
+    post: {
+      parameters: {
+        path: {
+          uuid: components["parameters"]["uuid"];
+        };
+      };
+      /** @description Create a new template */
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["TemplateConfig"];
+        };
+      };
+      responses: {
+        /** @description Dev flow creation status */
+        200: {
+          content: {
+            "application/json": components["schemas"]["Template"];
+          };
+        };
+        404: components["responses"]["NotFound"];
+        500: components["responses"]["Error"];
+      };
+    };
+  };
 }
 
 export type webhooks = Record<string, never>;
@@ -142,6 +167,13 @@ export interface components {
         /** @example backend-service-a */
         "service-name": string;
       }[];
+    TemplateSpec: {
+      /** @description name of the template */
+      "template-id": string;
+      arguments?: {
+        [key: string]: unknown;
+      };
+    };
     Node: {
       /** @description Unique identifier for the node. */
       id: string;
@@ -172,6 +204,18 @@ export interface components {
     ServiceConfig: {
       service: unknown;
       deployment: unknown;
+    };
+    TemplateConfig: {
+      service: unknown[];
+      /** @description The name to give the template */
+      name: unknown;
+      /** @description The description of the template */
+      description?: unknown;
+    };
+    Template: {
+      "template-id": string;
+      name: string;
+      description?: string;
     };
   };
   responses: {

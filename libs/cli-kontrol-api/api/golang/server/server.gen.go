@@ -40,6 +40,9 @@ type ServerInterface interface {
 	// (GET /tenant/{uuid}/flows)
 	GetTenantUuidFlows(ctx echo.Context, uuid Uuid) error
 
+	// (POST /tenant/{uuid}/templates/create)
+	PostTenantUuidTemplatesCreate(ctx echo.Context, uuid Uuid) error
+
 	// (GET /tenant/{uuid}/topology)
 	GetTenantUuidTopology(ctx echo.Context, uuid Uuid) error
 }
@@ -130,6 +133,22 @@ func (w *ServerInterfaceWrapper) GetTenantUuidFlows(ctx echo.Context) error {
 	return err
 }
 
+// PostTenantUuidTemplatesCreate converts echo context to params.
+func (w *ServerInterfaceWrapper) PostTenantUuidTemplatesCreate(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "uuid" -------------
+	var uuid Uuid
+
+	err = runtime.BindStyledParameterWithOptions("simple", "uuid", ctx.Param("uuid"), &uuid, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter uuid: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.PostTenantUuidTemplatesCreate(ctx, uuid)
+	return err
+}
+
 // GetTenantUuidTopology converts echo context to params.
 func (w *ServerInterfaceWrapper) GetTenantUuidTopology(ctx echo.Context) error {
 	var err error
@@ -179,6 +198,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.POST(baseURL+"/tenant/:uuid/flow/create", wrapper.PostTenantUuidFlowCreate)
 	router.DELETE(baseURL+"/tenant/:uuid/flow/:flow-id", wrapper.DeleteTenantUuidFlowFlowId)
 	router.GET(baseURL+"/tenant/:uuid/flows", wrapper.GetTenantUuidFlows)
+	router.POST(baseURL+"/tenant/:uuid/templates/create", wrapper.PostTenantUuidTemplatesCreate)
 	router.GET(baseURL+"/tenant/:uuid/topology", wrapper.GetTenantUuidTopology)
 
 }
@@ -358,6 +378,42 @@ func (response GetTenantUuidFlows500JSONResponse) VisitGetTenantUuidFlowsRespons
 	return json.NewEncoder(w).Encode(response)
 }
 
+type PostTenantUuidTemplatesCreateRequestObject struct {
+	Uuid Uuid `json:"uuid"`
+	Body *PostTenantUuidTemplatesCreateJSONRequestBody
+}
+
+type PostTenantUuidTemplatesCreateResponseObject interface {
+	VisitPostTenantUuidTemplatesCreateResponse(w http.ResponseWriter) error
+}
+
+type PostTenantUuidTemplatesCreate200JSONResponse Template
+
+func (response PostTenantUuidTemplatesCreate200JSONResponse) VisitPostTenantUuidTemplatesCreateResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostTenantUuidTemplatesCreate404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response PostTenantUuidTemplatesCreate404JSONResponse) VisitPostTenantUuidTemplatesCreateResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostTenantUuidTemplatesCreate500JSONResponse struct{ ErrorJSONResponse }
+
+func (response PostTenantUuidTemplatesCreate500JSONResponse) VisitPostTenantUuidTemplatesCreateResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type GetTenantUuidTopologyRequestObject struct {
 	Uuid Uuid `json:"uuid"`
 }
@@ -410,6 +466,9 @@ type StrictServerInterface interface {
 
 	// (GET /tenant/{uuid}/flows)
 	GetTenantUuidFlows(ctx context.Context, request GetTenantUuidFlowsRequestObject) (GetTenantUuidFlowsResponseObject, error)
+
+	// (POST /tenant/{uuid}/templates/create)
+	PostTenantUuidTemplatesCreate(ctx context.Context, request PostTenantUuidTemplatesCreateRequestObject) (PostTenantUuidTemplatesCreateResponseObject, error)
 
 	// (GET /tenant/{uuid}/topology)
 	GetTenantUuidTopology(ctx context.Context, request GetTenantUuidTopologyRequestObject) (GetTenantUuidTopologyResponseObject, error)
@@ -563,6 +622,37 @@ func (sh *strictHandler) GetTenantUuidFlows(ctx echo.Context, uuid Uuid) error {
 	return nil
 }
 
+// PostTenantUuidTemplatesCreate operation middleware
+func (sh *strictHandler) PostTenantUuidTemplatesCreate(ctx echo.Context, uuid Uuid) error {
+	var request PostTenantUuidTemplatesCreateRequestObject
+
+	request.Uuid = uuid
+
+	var body PostTenantUuidTemplatesCreateJSONRequestBody
+	if err := ctx.Bind(&body); err != nil {
+		return err
+	}
+	request.Body = &body
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.PostTenantUuidTemplatesCreate(ctx.Request().Context(), request.(PostTenantUuidTemplatesCreateRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PostTenantUuidTemplatesCreate")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(PostTenantUuidTemplatesCreateResponseObject); ok {
+		return validResponse.VisitPostTenantUuidTemplatesCreateResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
 // GetTenantUuidTopology operation middleware
 func (sh *strictHandler) GetTenantUuidTopology(ctx echo.Context, uuid Uuid) error {
 	var request GetTenantUuidTopologyRequestObject
@@ -591,25 +681,27 @@ func (sh *strictHandler) GetTenantUuidTopology(ctx echo.Context, uuid Uuid) erro
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/+xYXW/bNhf+KwTf91K2nK0DBt1tSbsZ64pgSa6KXjDkscxGIlmScmIY+u8DPyRbEu04",
-	"DbDlYhcFFPJ8POc5HzzuDlNZKylAWIOLHVZEkxosaP/XqpKPM87cJwNDNVeWS4EL/KGSj4gzEJavOGic",
-	"Ye6OFbFrnGFBasBFr51hDd8aroHhwuoGMmzoGmrizNqtcqLGai5K3LYZbpqUw7u75RWSK2TXgDQY2WgK",
-	"aa9e/yUuWydslBQGfNDvtZbafVApLAjrPolSFafEgcm/Godod2BRaalAWx70odMfRuDNIu88G2PIcG3K",
-	"Yyo1GEPKhFZ7GOXn6PdLLybvvwK1IcCEXef1k7QfZCPYK6JNJeuvmCC0vErF2uVvFm6Oaqe5GkU9NJY5",
-	"POdQ0DsR0qKV58AJhSh9YJdVYyzoW6lkJcttIs+sjBRYqP3H/zWscIH/l+97Ko8W8/esBBd8REa0Jlv3",
-	"t5DsBVY+SZawMqIkmMwiwCkbGfZgJgFV5B6qaT4+umO0csW7BuSMzlNZjT05Ub9dw8Gk6Hq4Z59Bd3TU",
-	"siW6BHuu5SB9juURbf1Qif5SxLm5NyXuYExOwPu7RlfDHE9jPJXQ/SDdWzuG7kYBHbgatWtNSphVkhIb",
-	"hhQ8kVpVzs49oQ8g2IwUFbFgbDLJoDecwizM2pR2J0Ge5XsIZWQ7Fd64df4kXMQuvZRixctpuJ1N6u/P",
-	"77OboBfNpvIzQedb86zxeCf4t2ZQul1zuaJNtsBZrXlUWxEdJ/tQ/dqfe71k3yXH8+1W9Y0VNUE0tcto",
-	"SSw8ku0+lwdZ3YA2zoCrAcYP63fvMMqYqVNHLuqvs+9tJN9DXiJVX8OkT1LJQFVyW0cmn2alnHXOlNpc",
-	"zK/299n+esZrJbVXiQuKl8ZZWFsK/PCzmXOZE8VzopTJNxfhJYoMjlxRqWFzMb/p+T3hKMgmPbmr4Gk8",
-	"BHvDB+GmH1QuVtKngFs/AS4/LvM/pLBaVuiX6yXu84kLfDFfzBeOY6lAEMVxgX/0RwGc5zdfA6kc0Mmy",
-	"KTUKd4iugT4gGrzgDMd3waXJrytLhgv8G9jfg6nRZvfDYvGiTSexKQ6R3TSUgjGrpkKdIyfWZji3IIiw",
-	"+c6to20eyPQ1JU0C8rU09tZr3DWchUry3Oy38c/pibUXyf3m234JCQVjf5Vs+6J4T03E6bBN8BGAI4KU",
-	"lgxJUW0RDTqTjbx9ZW5OYfWvdBLeBrkXFFEN3i4yltjGuMJ8t3h3zGyPM+/35TbDPwXApxXipp0qCQck",
-	"90Dg3LpwcV0GjTdVG/3ekeA84EUEsUj+f5WQrIRdXPLaMP8qCGUxLIcrfz4sCPdvyb6zILJn5brdM9TO",
-	"YZqenqajuufVR/AGePVQj70SQyLNa5rqFfV71kIaCnmy3rztwrYHv52fz0H/S/vfScMp9sf/F5AgvrtD",
-	"bi3StffyT5Detn8HAAD///evY0/DEwAA",
+	"H4sIAAAAAAAC/8xY3W7bNhR+FYLbpWwlWwcMvtuSdjPWFcWSXBW9YKhjmY1EsiTlxAj07gN/JEsi7dgN",
+	"1vkigELyfOc7vzz0M6ailoIDNxovnrEkitRgQLn/VpV4nLHCfhagqWLSMMHxAr+rxCNiBXDDVgwUzjCz",
+	"y5KYNc4wJzXgRS+dYQVfG6agwAujGsiwpmuoiYU1W2mPaqMYL3HbZrhpUgrv7pbXSKyQWQNSoEWjKKS1",
+	"OvlTVLb2sJaCa3BGv1VKKPtBBTfAjf0kUlaMEksm/6Ito+cBolRCgjLMy0MnP7bAwSKnPJtyyHCty30i",
+	"NWhNyoRUO7TyU9D7uT8m7r8ANd7ABK7V+kGYd6LhxSusTQXrnxAgtLxO2drFb+Z39kqnfTWxegyWWT7H",
+	"uKBXwoVBK+cDe8hb6Qy7qhptQN0KKSpRbhNxLsrgAgO1+/hRwQov8A/5rqbygJi/LUqwxgdmRCmytf9z",
+	"UZyA8kEUCZSJSzxkFgjG3siwIxMZVJF7qOJ4vLfLaGWTdw3Igs5TUQ01GYnfrmHQKboa7r1fQLe0F9kQ",
+	"VYI5FtmfPgZ54ra+qQR9KcfZvhc7btAmI/Jur1HVOMaxjYcCumukO7R97G4k0JGqSbnWpIRZJSgxvknB",
+	"E6llZXHuCX0AXszIoiIGtEkGGdSGUZj5XpuS7k6QF/09pjLBTpk3LZ2/CeOhSq8EX7EyNrfDpG7/+Dq7",
+	"8XIBNhWfiJ0rzaPa4x1nX5tR6nbFZZM2WQJHleZeaUlU6Oxj8Y9u3ckl6y7Znm+3si+sIAm8qW1ES2Lg",
+	"kWx3sRxEdQNKWwCbAwUb5u9OYTijY6XWuajfzr61kFwNuROp/BoHPQplAbIS2zp48mlWilmnTMrN5fx6",
+	"t5/ttmeslkI5kTCguNM482PLAj/8qudM5ESynEip882lv4mCByeqqFCwuZzf9P49oMifTWqyW17TtAn2",
+	"wANzU866hVraPpHy0yByiQh1vSMOXYBMt9IJ0eHhgHmI5v6gjsjGF8xgpb9hOtOzUWhiC2M0u4OMQCXb",
+	"wHFYgzzok/4/TYgXSmiXIHt8bgUYXwkXQmbc5XD1fpn/JbhRokK/fVzivtTxAl/OL+YX1lIhgRPJ8AL/",
+	"7JY8TWdwvgZSWcrRO0Qo5PcQXQN9QNRrwRkOI4MNtptklwVe4D/A/OmhJkP/TxcXJw3BiUfEmNlNQylo",
+	"vWoq1Cmyx9oM5wY44SZ/ti+VNvd15jJT6ATlj0KbWydx17DCNxnnm91D7VP6Mtsdyd2jqP3sQwna/C6K",
+	"7Un2Hros43s44Q9PHBEklSiQ4NUWUS8TPdbaV8bmEFc3wCXpbZAdrhBV4HCRNsQ02ibmm4s3+2B7nnn/",
+	"lGoz/IsnfFggPMJSKWGJ5I4IHJsX1q4rL3FWudGPpAmfe76IoCI4/ywyobsxzicTnsP83/r+V4FPi3E6",
+	"XLv1cULYv2XxjQmRvXiue5b43BmG6ekpbtV9hTkLzsCvjuq+W2LsSP2aonpF/h71VvGJHF3b593iurlH",
+	"n9jnuurU59jsJsPmoZbH4XE4+32/ttfP7WefIYMf3l6u0v5nuv+nUA95fPpDYurOCXvIDs6qdlq+h9Pb",
+	"9t8AAAD//7HVgvEAGAAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

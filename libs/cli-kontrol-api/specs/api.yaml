@@ -221,6 +221,18 @@ components:
           - image-locator
           - service-name
 
+    TemplateSpec:
+      type: object
+      properties:
+        template-id:
+          type: string
+          description: name of the template
+        arguments:
+          type: object
+          additionalProperties: true
+      required:
+        - template-id
+
     Node:
       type: object
       properties:
@@ -319,5 +331,10 @@ components:
       properties:
         template-id:
           type: string
+        name:
+          type: string
+        description:
+          type: string
       required:
         - template-id
+        - name

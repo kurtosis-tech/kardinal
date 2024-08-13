@@ -109,6 +109,11 @@ type ClientInterface interface {
 	// GetTenantUuidFlows request
 	GetTenantUuidFlows(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// PostTenantUuidTemplatesCreateWithBody request with any body
+	PostTenantUuidTemplatesCreateWithBody(ctx context.Context, uuid Uuid, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PostTenantUuidTemplatesCreate(ctx context.Context, uuid Uuid, body PostTenantUuidTemplatesCreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetTenantUuidTopology request
 	GetTenantUuidTopology(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
@@ -187,6 +192,30 @@ func (c *Client) DeleteTenantUuidFlowFlowId(ctx context.Context, uuid Uuid, flow
 
 func (c *Client) GetTenantUuidFlows(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetTenantUuidFlowsRequest(c.Server, uuid)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostTenantUuidTemplatesCreateWithBody(ctx context.Context, uuid Uuid, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostTenantUuidTemplatesCreateRequestWithBody(c.Server, uuid, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostTenantUuidTemplatesCreate(ctx context.Context, uuid Uuid, body PostTenantUuidTemplatesCreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostTenantUuidTemplatesCreateRequest(c.Server, uuid, body)
 	if err != nil {
 		return nil, err
 	}
@@ -405,6 +434,53 @@ func NewGetTenantUuidFlowsRequest(server string, uuid Uuid) (*http.Request, erro
 	return req, nil
 }
 
+// NewPostTenantUuidTemplatesCreateRequest calls the generic PostTenantUuidTemplatesCreate builder with application/json body
+func NewPostTenantUuidTemplatesCreateRequest(server string, uuid Uuid, body PostTenantUuidTemplatesCreateJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPostTenantUuidTemplatesCreateRequestWithBody(server, uuid, "application/json", bodyReader)
+}
+
+// NewPostTenantUuidTemplatesCreateRequestWithBody generates requests for PostTenantUuidTemplatesCreate with any type of body
+func NewPostTenantUuidTemplatesCreateRequestWithBody(server string, uuid Uuid, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "uuid", runtime.ParamLocationPath, uuid)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/tenant/%s/templates/create", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewGetTenantUuidTopologyRequest generates requests for GetTenantUuidTopology
 func NewGetTenantUuidTopologyRequest(server string, uuid Uuid) (*http.Request, error) {
 	var err error
@@ -500,6 +576,11 @@ type ClientWithResponsesInterface interface {
 
 	// GetTenantUuidFlowsWithResponse request
 	GetTenantUuidFlowsWithResponse(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*GetTenantUuidFlowsResponse, error)
+
+	// PostTenantUuidTemplatesCreateWithBodyWithResponse request with any body
+	PostTenantUuidTemplatesCreateWithBodyWithResponse(ctx context.Context, uuid Uuid, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostTenantUuidTemplatesCreateResponse, error)
+
+	PostTenantUuidTemplatesCreateWithResponse(ctx context.Context, uuid Uuid, body PostTenantUuidTemplatesCreateJSONRequestBody, reqEditors ...RequestEditorFn) (*PostTenantUuidTemplatesCreateResponse, error)
 
 	// GetTenantUuidTopologyWithResponse request
 	GetTenantUuidTopologyWithResponse(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*GetTenantUuidTopologyResponse, error)
@@ -622,6 +703,30 @@ func (r GetTenantUuidFlowsResponse) StatusCode() int {
 	return 0
 }
 
+type PostTenantUuidTemplatesCreateResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *Template
+	JSON404      *NotFound
+	JSON500      *Error
+}
+
+// Status returns HTTPResponse.Status
+func (r PostTenantUuidTemplatesCreateResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PostTenantUuidTemplatesCreateResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetTenantUuidTopologyResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -705,6 +810,23 @@ func (c *ClientWithResponses) GetTenantUuidFlowsWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParseGetTenantUuidFlowsResponse(rsp)
+}
+
+// PostTenantUuidTemplatesCreateWithBodyWithResponse request with arbitrary body returning *PostTenantUuidTemplatesCreateResponse
+func (c *ClientWithResponses) PostTenantUuidTemplatesCreateWithBodyWithResponse(ctx context.Context, uuid Uuid, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostTenantUuidTemplatesCreateResponse, error) {
+	rsp, err := c.PostTenantUuidTemplatesCreateWithBody(ctx, uuid, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostTenantUuidTemplatesCreateResponse(rsp)
+}
+
+func (c *ClientWithResponses) PostTenantUuidTemplatesCreateWithResponse(ctx context.Context, uuid Uuid, body PostTenantUuidTemplatesCreateJSONRequestBody, reqEditors ...RequestEditorFn) (*PostTenantUuidTemplatesCreateResponse, error) {
+	rsp, err := c.PostTenantUuidTemplatesCreate(ctx, uuid, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostTenantUuidTemplatesCreateResponse(rsp)
 }
 
 // GetTenantUuidTopologyWithResponse request returning *GetTenantUuidTopologyResponse
@@ -871,6 +993,46 @@ func ParseGetTenantUuidFlowsResponse(rsp *http.Response) (*GetTenantUuidFlowsRes
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []Flow
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParsePostTenantUuidTemplatesCreateResponse parses an HTTP response from a PostTenantUuidTemplatesCreateWithResponse call
+func ParsePostTenantUuidTemplatesCreateResponse(rsp *http.Response) (*PostTenantUuidTemplatesCreateResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PostTenantUuidTemplatesCreateResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Template
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
