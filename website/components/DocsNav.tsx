@@ -20,7 +20,8 @@ const navItems: NavItem[] = [
     path: "getting-started",
     title: "Getting Started",
     children: [
-      { path: "install", title: "Install" },
+      { path: "install", title: "Installation" },
+      { path: "fundamentals", title: "Fundamentals" },
       { path: "own-app", title: "Create your first flow" },
     ],
   },
@@ -35,6 +36,13 @@ const navItems: NavItem[] = [
     children: [
       { path: "flows", title: "Flows" },
       { path: "plugins", title: "Stateful Service Plugins" },
+    ],
+  },
+  {
+    path: "references",
+    title: "References",
+    children: [
+      { path: "comparisons", title: "Comparison to alternatives" },
     ],
   },
 ];

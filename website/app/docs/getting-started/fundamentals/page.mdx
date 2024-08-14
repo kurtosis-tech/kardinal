@@ -1,0 +1,19 @@
+# Fundamentals
+
+Everything in Kardinal centers around [**flows**](./concepts/flows).
+
+A [**flow**](./concepts/flows) in Kardinal is an ephemeral environment, containing a "development version" of your application. We call them "flows" because they are defined by a distinct flow of traffic through a shared development cluster.
+
+Once Kardinal is installed and an application is deployed, developers can create a flow with:
+```bash
+kardinal flow create <service-name> <their/new-dev-image>
+```
+
+Kardinal will deploy the `<their/new-dev-image>` image alongside the stable version of the service, and that developer will be able to interact with the application as if it was using their version of their service.
+
+As your team onboards to Kardinal, you will be able to create flows with escalating levels of configurability:
+
+1. **Single-service flows**: deploy a single service to test a new version of a service
+2. **Multi-service flows**: deploy a set of services together to test a larger feature change involving multiple services
+3. **State-isolated flows**: deploy a set of services together with new, isolated state (dbs, caches, queues) to test database migrations or other state-layer changes
+4. **Full application flows**: deploy an independent, full application with its own state layer for completely isolated end-to-end testing
