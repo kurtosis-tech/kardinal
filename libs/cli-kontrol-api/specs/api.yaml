@@ -150,11 +150,11 @@ paths:
                 items:
                   $ref: "#/components/schemas/Template"
 
-  /tenant/{uuid}/templates/{template-id}:
+  /tenant/{uuid}/templates/{template-name}:
     delete:
       parameters:
         - $ref: "#/components/parameters/uuid"
-        - $ref: "#/components/parameters/template-id"
+        - $ref: "#/components/parameters/template-name"
       responses:
         "500":
           $ref: "#/components/responses/Error"
@@ -215,11 +215,11 @@ components:
         type: string
 
 
-    template-id:
-      name: template-id
+    template-name:
+      name: template-name
       in: path
       required: true
-      description: Template identifier
+      description: name of the template
       schema:
         type: string
 
