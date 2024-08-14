@@ -4,7 +4,6 @@ import { ButtonHTMLAttributes, useEffect, useState } from "react";
 import { BiCheck, BiLogoGithub, BiRightArrowAlt } from "react-icons/bi";
 import styled, { css, keyframes } from "styled-components";
 
-import { mobile } from "@/constants/breakpoints";
 import analytics from "@/lib/analytics";
 
 interface StyledProps {
