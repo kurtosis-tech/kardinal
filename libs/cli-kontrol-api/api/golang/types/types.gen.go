@@ -131,11 +131,17 @@ type NotFound struct {
 	ResourceType string `json:"resource-type"`
 }
 
+// PostTenantUuidFlowCreateJSONBody defines parameters for PostTenantUuidFlowCreate.
+type PostTenantUuidFlowCreateJSONBody struct {
+	FlowSpec     FlowSpec      `json:"flow_spec"`
+	TemplateSpec *TemplateSpec `json:"template_spec,omitempty"`
+}
+
 // PostTenantUuidDeployJSONRequestBody defines body for PostTenantUuidDeploy for application/json ContentType.
 type PostTenantUuidDeployJSONRequestBody = MainClusterConfig
 
 // PostTenantUuidFlowCreateJSONRequestBody defines body for PostTenantUuidFlowCreate for application/json ContentType.
-type PostTenantUuidFlowCreateJSONRequestBody = FlowSpec
+type PostTenantUuidFlowCreateJSONRequestBody PostTenantUuidFlowCreateJSONBody
 
 // PostTenantUuidTemplatesCreateJSONRequestBody defines body for PostTenantUuidTemplatesCreate for application/json ContentType.
 type PostTenantUuidTemplatesCreateJSONRequestBody = TemplateConfig

@@ -24,14 +24,17 @@ export interface paths {
           uuid: components["parameters"]["uuid"];
         };
       };
-      /** @description Create a dev flow */
+      /** @description Create a dev flow using FlowSpec, optionally with a TemplateSpec */
       requestBody: {
         content: {
-          "application/json": components["schemas"]["FlowSpec"];
+          "application/json": {
+            flow_spec: components["schemas"]["FlowSpec"];
+            template_spec?: components["schemas"]["TemplateSpec"];
+          };
         };
       };
       responses: {
-        /** @description Template creation status */
+        /** @description Flow creation status */
         200: {
           content: {
             "application/json": components["schemas"]["Flow"];

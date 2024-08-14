@@ -21,19 +21,26 @@ paths:
       parameters:
         - $ref: "#/components/parameters/uuid"
       requestBody:
-        description: Create a dev flow
+        description: Create a dev flow using FlowSpec, optionally with a TemplateSpec
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/FlowSpec"
+              type: object
+              properties:
+                flow_spec:
+                  $ref: "#/components/schemas/FlowSpec"
+                template_spec:
+                  $ref: "#/components/schemas/TemplateSpec"
+              required:
+                - flow_spec
       responses:
         "500":
           $ref: "#/components/responses/Error"
         "404":
           $ref: "#/components/responses/NotFound"
         "200":
-          description: Template creation status
+          description: Flow creation status
           content:
             application/json:
               schema:
