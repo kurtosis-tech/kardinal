@@ -42,8 +42,9 @@ type Flow struct {
 
 // FlowSpec defines model for FlowSpec.
 type FlowSpec = []struct {
-	ImageLocator string `json:"image-locator"`
-	ServiceName  string `json:"service-name"`
+	ImageLocator string        `json:"image-locator"`
+	ServiceName  string        `json:"service-name"`
+	TemplateSpec *TemplateSpec `json:"template-spec,omitempty"`
 }
 
 // MainClusterConfig defines model for MainClusterConfig.
@@ -93,6 +94,14 @@ type TemplateConfig struct {
 	// Name The name to give the template
 	Name    string           `json:"name"`
 	Service []corev1.Service `json:"service"`
+}
+
+// TemplateSpec defines model for TemplateSpec.
+type TemplateSpec struct {
+	Arguments *map[string]interface{} `json:"arguments,omitempty"`
+
+	// TemplateName name of the template
+	TemplateName string `json:"template_name"`
 }
 
 // FlowId defines model for flow-id.
