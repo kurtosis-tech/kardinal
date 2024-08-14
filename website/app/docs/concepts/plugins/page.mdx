@@ -261,7 +261,7 @@ This deployment spec will then be used to create the dev postgres instance. Noti
 
 ### External Service Plugins
 
-External services are any service outside a clusters that a service inside depends on. This can be managed databases or queues or APIs like Stripe or Mailchimpthat a service inside depends on. (Note external services can also be stateful!) This can be managed databases or queues or APIs like Stripe or Mailchimp.
+External services are any service outside a clusters that a service inside depends on. This can be managed databases or queues or APIs like Stripe or Mailchimp that a service inside depends on. (Note external services can also be stateful!) This can be managed databases or queues or APIs like Stripe or Mailchimp.
 Using plugins to handle dev versions of external services works very similarly.
 
 The difference is that the plugin annotation gets added to the service spec of the service that depends on the external service. Accordingly, when writing the plugin, the plugin will be modifying the deployment spec of the dependent service.
