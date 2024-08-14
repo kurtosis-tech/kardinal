@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	networkingv1 "k8s.io/api/networking/v1"
 	"log"
 	"os"
 	"path"
@@ -289,6 +290,7 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.Ser
 
 	manifest := string(fileBytes)
 	serviceConfigs := map[string]*api_types.ServiceConfig{}
+	ingressConfigs := map[string]*api_types.IngressConfig{}
 	decode := scheme.Codecs.UniversalDeserializer().Decode
 	for _, spec := range strings.Split(manifest, "---") {
 		if len(spec) == 0 {
@@ -321,6 +323,10 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.Ser
 			} else {
 				serviceConfigs[deploymentName].Deployment = *deployment
 			}
+		case *networkingv1.Ingress:
+			ingress := obj
+			ingressName := getObjectName(ingress.GetObjectMeta().(*metav1.ObjectMeta))
+			ingressConfigs[ingressName] = &api_types.IngressConfig{Ingress: *ingress}
 		default:
 			return nil, stacktrace.NewError("An error occurred parsing the manifest because of an unsupported kubernetes type")
 		}
