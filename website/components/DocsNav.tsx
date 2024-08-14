@@ -41,9 +41,7 @@ const navItems: NavItem[] = [
   {
     path: "references",
     title: "References",
-    children: [
-      { path: "comparisons", title: "Comparison to alternatives" },
-    ],
+    children: [{ path: "comparisons", title: "Comparison to alternatives" }],
   },
 ];
 
@@ -102,7 +100,7 @@ const DocsNav = () => {
 
 namespace S {
   export const NavItemsWrapper = styled.div`
-    padding-top: 240px;
+    padding-top: 172px;
     @media ${mobile} {
       padding-top: 0;
     }

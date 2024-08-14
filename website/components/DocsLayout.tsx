@@ -37,7 +37,7 @@ namespace S {
     display: flex;
     flex-direction: column;
     gap: 24px;
-    padding: 224px 0 48px 0;
+    padding: 160px 0 48px 0;
     width: 100%;
     max-width: 827px;
     margin: 0 auto;
