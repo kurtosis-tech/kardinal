@@ -1,0 +1,73 @@
+import Collapsible from '@/components/Collapsible';
+
+# Comparison to alternatives
+
+This page is updated with comparisons to other techniques for developing and testing applications in Kubernetes, to give you a better understanding of how Kardinal fits into the picture.
+
+<Collapsible title="Capsule">
+Kardinal has some similarities to [Capsule](https://capsule.clastix.io/), in the sense that both enable multitenancy with isolation with a single Kubernetes cluster.
+
+However, Capsule is focused on providing multitenancy through a collection of namespaces in the cluster, which use shared configurations like Network and Security policies, Resource Quotas, Limit Ranges, and RBAC.
+
+Kardinal does not configure these Kubernetes-level components, and instead focuses on providing multitenancy at the "application" level, with the ability to reuse things like microservices, database, queues, and caches between tenants when necessary and isolating them between tenats when necessary.
+
+You could use Capsule alongside Kardinal - Capsule would provision Kubernetes-level tenants, and then within those tenants, you could use Kardinal to further do multiple application deploys for dev or test purposes.
+</Collapsible>
+
+<Collapsible title="Devcontainers">
+Using Kardinal in "single-service" mode is also similar to using [Devcontainers](https://code.visualstudio.com/docs/devcontainers/attach-container) with the Kubernetes extension to deploy the devcontainer directly into your Kubernetes cluster.
+
+Going further with Kardinal gives you capabilities that are more difficult to achieve with Devcontainers, such as:
+- Multi-service isolated development environments
+- Isolated state per development environment, for database migrations, state-layer changes, or test-specific seeded state.
+
+If you're already using Devcontainers, or you're looking for a way to integrate ephemeral remote environments with your local development workflow, we recommend using Kardinal along with Devcontainers to get the best possible experience.
+
+Devcontainers can connect your coding workflow into your Kardinal [flows](./concepts/flows), and Kardinal can provide multi-service routing and state isolation for a more robust development and testing experience.
+</Collapsible>
+
+<Collapsible title="Namespace-based dev deploys">
+Some teams create ephemeral development environments by deploying changed services into a new namespace into their Kubernetes cluster.
+
+Then, they configure rules per namespace that defines what is shared between that development namespace, and the "stable" shared namespace. These shared resources include the state that backs the applciation (dbs, queues, caches), as well as shared microservices.
+
+This is a sophisticated approach that can be very effective. Using this approach is similar to using Kardinal in "single-service" and "multi-service" mode, in the sense of creating flows that can contain one or more development versions of services.
+
+However, with Kardinal, you can take things a step further by configuring isolated state per development environment. This is useful for testing database migrations, state-layer changes, or seeding different test data for different scenarios.
+
+Providing isolated state per development environment would be resource-intensive with namespace-based development deploys, because you would need to duplicate every service in the cluster to avoid breaking isolation or corrupting the state.
+
+With Kardinal, you can isolate state without duplicating everything due to Kardinal's trace-based routing infrastructure.
+</Collapsible>
+
+<Collapsible title="Signadot">
+Kardinal uses a similar approach to [Signadot](https://signadot.com/) for creating ephemeral development environments. The main difference is that Kardinal is open-source, as we believe that the development of a healthy open-source community is key to supporting all integrations necessary to fully realize the Kardinal vision.
+
+These community-based integrations include a robust plugin ecosystem for stateful and managed services, and integrations with a variety of service meshes.
+</Collapsible>
+
+<Collapsible title="Telepresence">
+Using Kardinal in "single-service" mode is similar to using [Telepresence](https://www.telepresence.io/), except that Telepresence will connect your local machine into the Kubernetes cluster.
+
+Going further with Kardinal gives you capabilities that are more difficult to achieve with Telepresence, such as:
+- Multi-service isolated development environments
+- Isolated state per development environment, for database migrations, state-layer changes, or test-specific seeded state.
+
+If you're already using Telepresence, or you're looking for a way to connect your local machine to a Kubernetes cluster, we recommend using Kardinal along with Telepresence to get the best possible experience.
+
+Telepresence can connect your laptop into your Kardinal [flows](./concepts/flows), and Kardinal can provide multi-service routing and state isolation for a more robust development and testing experience.
+</Collapsible>
+
+<Collapsible title="VClusters">
+Kardinal has some similarities to [vclusters](https://www.vcluster.com/), in the sense that both enable multitenancy with isolation with a single Kubernetes cluster.
+
+However, vclusters are targeted towards providing the full Kubernetes experience within each tenant. This means each tenant gets their own API server, control plane, syncer, and other Kubernetes-level components.
+
+Kardinal does not provide these Kubernetes-level components, and instead focuses on providing multitenancy at the "application" level.
+
+If you want to test custom CRDs, or other Kubernetes-specific things like oeprators, vclusters are the best fit. Or, if you do really want a stronger isolation guarantees between tenants without deploying separate clusters, vclusters will work great.
+
+However if you're just testing application-level changes, Kardinal will provide the deploys you need in an lighter-weight way.
+
+You could use vclusters alongside Kardinal - vclusters would provision virtual Kubernetes clusters, and then within those virtual clusters, you could use Kardinal to further do multiple application deploys for dev or test purposes.
+</Collapsible>

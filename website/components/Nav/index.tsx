@@ -114,7 +114,7 @@ const Nav = () => {
         <S.MobileNavButton onClick={toggleNav}>
           {isNavOpen ? <BiX size={24} /> : <BiMenu size={24} />}
         </S.MobileNavButton>
-        {!isDocs && <NavLinksAndButton />}
+        <NavLinksAndButton />
       </S.Container>
     </S.Nav>
   );

@@ -4,14 +4,9 @@ export const metadata = {
 
 # Architecture
 
-Kardinal depends on two elements of your Kubernetes-deployed app:
+Kardinal deploys a service into your cluster called the `Kardinal Manager`, which is responsible for reading your Kubernetes annotations and managing Istio to implement routing rules per request.
 
-1. A service dependency graph - every service defines its dependencies, including external APIs it uses to store or retrieve data.
-2. Distributed tracing
-
-With these elements, Kardinal can effectively instrument the lightest-weight multitenancy possible within your cluster.
-
-On the Kardinal side, an in-cluster service called the `Kardinal Manager` is responsible for reading the dependency graph annotations and managing the service mesh to implement routing rules per request. The existing distributed tracing infrastucture in your application is used to keep track of requests as they trace their way through the cluster.
+Kardinal uses the existing distributed tracing infrastucture in your application to keep track of requests as they trace their way through the cluster.
 
 To manage any persisted state in your cluster, Kardinal relies on a plugin ecosystem that define, service-by-service, how to properly share state between environments, or how to spin up new, empty "dev" versions of given stateful services.
 

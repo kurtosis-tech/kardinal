@@ -4,13 +4,30 @@ export const metadata = {
 
 # Flows
 
-In Kardinal, a “flow” is a set of traffic routing rules paired with a data isolation layer that achieves the appropriate levels of isolation and data exposure for a version of deployable software.
+In Kardinal, a flow is an ephemeral environment that developers can use for development, testing, or QA.
 
-Anything you do with an “environment” across the software delivery lifecycle can be done with a “flow” in Kardinal. For example:
+The default flow in Kardinal is called `stable`, and typically contains the latest versions of each service that you have in your staging cluster, i.e. the latest changes that are about to be promoted to production.
 
-- Isolated Dev Sandbox → [Isolated Dev Flow](use-cases/isolated-dev-sandbox-flows)
-- Preview Environment → [Preview Flow](use-cases/preview-and-feature-branch-flows)
-- QA Environment → [QA Flow](use-cases/qa-flows)
+When Kardinal creates a flow, it will deploy the set of services that encompass the changes being made for a given feature. Kardinal will also create an ingress point for the developer to use.
 
-_Flows are possible because Kardinal links traffic routing/mirroring rules with data access and isolation policies_. When both are combined, you can effectively create virtual views over an environment (we call them flows) where both the traffic and the data that are sent through the flow are isolated to a particular workflow (dev, test, QA).
+Any communication made through the ingress point will be routed to the versions of the services that are a part of the flow. Any services that are a part of the application, but aren't being changed as a part of the feature, will still be available from the `stable` flow.
 
+As your team onboards to Kardinal, you will be able to create flows with escalating levels of configurability:
+
+1. **Single-service flows**: deploy a single service to test a new version of a service, sharing application state with all other flows
+2. **Multi-service flows**: deploy a set of services together to test a larger feature change involving multiple services, sharing application state with all other flows
+3. **State-isolated flows**: deploy a set of services together with new, isolated state (dbs, caches, queues) to test database migrations or other state-layer changes
+4. **Full application flows**: deploy an independent, full application with its own state layer for completely isolated end-to-end testing
+
+Getting more advanced flows requires defining more of your application's topology in Kardinal:
+
+| Flow Type | Onboarding Requirements |
+|-----------|-------------------|
+| Single-service flows | Your service implements distributed tracing |
+| Multi-service flows | A subset of your services implement distributed tracing |
+| State-isolated flows | A subset of your services implement distributed tracing, explicitly define their service dependencies, and you use [state isolation plugins](./concepts/plugins) for all state and managed services |
+| Full application flows | All of your services implement distributed tracing, explicitly define their service dependencies, and you use [state isolation plugins](./concepts/plugins) for all state and managed services |
+
+The cost savings of the final two use cases (isolating state between flows) can reach into the millions of dollars for large organizations who use isolated dev sandboxes for ephemeral environments.
+
+To see how, and to calculate savings for your own organization, check out our [cost savings dashboard](https://kardinal.streamlit.app) hosted on Streamlit. (If the dashboard is "sleeping", just click to wake it up!)
