@@ -39,7 +39,7 @@ const EmailInput = ({
         loading={isLoading}
         isSuccess={isSuccess}
       >
-        Join the beta
+        Get a demo
       </S.SubmitButton>
     </S.Fieldset>
   );

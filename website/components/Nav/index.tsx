@@ -2,33 +2,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BiBookOpen, BiChat, BiMenu, BiRss, BiX } from "react-icons/bi";
-import { FiGithub } from "react-icons/fi";
-import { TbPrompt, TbSparkles } from "react-icons/tb";
+import { BiMenu, BiX } from "react-icons/bi";
 import styled from "styled-components";
 
 import Banner from "@/components/Banner";
-import Button from "@/components/Button";
-import Responsive from "@/components/Responsive";
 import ResponsiveNav from "@/components/ResponsiveNav";
 import { mobile, tablet } from "@/constants/breakpoints";
 import { useModal } from "@/context/ModalContext";
 import analytics from "@/lib/analytics";
 import kardinalLogo from "@/public/kardinal-orange.png";
-
-const WaitlistButton = () => {
-  const { toggleModal } = useModal();
-  return (
-    <Button.Secondary
-      analyticsId="button_nav_join_waitlist"
-      onClick={toggleModal}
-      style={{ justifyContent: "flex-start" }}
-    >
-      <TbSparkles size={18} />
-      Join the beta
-    </Button.Secondary>
-  );
-};
 
 const NavLinksAndButton = () => {
   return (
@@ -40,7 +22,6 @@ const NavLinksAndButton = () => {
             analytics.track("BUTTON_CLICK", { analyticsId: "link_nav_docs" })
           }
         >
-          <BiBookOpen size={18} />
           Docs
         </S.NavLink>
         <S.NavLink
@@ -52,7 +33,6 @@ const NavLinksAndButton = () => {
             })
           }
         >
-          <TbPrompt size={18} />
           Playground
         </S.NavLink>
         <S.NavLink
@@ -62,7 +42,6 @@ const NavLinksAndButton = () => {
             analytics.track("BUTTON_CLICK", { analyticsId: "link_nav_github" })
           }
         >
-          <FiGithub size={15} style={{ marginRight: "3px" }} />
           Github
         </S.NavLink>
         <S.NavLink
@@ -71,7 +50,6 @@ const NavLinksAndButton = () => {
             analytics.track("BUTTON_CLICK", { analyticsId: "link_nav_forum" })
           }
         >
-          <BiChat size={18} />
           Forum
         </S.NavLink>
         <S.NavLink
@@ -80,10 +58,8 @@ const NavLinksAndButton = () => {
             analytics.track("BUTTON_CLICK", { analyticsId: "link_nav_blog" })
           }
         >
-          <BiRss size={18} />
           Blog
         </S.NavLink>
-        <WaitlistButton />
       </S.NavItemsWrapper>
     </ResponsiveNav>
   );
@@ -108,9 +84,6 @@ const Nav = () => {
           <S.LogoText>Kardinal</S.LogoText>
         </S.Wordmark>
         <S.NavSpacer />
-        <Responsive.Mobile>
-          <WaitlistButton />
-        </Responsive.Mobile>
         <S.MobileNavButton onClick={toggleNav}>
           {isNavOpen ? <BiX size={24} /> : <BiMenu size={24} />}
         </S.MobileNavButton>
