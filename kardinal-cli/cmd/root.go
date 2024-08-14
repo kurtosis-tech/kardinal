@@ -23,7 +23,7 @@ import (
 	api_types "github.com/kurtosis-tech/kardinal/libs/cli-kontrol-api/api/golang/types"
 	appv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	networkingv1 "k8s.io/api/networking/v1"
+	net "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 )
@@ -70,7 +70,7 @@ var deployCmd = &cobra.Command{
 	Short: "Deploy services",
 	Args:  cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
-		serviceConfigs, err := parseKubernetesManifestFile(kubernetesManifestFile)
+		serviceConfigs, ingressConfigs, err := parseKubernetesManifestFile(kubernetesManifestFile)
 		if err != nil {
 			log.Fatalf("Error loading k8s manifest file: %v", err)
 		}
@@ -79,7 +79,7 @@ var deployCmd = &cobra.Command{
 			log.Fatal("Error getting or creating user tenant UUID", err)
 		}
 
-		deploy(tenantUuid.String(), serviceConfigs)
+		deploy(tenantUuid.String(), serviceConfigs, ingressConfigs)
 	},
 }
 
@@ -305,11 +305,11 @@ func parsePairs(pairs []string) map[string]string {
 	return pairsMap
 }
 
-func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.ServiceConfig, error) {
+func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.ServiceConfig, []api_types.IngressConfig, error) {
 	fileBytes, err := loadKubernetesManifestFile(kubernetesManifestFile)
 	if err != nil {
 		log.Fatalf("Error loading kubernetest manifest file: %v", err)
-		return nil, err
+		return nil, nil, err
 	}
 
 	manifest := string(fileBytes)
@@ -322,7 +322,7 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.Ser
 		}
 		obj, _, err := decode([]byte(spec), nil, nil)
 		if err != nil {
-			return nil, stacktrace.Propagate(err, "An error occurred parsing the spec: %s", spec)
+			return nil, nil, stacktrace.Propagate(err, "An error occurred parsing the spec: %s", spec)
 		}
 		switch obj := obj.(type) {
 		case *corev1.Service:
@@ -347,12 +347,12 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.Ser
 			} else {
 				serviceConfigs[deploymentName].Deployment = *deployment
 			}
-		case *networkingv1.Ingress:
+		case *net.Ingress:
 			ingress := obj
 			ingressName := getObjectName(ingress.GetObjectMeta().(*metav1.ObjectMeta))
 			ingressConfigs[ingressName] = &api_types.IngressConfig{Ingress: *ingress}
 		default:
-			return nil, stacktrace.NewError("An error occurred parsing the manifest because of an unsupported kubernetes type")
+			return nil, nil, stacktrace.NewError("An error occurred parsing the manifest because of an unsupported kubernetes type")
 		}
 	}
 
@@ -361,7 +361,12 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.Ser
 		finalServiceConfigs = append(finalServiceConfigs, *serviceConfig)
 	}
 
-	return finalServiceConfigs, nil
+	finalIngressConfigs := []api_types.IngressConfig{}
+	for _, ingressConfig := range ingressConfigs {
+		finalIngressConfigs = append(finalIngressConfigs, *ingressConfig)
+	}
+
+	return finalServiceConfigs, finalIngressConfigs, nil
 }
 
 // Use in priority the label app value
@@ -437,11 +442,12 @@ func createDevFlow(tenantUuid api_types.Uuid, pairsMap map[string]string) {
 	os.Exit(1)
 }
 
-func deploy(tenantUuid api_types.Uuid, serviceConfigs []api_types.ServiceConfig) {
+func deploy(tenantUuid api_types.Uuid, serviceConfigs []api_types.ServiceConfig, ingressConfigs []api_types.IngressConfig) {
 	ctx := context.Background()
 
 	body := api_types.PostTenantUuidDeployJSONRequestBody{
 		ServiceConfigs: &serviceConfigs,
+		IngressConfigs: &ingressConfigs,
 	}
 	client := getKontrolServiceClient()
 
