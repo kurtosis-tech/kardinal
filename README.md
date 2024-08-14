@@ -13,18 +13,15 @@
 
 ## What is Kardinal?
 
-Kardinal allows you to create many logical dev or test environments for your application inside of a single Kubernetes cluster. Instead of implementing isolation between environments at the cluster level, Kardinal implements isolation by deploying development versions of services side-by-side with their "stable" versions, and creating isolated traffic routes through the cluster. Because logical environments in Kardinal are defined by the flow of traffic through a single cluster, we call them [flows](https://kardinal.dev/docs/concepts/flows).
+Kardinal is a framework for creating extremely lightweight ephemeral development environments within a shared Kubernetes cluster.
 
-There are many ways to isolate different environments in the context of cloud/Kubernetes deployments. To get an idea of how Kardinal fits into other methods, see the table below:
+In Kardinal, an environment is called a "flow" because it represents a path that a request takes through the cluster. Versions of services that are under development are deployed on-demand, and then shared across all development work that depends on that version. When you create a flow to test a feature, Kardinal deploys only the set of services that are changing for that feature. Then, any requests related to testing that feature are routed to those versions.
 
-| Isolation method                   | Level of Isolation  | Cost         | # of Duplicated Resources |
-| :--------------------------------- | :------------------ | :----------- | :------------------------ |
-| Separate VPCs                      | Most coarse-grained | Highest Cost | Highest                   |
-| Separate Kubernetes Clusters       | Coarse-grained      | High Cost    | High                      |
-| Separate Namespaces (vclusters)    | Fine-grained        | Low Cost     | Low                       |
-| Separate Traffic Routes (Kardinal) | Most fine-grained   | Lowest Cost  | Lowest                    |
+As you onboard deeper into Kardinal, you'll be able to set up isolated state for flows when desired (i.e. for testing database migrations or write-intensive workloads on shared state). Even with isolated state per flow, Kardinal will still deploy the absolute minimum resources necessary to test the changes. Isolation is done at the level of the request route, not by duplicating services in your cluster unnecessarily.
 
-Read more in our [docs](https://kardinal.dev/docs).
+To see how Kardinal compares to other tools, and to get an idea of how would fit into your workflow, check out our [comparisons to alternatives](https://kardinal.dev/docs/references/comparisons).
+
+Read more about Kardinal in our [docs](https://kardinal.dev/docs).
 
 ## Try it out in a Playground
 
