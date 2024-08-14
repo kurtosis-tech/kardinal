@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"gopkg.in/yaml.v3"
 	"kardinal.cli/consts"
 	"kardinal.cli/multi_os_cmd_executor"
 	"log"
@@ -48,6 +49,7 @@ var (
 	devMode                bool
 	serviceImagePairs      []string
 	templateName           string
+	templateYamlFile       string
 )
 
 var rootCmd = &cobra.Command{
@@ -65,6 +67,11 @@ var managerCmd = &cobra.Command{
 	Short: "Manage Kardinal manager",
 }
 
+var templateCmd = &cobra.Command{
+	Use:   "template",
+	Short: "Manage template creation",
+}
+
 var deployCmd = &cobra.Command{
 	Use:   "deploy",
 	Short: "Deploy services",
@@ -80,6 +87,34 @@ var deployCmd = &cobra.Command{
 		}
 
 		deploy(tenantUuid.String(), serviceConfigs)
+	},
+}
+
+var templateCreateCmd = &cobra.Command{
+	Use:   "create [template name]",
+	Short: "Create a new template",
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		templateName := args[0]
+
+		// Read and parse the YAML file
+		yamlContent, err := os.ReadFile(templateYamlFile)
+		if err != nil {
+			log.Fatalf("Error reading YAML file: %v", err)
+		}
+
+		var services []corev1.Service
+		err = yaml.Unmarshal(yamlContent, &services)
+		if err != nil {
+			log.Fatalf("Error parsing YAML file: %v", err)
+		}
+
+		tenantUuid, err := tenant.GetOrCreateUserTenantUUID()
+		if err != nil {
+			log.Fatal("Error getting or creating user tenant UUID", err)
+		}
+
+		createTemplate(tenantUuid.String(), templateName, services)
 	},
 }
 
@@ -271,17 +306,22 @@ func init() {
 	rootCmd.AddCommand(flowCmd)
 	rootCmd.AddCommand(managerCmd)
 	rootCmd.AddCommand(deployCmd)
+	rootCmd.AddCommand(templateCmd)
 	rootCmd.AddCommand(dashboardCmd)
 	rootCmd.AddCommand(gatewayCmd)
 	rootCmd.AddCommand(reportInstall)
 	flowCmd.AddCommand(listCmd, createCmd, deleteCmd)
 	managerCmd.AddCommand(deployManagerCmd, removeManagerCmd)
+	templateCmd.AddCommand(templateCreateCmd)
 
 	createCmd.Flags().StringSliceVarP(&serviceImagePairs, "service-image", "s", []string{}, "Extra service and respective image to include in the same flow (can be used multiple times)")
 	createCmd.Flags().StringVar(&templateName, "template", "", "Template name to use for the flow creation")
 
 	deployCmd.PersistentFlags().StringVarP(&kubernetesManifestFile, "k8s-manifest", "k", "", "Path to the K8S manifest file")
 	deployCmd.MarkPersistentFlagRequired("k8s-manifest")
+
+	templateCreateCmd.Flags().StringVarP(&templateYamlFile, "template", "y", "", "Path to the YAML file containing the template services")
+	templateCreateCmd.MarkFlagRequired("template")
 
 }
 
@@ -526,6 +566,39 @@ func removeManager() error {
 	}
 
 	return nil
+}
+
+func createTemplate(tenantUuid api_types.Uuid, templateName string, services []corev1.Service) {
+	ctx := context.Background()
+
+	client := getKontrolServiceClient()
+
+	templateConfig := api_types.TemplateConfig{
+		Name:    templateName,
+		Service: services,
+	}
+
+	resp, err := client.PostTenantUuidTemplatesCreateWithResponse(ctx, tenantUuid, api_types.PostTenantUuidTemplatesCreateJSONRequestBody(templateConfig))
+	if err != nil {
+		log.Fatalf("Failed to create template: %v", err)
+	}
+
+	if resp.StatusCode() == 200 {
+		fmt.Printf("Template '%s' created successfully. Template ID: %s\n", resp.JSON200.Name, resp.JSON200.TemplateId)
+		if resp.JSON200.Description != nil {
+			fmt.Printf("Description: %s\n", *resp.JSON200.Description)
+		}
+		return
+	}
+
+	if resp.StatusCode() == 404 {
+		fmt.Printf("Could not create template, missing %s: %s\n", resp.JSON404.ResourceType, resp.JSON404.Id)
+	} else if resp.StatusCode() == 500 {
+		fmt.Printf("Could not create template, error %s: %v\n", resp.JSON500.Error, resp.JSON500.Msg)
+	} else {
+		fmt.Printf("Failed to create template: %s\n", string(resp.Body))
+	}
+	log.Fatal("Template creation failed")
 }
 
 func getKontrolServiceClient() *api.ClientWithResponses {
