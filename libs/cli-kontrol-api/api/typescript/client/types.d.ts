@@ -206,7 +206,6 @@ export interface components {
         "image-locator": string;
         /** @example backend-service-a */
         "service-name": string;
-        "template-spec"?: components["schemas"]["TemplateSpec"];
       }[];
     TemplateSpec: {
       /** @description name of the template */

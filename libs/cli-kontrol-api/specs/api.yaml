@@ -263,8 +263,6 @@ components:
           service-name:
             type: string
             example: backend-service-a
-          template-spec:
-            $ref: "#/components/schemas/TemplateSpec"
         required:
           - image-locator
           - service-name

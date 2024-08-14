@@ -42,9 +42,8 @@ type Flow struct {
 
 // FlowSpec defines model for FlowSpec.
 type FlowSpec = []struct {
-	ImageLocator string        `json:"image-locator"`
-	ServiceName  string        `json:"service-name"`
-	TemplateSpec *TemplateSpec `json:"template-spec,omitempty"`
+	ImageLocator string `json:"image-locator"`
+	ServiceName  string `json:"service-name"`
 }
 
 // MainClusterConfig defines model for MainClusterConfig.
