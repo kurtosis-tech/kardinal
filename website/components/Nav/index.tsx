@@ -1,7 +1,6 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { BiMenu, BiX } from "react-icons/bi";
 import styled from "styled-components";
 
@@ -66,8 +65,6 @@ const NavLinksAndButton = () => {
 
 const Nav = () => {
   const { toggleNav, isNavOpen } = useModal();
-  const pathname = usePathname();
-  const isDocs = pathname.includes("/docs");
   return (
     <S.Nav>
       <S.Container>
