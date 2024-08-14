@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"gopkg.in/yaml.v3"
 	"kardinal.cli/consts"
 	"kardinal.cli/multi_os_cmd_executor"
 	"log"
@@ -97,16 +96,12 @@ var templateCreateCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		templateName := args[0]
 
-		// Read and parse the YAML file
-		yamlContent, err := os.ReadFile(templateYamlFile)
-		if err != nil {
-			log.Fatalf("Error reading YAML file: %v", err)
-		}
+		serviceConfigs, err := parseKubernetesManifestFile(templateYamlFile)
 
 		var services []corev1.Service
-		err = yaml.Unmarshal(yamlContent, &services)
-		if err != nil {
-			log.Fatalf("Error parsing YAML file: %v", err)
+
+		for _, config := range serviceConfigs {
+			services = append(services, config.Service)
 		}
 
 		tenantUuid, err := tenant.GetOrCreateUserTenantUUID()
@@ -320,7 +315,7 @@ func init() {
 	deployCmd.PersistentFlags().StringVarP(&kubernetesManifestFile, "k8s-manifest", "k", "", "Path to the K8S manifest file")
 	deployCmd.MarkPersistentFlagRequired("k8s-manifest")
 
-	templateCreateCmd.Flags().StringVarP(&templateYamlFile, "template", "y", "", "Path to the YAML file containing the template services")
+	templateCreateCmd.Flags().StringVarP(&templateYamlFile, "template", "t", "", "Path to the YAML file containing the template")
 	templateCreateCmd.MarkFlagRequired("template")
 
 }
