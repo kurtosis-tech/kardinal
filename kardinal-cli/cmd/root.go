@@ -47,6 +47,7 @@ var (
 	kubernetesManifestFile string
 	devMode                bool
 	serviceImagePairs      []string
+	templateName           string
 )
 
 var rootCmd = &cobra.Command{
@@ -116,7 +117,10 @@ var createCmd = &cobra.Command{
 		}
 
 		logrus.Infof("Creating service %s with image %s in development mode...\n", serviceName, imageName)
-		createDevFlow(tenantUuid.String(), pairsMap)
+		if templateName != "" {
+			logrus.Infof("Using template: %s\n", templateName)
+		}
+		createDevFlow(tenantUuid.String(), pairsMap, templateName)
 	},
 }
 
@@ -274,6 +278,7 @@ func init() {
 	managerCmd.AddCommand(deployManagerCmd, removeManagerCmd)
 
 	createCmd.Flags().StringSliceVarP(&serviceImagePairs, "service-image", "s", []string{}, "Extra service and respective image to include in the same flow (can be used multiple times)")
+	createCmd.Flags().StringVar(&templateName, "template", "", "Template name to use for the flow creation")
 
 	deployCmd.PersistentFlags().StringVarP(&kubernetesManifestFile, "k8s-manifest", "k", "", "Path to the K8S manifest file")
 	deployCmd.MarkPersistentFlagRequired("k8s-manifest")
@@ -392,7 +397,7 @@ func listDevFlow(tenantUuid api_types.Uuid) {
 	os.Exit(1)
 }
 
-func createDevFlow(tenantUuid api_types.Uuid, pairsMap map[string]string) {
+func createDevFlow(tenantUuid api_types.Uuid, pairsMap map[string]string, templateName string) {
 	ctx := context.Background()
 
 	devSpec := api_types.FlowSpec{}
@@ -408,7 +413,17 @@ func createDevFlow(tenantUuid api_types.Uuid, pairsMap map[string]string) {
 
 	client := getKontrolServiceClient()
 
-	resp, err := client.PostTenantUuidFlowCreateWithResponse(ctx, tenantUuid, devSpec)
+	var templateSpec *api_types.TemplateSpec
+	if templateName != "" {
+		templateSpec = &api_types.TemplateSpec{
+			TemplateName: templateName,
+		}
+	}
+
+	resp, err := client.PostTenantUuidFlowCreateWithResponse(ctx, tenantUuid, api_types.PostTenantUuidFlowCreateJSONRequestBody{
+		FlowSpec:     devSpec,
+		TemplateSpec: templateSpec,
+	})
 	if err != nil {
 		log.Fatalf("Failed to create dev flow: %v", err)
 	}
