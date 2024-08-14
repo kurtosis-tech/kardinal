@@ -35,7 +35,7 @@ const navItems: NavItem[] = [
     title: "Concepts",
     children: [
       { path: "flows", title: "Flows" },
-      { path: "plugins", title: "Stateful Service Plugins" },
+      { path: "plugins", title: "Plugins for State Isolation" },
     ],
   },
   {
