@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { BiMenu, BiX } from "react-icons/bi";
 import styled from "styled-components";
 
-import Banner from "@/components/Banner";
 import ResponsiveNav from "@/components/ResponsiveNav";
 import { mobile, tablet } from "@/constants/breakpoints";
 import { useModal } from "@/context/ModalContext";
@@ -71,7 +70,6 @@ const Nav = () => {
   const isDocs = pathname.includes("/docs");
   return (
     <S.Nav>
-      {isDocs && <Banner />}
       <S.Container>
         <S.Wordmark href={"/"}>
           <S.LogoImage
