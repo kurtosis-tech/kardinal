@@ -167,12 +167,12 @@ export interface paths {
       };
     };
   };
-  "/tenant/{uuid}/templates/{template-id}": {
+  "/tenant/{uuid}/templates/{template-name}": {
     delete: {
       parameters: {
         path: {
           uuid: components["parameters"]["uuid"];
-          "template-id": components["parameters"]["template-id"];
+          "template-name": components["parameters"]["template-name"];
         };
       };
       responses: {
@@ -285,8 +285,8 @@ export interface components {
     uuid: string;
     /** @description Flow identifier */
     "flow-id": string;
-    /** @description Template identifier */
-    "template-id": string;
+    /** @description name of the template */
+    "template-name": string;
   };
   requestBodies: never;
   headers: never;

@@ -117,8 +117,8 @@ type ClientInterface interface {
 
 	PostTenantUuidTemplatesCreate(ctx context.Context, uuid Uuid, body PostTenantUuidTemplatesCreateJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// DeleteTenantUuidTemplatesTemplateId request
-	DeleteTenantUuidTemplatesTemplateId(ctx context.Context, uuid Uuid, templateId TemplateId, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// DeleteTenantUuidTemplatesTemplateName request
+	DeleteTenantUuidTemplatesTemplateName(ctx context.Context, uuid Uuid, templateName TemplateName, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetTenantUuidTopology request
 	GetTenantUuidTopology(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -244,8 +244,8 @@ func (c *Client) PostTenantUuidTemplatesCreate(ctx context.Context, uuid Uuid, b
 	return c.Client.Do(req)
 }
 
-func (c *Client) DeleteTenantUuidTemplatesTemplateId(ctx context.Context, uuid Uuid, templateId TemplateId, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDeleteTenantUuidTemplatesTemplateIdRequest(c.Server, uuid, templateId)
+func (c *Client) DeleteTenantUuidTemplatesTemplateName(ctx context.Context, uuid Uuid, templateName TemplateName, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteTenantUuidTemplatesTemplateNameRequest(c.Server, uuid, templateName)
 	if err != nil {
 		return nil, err
 	}
@@ -545,8 +545,8 @@ func NewPostTenantUuidTemplatesCreateRequestWithBody(server string, uuid Uuid, c
 	return req, nil
 }
 
-// NewDeleteTenantUuidTemplatesTemplateIdRequest generates requests for DeleteTenantUuidTemplatesTemplateId
-func NewDeleteTenantUuidTemplatesTemplateIdRequest(server string, uuid Uuid, templateId TemplateId) (*http.Request, error) {
+// NewDeleteTenantUuidTemplatesTemplateNameRequest generates requests for DeleteTenantUuidTemplatesTemplateName
+func NewDeleteTenantUuidTemplatesTemplateNameRequest(server string, uuid Uuid, templateName TemplateName) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -558,7 +558,7 @@ func NewDeleteTenantUuidTemplatesTemplateIdRequest(server string, uuid Uuid, tem
 
 	var pathParam1 string
 
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "template-id", runtime.ParamLocationPath, templateId)
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "template-name", runtime.ParamLocationPath, templateName)
 	if err != nil {
 		return nil, err
 	}
@@ -690,8 +690,8 @@ type ClientWithResponsesInterface interface {
 
 	PostTenantUuidTemplatesCreateWithResponse(ctx context.Context, uuid Uuid, body PostTenantUuidTemplatesCreateJSONRequestBody, reqEditors ...RequestEditorFn) (*PostTenantUuidTemplatesCreateResponse, error)
 
-	// DeleteTenantUuidTemplatesTemplateIdWithResponse request
-	DeleteTenantUuidTemplatesTemplateIdWithResponse(ctx context.Context, uuid Uuid, templateId TemplateId, reqEditors ...RequestEditorFn) (*DeleteTenantUuidTemplatesTemplateIdResponse, error)
+	// DeleteTenantUuidTemplatesTemplateNameWithResponse request
+	DeleteTenantUuidTemplatesTemplateNameWithResponse(ctx context.Context, uuid Uuid, templateName TemplateName, reqEditors ...RequestEditorFn) (*DeleteTenantUuidTemplatesTemplateNameResponse, error)
 
 	// GetTenantUuidTopologyWithResponse request
 	GetTenantUuidTopologyWithResponse(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*GetTenantUuidTopologyResponse, error)
@@ -862,7 +862,7 @@ func (r PostTenantUuidTemplatesCreateResponse) StatusCode() int {
 	return 0
 }
 
-type DeleteTenantUuidTemplatesTemplateIdResponse struct {
+type DeleteTenantUuidTemplatesTemplateNameResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON404      *NotFound
@@ -870,7 +870,7 @@ type DeleteTenantUuidTemplatesTemplateIdResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r DeleteTenantUuidTemplatesTemplateIdResponse) Status() string {
+func (r DeleteTenantUuidTemplatesTemplateNameResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -878,7 +878,7 @@ func (r DeleteTenantUuidTemplatesTemplateIdResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r DeleteTenantUuidTemplatesTemplateIdResponse) StatusCode() int {
+func (r DeleteTenantUuidTemplatesTemplateNameResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -996,13 +996,13 @@ func (c *ClientWithResponses) PostTenantUuidTemplatesCreateWithResponse(ctx cont
 	return ParsePostTenantUuidTemplatesCreateResponse(rsp)
 }
 
-// DeleteTenantUuidTemplatesTemplateIdWithResponse request returning *DeleteTenantUuidTemplatesTemplateIdResponse
-func (c *ClientWithResponses) DeleteTenantUuidTemplatesTemplateIdWithResponse(ctx context.Context, uuid Uuid, templateId TemplateId, reqEditors ...RequestEditorFn) (*DeleteTenantUuidTemplatesTemplateIdResponse, error) {
-	rsp, err := c.DeleteTenantUuidTemplatesTemplateId(ctx, uuid, templateId, reqEditors...)
+// DeleteTenantUuidTemplatesTemplateNameWithResponse request returning *DeleteTenantUuidTemplatesTemplateNameResponse
+func (c *ClientWithResponses) DeleteTenantUuidTemplatesTemplateNameWithResponse(ctx context.Context, uuid Uuid, templateName TemplateName, reqEditors ...RequestEditorFn) (*DeleteTenantUuidTemplatesTemplateNameResponse, error) {
+	rsp, err := c.DeleteTenantUuidTemplatesTemplateName(ctx, uuid, templateName, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseDeleteTenantUuidTemplatesTemplateIdResponse(rsp)
+	return ParseDeleteTenantUuidTemplatesTemplateNameResponse(rsp)
 }
 
 // GetTenantUuidTopologyWithResponse request returning *GetTenantUuidTopologyResponse
@@ -1273,15 +1273,15 @@ func ParsePostTenantUuidTemplatesCreateResponse(rsp *http.Response) (*PostTenant
 	return response, nil
 }
 
-// ParseDeleteTenantUuidTemplatesTemplateIdResponse parses an HTTP response from a DeleteTenantUuidTemplatesTemplateIdWithResponse call
-func ParseDeleteTenantUuidTemplatesTemplateIdResponse(rsp *http.Response) (*DeleteTenantUuidTemplatesTemplateIdResponse, error) {
+// ParseDeleteTenantUuidTemplatesTemplateNameResponse parses an HTTP response from a DeleteTenantUuidTemplatesTemplateNameWithResponse call
+func ParseDeleteTenantUuidTemplatesTemplateNameResponse(rsp *http.Response) (*DeleteTenantUuidTemplatesTemplateNameResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &DeleteTenantUuidTemplatesTemplateIdResponse{
+	response := &DeleteTenantUuidTemplatesTemplateNameResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
