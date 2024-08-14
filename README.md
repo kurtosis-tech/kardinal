@@ -17,7 +17,14 @@ Kardinal is a framework for creating extremely lightweight ephemeral development
 
 In Kardinal, an environment is called a "[flow](https://kardinal.dev/docs/concepts/flows)" because it represents a path that a request takes through the cluster. Versions of services that are under development are deployed on-demand, and then shared across all development work that depends on that version. When you create a flow to test a feature, Kardinal deploys only the set of services that are changing for that feature. Then, any requests related to testing that feature are routed to those versions.
 
-As you onboard deeper into Kardinal, you'll be able to set up isolated state for flows when desired (i.e. for testing database migrations or write-intensive workloads on shared state). Even with isolated state per flow, Kardinal will still deploy the absolute minimum resources necessary to test the changes. Isolation is done at the level of the request route, not by duplicating services in your cluster unnecessarily.
+As your team onboards to Kardinal, you will be able to create flows with escalating levels of configurability:
+
+1. **Single-service flows**: deploy a single service to test a new version of a service, sharing application state with all other flows
+2. **Multi-service flows**: deploy a set of services together to test a larger feature change involving multiple services, sharing application state with all other flows
+3. **State-isolated flows**: deploy a set of services together with new, isolated state (dbs, caches, queues) to test database migrations or other state-layer changes
+4. **Full application flows**: deploy an independent, full application with its own state layer for completely isolated end-to-end testing
+
+Even with isolated state and e2e full application flows, Kardinal will still deploy the absolute minimum resources necessary to test your changes. Isolation is done at the level of the request route, not by duplicating services in your cluster unnecessarily.
 
 To see how Kardinal compares to other tools, and to get an idea of how would fit into your workflow, check out our [comparisons to alternatives](https://kardinal.dev/docs/references/comparisons).
 
