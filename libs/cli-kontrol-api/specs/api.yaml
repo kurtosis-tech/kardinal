@@ -168,6 +168,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ServiceConfig"
+        ingress-configs:
+          type: array
+          items:
+            $ref: "#/components/schemas/IngressConfig"
 
     Flow:
       type: object
@@ -269,3 +273,14 @@ components:
       required:
         - service
         - deployment
+
+    IngressConfig:
+      type: object
+      properties:
+        ingress:
+          x-go-type: networkingv1.Ingress
+          x-go-type-import:
+            path: k8s.io/api/networking/v1
+            name: networkingv1
+      required:
+        - ingress
