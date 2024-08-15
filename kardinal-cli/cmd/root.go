@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"gopkg.in/yaml.v3"
 	"kardinal.cli/consts"
 	"kardinal.cli/multi_os_cmd_executor"
 	"log"
@@ -49,6 +50,7 @@ var (
 	templateName           string
 	templateYamlFile       string
 	templateDescription    string
+	templateArgsFile       string
 )
 
 var rootCmd = &cobra.Command{
@@ -185,7 +187,13 @@ var createCmd = &cobra.Command{
 		if templateName != "" {
 			logrus.Infof("Using template: %s\n", templateName)
 		}
-		createDevFlow(tenantUuid.String(), pairsMap, templateName)
+
+		templateArgs, err := parseTemplateArgs(templateArgsFile)
+		if err != nil {
+			log.Fatalf("Error parsing template arguments: %v", err)
+		}
+
+		createDevFlow(tenantUuid.String(), pairsMap, templateName, templateArgs)
 	},
 }
 
@@ -346,7 +354,8 @@ func init() {
 	templateCmd.AddCommand(templateCreateCmd, templateDeleteCmd, templateListCmd)
 
 	createCmd.Flags().StringSliceVarP(&serviceImagePairs, "service-image", "s", []string{}, "Extra service and respective image to include in the same flow (can be used multiple times)")
-	createCmd.Flags().StringVar(&templateName, "template", "", "Template name to use for the flow creation")
+	createCmd.Flags().StringVarP(&templateName, "template", "t", "", "Template name to use for the flow creation")
+	createCmd.Flags().StringVarP(&templateArgsFile, "template-args", "a", "", "Path to YAML file containing template arguments")
 
 	deployCmd.PersistentFlags().StringVarP(&kubernetesManifestFile, "k8s-manifest", "k", "", "Path to the K8S manifest file")
 	deployCmd.MarkPersistentFlagRequired("k8s-manifest")
@@ -434,6 +443,25 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.Ser
 	return finalServiceConfigs, nil
 }
 
+func parseTemplateArgs(filename string) (map[string]interface{}, error) {
+	if filename == "" {
+		return nil, nil
+	}
+
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	var args map[string]interface{}
+	err = yaml.Unmarshal(data, &args)
+	if err != nil {
+		return nil, err
+	}
+
+	return args, nil
+}
+
 // Use in priority the label app value
 func getObjectName(obj *metav1.ObjectMeta) string {
 	labelApp, ok := obj.GetLabels()["app"]
@@ -468,7 +496,7 @@ func listDevFlow(tenantUuid api_types.Uuid) {
 	os.Exit(1)
 }
 
-func createDevFlow(tenantUuid api_types.Uuid, pairsMap map[string]string, templateName string) {
+func createDevFlow(tenantUuid api_types.Uuid, pairsMap map[string]string, templateName string, templateArgs map[string]interface{}) {
 	ctx := context.Background()
 
 	devSpec := api_types.FlowSpec{}
@@ -488,6 +516,7 @@ func createDevFlow(tenantUuid api_types.Uuid, pairsMap map[string]string, templa
 	if templateName != "" {
 		templateSpec = &api_types.TemplateSpec{
 			TemplateName: templateName,
+			Arguments:    &templateArgs,
 		}
 	}
 
