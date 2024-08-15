@@ -90,7 +90,7 @@ var deployCmd = &cobra.Command{
 }
 
 var templateCreateCmd = &cobra.Command{
-	Use:   "create [template name]",
+	Use:   "create <template-name>",
 	Short: "Create a new template",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
