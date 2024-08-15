@@ -131,6 +131,7 @@ export interface components {
   schemas: {
     MainClusterConfig: {
       "service-configs"?: components["schemas"]["ServiceConfig"][];
+      "ingress-configs"?: components["schemas"]["IngressConfig"][];
     };
     Flow: {
       "flow-id": string;
@@ -172,6 +173,9 @@ export interface components {
     ServiceConfig: {
       service: unknown;
       deployment: unknown;
+    };
+    IngressConfig: {
+      ingress: unknown;
     };
   };
   responses: {

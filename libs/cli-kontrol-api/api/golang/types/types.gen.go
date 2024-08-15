@@ -6,6 +6,7 @@ package types
 import (
 	appv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 )
 
 // Defines values for NodeType.
@@ -46,8 +47,14 @@ type FlowSpec = []struct {
 	ServiceName  string `json:"service-name"`
 }
 
+// IngressConfig defines model for IngressConfig.
+type IngressConfig struct {
+	Ingress networkingv1.Ingress `json:"ingress"`
+}
+
 // MainClusterConfig defines model for MainClusterConfig.
 type MainClusterConfig struct {
+	IngressConfigs *[]IngressConfig `json:"ingress-configs,omitempty"`
 	ServiceConfigs *[]ServiceConfig `json:"service-configs,omitempty"`
 }
 
