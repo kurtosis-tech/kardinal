@@ -14,7 +14,10 @@ const Footer = () => {
           <br />© 2024 Kurtosis Technologies. All Rights Reserved. <br />
         </S.FooterText>
         <S.FooterText>
-          <Link href="https://www.kurtosis.com/privacy-policy" target="_blank">
+          <Link
+            href="https://kurtosistech.notion.site/Privacy-Notice-46dac55b3669402b8506a3ace19a37b3"
+            target="_blank"
+          >
             Privacy policy
           </Link>
         </S.FooterText>
