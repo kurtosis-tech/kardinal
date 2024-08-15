@@ -353,7 +353,7 @@ func init() {
 
 	templateCreateCmd.Flags().StringVarP(&templateYamlFile, "template-yaml", "t", "", "Path to the YAML file containing the template")
 	templateCreateCmd.Flags().StringVarP(&templateDescription, "description", "d", "", "Description of the template")
-	templateCreateCmd.MarkFlagRequired("template")
+	templateCreateCmd.MarkFlagRequired("template-yaml")
 }
 
 func Execute() error {
