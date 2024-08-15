@@ -20,7 +20,8 @@ const navItems: NavItem[] = [
     path: "getting-started",
     title: "Getting Started",
     children: [
-      { path: "install", title: "Install" },
+      { path: "install", title: "Installation" },
+      { path: "fundamentals", title: "Fundamentals" },
       { path: "own-app", title: "Create your first flow" },
     ],
   },
@@ -34,8 +35,13 @@ const navItems: NavItem[] = [
     title: "Concepts",
     children: [
       { path: "flows", title: "Flows" },
-      { path: "plugins", title: "Stateful Service Plugins" },
+      { path: "plugins", title: "Plugins for State Isolation" },
     ],
+  },
+  {
+    path: "references",
+    title: "References",
+    children: [{ path: "comparisons", title: "Comparison to alternatives" }],
   },
 ];
 
@@ -94,7 +100,7 @@ const DocsNav = () => {
 
 namespace S {
   export const NavItemsWrapper = styled.div`
-    padding-top: 240px;
+    padding-top: 172px;
     @media ${mobile} {
       padding-top: 0;
     }

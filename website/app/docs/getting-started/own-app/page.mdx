@@ -91,9 +91,9 @@ kardinal flow create <service-name> <your/new-dev-image:dev>
 
 You should see some output like:
 ```bash
-kardinal flow create frontend leoporoli/newobd-frontend:dev
+kardinal flow create frontend kurtosistech/frontend:demo-frontend
 INFO[0000] Using tenant UUID 483e3371-ec18-40ca-aaee-54df597d1fd2 
-INFO[0000] Creating service frontend with image leoporoli/newobd-frontend:dev in development mode... 
+INFO[0000] Creating service frontend with image kurtosistech/frontend:demo-frontend in development mode... 
 Flow "dev-qlm1214pgt" created. Access it on:
 🌐 http://dev-qlm1214pgt.app.localhost
 ```
@@ -104,7 +104,7 @@ You can view all the flows in your cluster in the Kardinal dashboard:
 kardinal dashboard
 ```    
 
-If you run `kardinal gateway <flow-id>`, Kardinal will open a gateway to the entrypoint of the flow - whatever service of your application was annotated with the `kardinal.dev.service/ingress` annotation. Whether the service is a fronten or a backend service, you will be able to access the dev flow by making requests to the returned endpoint.
+If you run `kardinal gateway <flow-id>`, Kardinal will open a gateway to the entrypoint of the flow - whatever service of your application was annotated with the `kardinal.dev.service/ingress` annotation. Whether the service is a frontend or a backend service, you will be able to access the dev flow by making requests to the returned endpoint.
     
 ```bash
 $ kardinal gateway dev-qlm1214pgt

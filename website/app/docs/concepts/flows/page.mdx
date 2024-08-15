@@ -12,10 +12,22 @@ When Kardinal creates a flow, it will deploy the set of services that encompass 
 
 Any communication made through the ingress point will be routed to the versions of the services that are a part of the flow. Any services that are a part of the application, but aren't being changed as a part of the feature, will still be available from the `stable` flow.
 
-This basic use case is similar to deploying new versions of services in a separate namespace and sharing everything else with a shared dev cluster. However, Kardinal gets more interesting once you're fully onboarded and have defined your entire service dependency graph.
+As your team onboards to Kardinal, you will be able to create flows with escalating levels of configurability:
 
-Once your service dependency graph is defined, Kardinal can provide state isolation between flows via [stateful service plugins](./concepts/plugins).
+1. **Single-service flows**: deploy a single service to test a new version of a service, sharing application state with all other flows
+2. **Multi-service flows**: deploy a set of services together to test a larger feature change involving multiple services, sharing application state with all other flows
+3. **State-isolated flows**: deploy a set of services together with new, isolated state (dbs, caches, queues) to test database migrations or other state-layer changes
+4. **Full application flows**: deploy an independent, full application with its own state layer for completely isolated end-to-end testing
 
-The cost savings of this use case (isolating state between flows) can reach into the millions of dollars for large organizations who use ephemeral environments or isolated dev sandboxes.
+Getting more advanced flows requires defining more of your application's topology in Kardinal:
 
-With Kardinal, for every dev, test, or QA need, you will only ever deploy the minimum possible resources needed to test the feature, and you will reuse everything else across your development team.
+| Flow Type | Onboarding Requirements |
+|-----------|-------------------|
+| Single-service flows | Your service implements distributed tracing |
+| Multi-service flows | A subset of your services implement distributed tracing |
+| State-isolated flows | A subset of your services implement distributed tracing, explicitly define their service dependencies, and you use [state isolation plugins](./concepts/plugins) for all state and managed services |
+| Full application flows | All of your services implement distributed tracing, explicitly define their service dependencies, and you use [state isolation plugins](./concepts/plugins) for all state and managed services |
+
+The cost savings of the final two use cases (isolating state between flows) can reach into the millions of dollars for large organizations who use isolated dev sandboxes for ephemeral environments.
+
+To see how, and to calculate savings for your own organization, check out our [cost savings dashboard](https://kardinal.streamlit.app) hosted on Streamlit. (If the dashboard is "sleeping", just click to wake it up!)

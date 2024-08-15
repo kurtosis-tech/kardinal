@@ -4,7 +4,6 @@ import { ButtonHTMLAttributes, useEffect, useState } from "react";
 import { BiCheck, BiLogoGithub, BiRightArrowAlt } from "react-icons/bi";
 import styled, { css, keyframes } from "styled-components";
 
-import { mobile } from "@/constants/breakpoints";
 import analytics from "@/lib/analytics";
 
 interface StyledProps {
@@ -103,24 +102,11 @@ const secondaryButtonStyles = css<StyledProps>`
 `;
 
 const tertiaryButtonStyles = css<StyledProps>`
-  color: #419bf9;
-  font-size: 21px;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 32px; /* 152.381% */
-  display: flex;
-  align-items: center;
-  transform: translateY(0);
-  transition: all 0.2s ease-in-out;
+  ${secondaryButtonStyles}
+  color: var(--foreground);
 
   &:hover {
-    opacity: 0.8;
-    transform: translateY(-2px);
-  }
-
-  @media ${mobile} {
-    font-size: 16px;
-    line-height: 24px;
+    color: var(--brand-primary);
   }
 `;
 
@@ -231,31 +217,39 @@ const ButtonImpl = ({
   );
 };
 
+export const ButtonPrimary = (props: Props) => (
+  <ButtonImpl
+    {...props}
+    variant="primary"
+    Component={props.href != null ? PrimaryLink : PrimaryButton}
+  />
+);
+
+export const ButtonSecondary = (props: Props) => (
+  <ButtonImpl
+    {...props}
+    variant="secondary"
+    Component={props.href != null ? SecondaryLink : SecondaryButton}
+  />
+);
+
+export const ButtonTertiary = (props: Props) => (
+  <ButtonImpl
+    {...props}
+    variant="tertiary"
+    Component={props.href != null ? TertiaryLink : TertiaryButton}
+  />
+);
+
+export const ButtonCodespaces = (props: Props) => (
+  <ButtonImpl {...props} variant="codespaces" Component={CodespacesLink} />
+);
+
 const Button = {
-  Primary: (props: Props) => (
-    <ButtonImpl
-      {...props}
-      variant="primary"
-      Component={props.href != null ? PrimaryLink : PrimaryButton}
-    />
-  ),
-  Secondary: (props: Props) => (
-    <ButtonImpl
-      {...props}
-      variant="secondary"
-      Component={props.href != null ? SecondaryLink : SecondaryButton}
-    />
-  ),
-  Tertiary: (props: Props) => (
-    <ButtonImpl
-      {...props}
-      variant="tertiary"
-      Component={props.href != null ? TertiaryLink : TertiaryButton}
-    />
-  ),
-  Codespaces: (props: Props) => (
-    <ButtonImpl {...props} variant="codespaces" Component={CodespacesLink} />
-  ),
+  Primary: ButtonPrimary,
+  Secondary: ButtonSecondary,
+  Tertiary: ButtonTertiary,
+  Codespaces: ButtonCodespaces,
 };
 
 export default Button;
