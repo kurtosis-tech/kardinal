@@ -3,24 +3,18 @@ import Image from "next/image";
 import { PropsWithChildren, ReactNode } from "react";
 import styled from "styled-components";
 
-// import Button from "@/components/Button";
 import Heading from "@/components/Heading";
 import Section from "@/components/Section";
 import Spacer from "@/components/Spacer";
-import Sparkle from "@/components/Sparkle";
 import Text from "@/components/Text";
 import { mobile } from "@/constants/breakpoints";
-// import { scrollToId } from "@/utils";
 
 const DefaultHeading = () => {
   return (
     <>
       Develop in prod
       <br />
-      <em>
-        Fearlessly
-        <Sparkle />
-      </em>
+      <em>Fearlessly</em>
     </>
   );
 };

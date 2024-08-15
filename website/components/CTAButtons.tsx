@@ -1,7 +1,9 @@
 "use client";
+import { FiGithub } from "react-icons/fi";
 import styled from "styled-components";
 
 import { ButtonPrimary, ButtonTertiary } from "@/components/Button";
+import Sparkles from "@/components/icons/Sparkles";
 import { mobile } from "@/constants/breakpoints";
 
 const CTAButtons = () => {
@@ -12,6 +14,8 @@ const CTAButtons = () => {
         href="https://github.com/kurtosis-tech/kardinal"
         rel="noopener noreferrer"
         target="_blank"
+        iconLeft={<FiGithub size={18} />}
+        size="lg"
       >
         View on GitHub
       </ButtonPrimary>
@@ -20,8 +24,9 @@ const CTAButtons = () => {
         href="https://github.com/kurtosis-tech/kardinal-playground"
         rel="noopener noreferrer"
         target="_blank"
+        iconRight={<Sparkles size={16} />}
       >
-        Try in playground
+        Try in Playground
       </ButtonTertiary>
     </S.CTAButtons>
   );

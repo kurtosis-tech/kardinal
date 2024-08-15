@@ -2,6 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { BiMenu, BiX } from "react-icons/bi";
+import { FiGithub } from "react-icons/fi";
 import styled from "styled-components";
 
 import ResponsiveNav from "@/components/ResponsiveNav";
@@ -34,15 +35,6 @@ const NavLinksAndButton = () => {
           Playground
         </S.NavLink>
         <S.NavLink
-          href={"https://github.com/kurtosis-tech/kardinal"}
-          target="_blank"
-          onClick={() =>
-            analytics.track("BUTTON_CLICK", { analyticsId: "link_nav_github" })
-          }
-        >
-          Github
-        </S.NavLink>
-        <S.NavLink
           href={"https://discuss.kardinal.dev"}
           onClick={() =>
             analytics.track("BUTTON_CLICK", { analyticsId: "link_nav_forum" })
@@ -57,6 +49,17 @@ const NavLinksAndButton = () => {
           }
         >
           Blog
+        </S.NavLink>
+        <S.NavLink
+          $emphasis
+          href={"https://github.com/kurtosis-tech/kardinal"}
+          target="_blank"
+          onClick={() =>
+            analytics.track("BUTTON_CLICK", { analyticsId: "link_nav_github" })
+          }
+        >
+          <FiGithub size={18} style={{ marginRight: 4 }} />
+          View on Github
         </S.NavLink>
       </S.NavItemsWrapper>
     </ResponsiveNav>
@@ -156,7 +159,7 @@ namespace S {
     }
   `;
 
-  export const NavLink = styled(Link)`
+  export const NavLink = styled(Link)<{ $emphasis?: boolean }>`
     align-items: center;
     display: flex;
     gap: 4px;
@@ -166,10 +169,14 @@ namespace S {
     transition: all 0.2s ease-in-out;
     user-select: none;
     font-size: 16px;
+    color: ${({ $emphasis }) =>
+      $emphasis ? "var(--brand-primary)" : "var(--gray)"};
+    font-weight: ${({ $emphasis }) => ($emphasis ? 500 : "normal")};
 
     &:hover {
       transform: translateY(-2px);
-      color: var(--brand-primary);
+      color: ${({ $emphasis }) =>
+        $emphasis ? "var(--brand-secondary)" : "var(--brand-primary)"};
     }
   `;
 
