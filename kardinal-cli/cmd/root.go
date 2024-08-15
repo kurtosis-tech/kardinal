@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	"github.com/kurtosis-tech/stacktrace"
-	"github.com/samber/lo"
 	"github.com/segmentio/analytics-go/v3"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -447,7 +446,7 @@ func listDevFlow(tenantUuid api_types.Uuid) {
 	}
 
 	if resp.StatusCode() == 200 {
-		printTable(*resp.JSON200)
+		printFlowTable(*resp.JSON200)
 		return
 	}
 
@@ -671,24 +670,6 @@ func listTemplates(tenantUuid api_types.Uuid) {
 	os.Exit(1)
 }
 
-func printTemplateTable(templates []api_types.Template) {
-	if len(templates) == 0 {
-		fmt.Println("No templates found.")
-		return
-	}
-
-	fmt.Println("| Template ID | Name | Description |")
-	fmt.Println("|-------------|------|-------------|")
-	for _, template := range templates {
-		description := template.Description
-		if description == nil {
-			description = new(string)
-			*description = "N/A"
-		}
-		fmt.Printf("| %s | %s | %s |\n", template.TemplateId, template.Name, *description)
-	}
-}
-
 func getKontrolServiceClient() *api.ClientWithResponses {
 	kontrolHostApi, err := getKontrolBaseURLForCLI()
 	if err != nil {
@@ -787,51 +768,4 @@ func getClusterResourcesURL(tenantUuid api_types.Uuid) (string, error) {
 	clusterResourcesURL := fmt.Sprintf(kontrolClusterResourcesEndpointTmpl, kontrolBaseURL, tenantUuid)
 
 	return clusterResourcesURL, nil
-}
-
-func printTable(flows []api_types.Flow) {
-	// Find the maximum width of each column
-	data := lo.Map(flows, func(flow api_types.Flow, _ int) []string {
-		return []string{
-			flow.FlowId,
-			strings.Join(lo.Map(flow.FlowUrls, func(item string, _ int) string { return fmt.Sprintf("http://%s", item) }), ", "),
-		}
-	})
-	header := [][]string{{"Flow ID", "Flow URL"}}
-	data = append(header, data...)
-
-	colWidths := make([]int, len(data[0]))
-	for _, row := range data {
-		for i, cell := range row {
-			if len(cell) > colWidths[i] {
-				colWidths[i] = len(cell)
-			}
-		}
-	}
-
-	for _, width := range colWidths {
-		fmt.Print("|", strings.Repeat("-", width+2))
-	}
-	fmt.Println("|")
-
-	// Print the table
-	for rowNum, row := range data {
-		for i, cell := range row {
-			fmt.Printf("| %-*s ", colWidths[i], cell)
-		}
-		fmt.Println("|")
-
-		// Print separator after header
-		if rowNum == 0 {
-			for _, width := range colWidths {
-				fmt.Print("|", strings.Repeat("-", width+2))
-			}
-			fmt.Println("|")
-		}
-	}
-
-	for _, width := range colWidths {
-		fmt.Print("|", strings.Repeat("-", width+2))
-	}
-	fmt.Println("|")
 }
