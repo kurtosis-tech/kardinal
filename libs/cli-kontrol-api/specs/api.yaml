@@ -172,6 +172,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/IngressConfig"
+        namespace:
+          type: string
 
     Flow:
       type: object
