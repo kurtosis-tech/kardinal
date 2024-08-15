@@ -1,13 +1,15 @@
 "use client";
 import Link from "next/link";
-import { ButtonHTMLAttributes, useEffect, useState } from "react";
-import { BiCheck, BiLogoGithub, BiRightArrowAlt } from "react-icons/bi";
+import { ButtonHTMLAttributes, ReactElement, useEffect, useState } from "react";
+import { BiCheck, BiLogoGithub } from "react-icons/bi";
 import styled, { css, keyframes } from "styled-components";
 
 import analytics from "@/lib/analytics";
 
 interface StyledProps {
   $loading?: boolean;
+  $size?: "md" | "lg";
+  $gradientDirection?: "left" | "right";
 }
 
 const spin = keyframes`
@@ -25,33 +27,40 @@ const Spinner = styled.div`
   position: absolute;
 `;
 
-const ButtonIcon = styled.span`
+const ButtonIcon = styled.span<{
+  $size?: "md" | "lg";
+  $variant?: ButtonVariant;
+}>`
   pointer-events: none;
   user-select: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 24px;
-  width: 24px;
-  background-color: rgba(168, 50, 5, 0.4);
+  height: ${({ $size }) => ($size === "lg" ? "32px" : "24px")};
+  width: ${({ $size }) => ($size === "lg" ? "32px" : "24px")};
+  background-color: ${({ $variant }) =>
+    $variant === "primary" ? "rgba(168, 50, 5, 0.4)" : "transparent"};
   border-radius: 50%;
 `;
 
 const primaryButtonStyles = css<StyledProps>`
-  height: 40px;
+  height: ${({ $size }) => ($size === "lg" ? "48px" : "40px")};
   align-items: center;
-  background: var(--gradient-brand);
+  background: ${({ $gradientDirection }) =>
+    $gradientDirection === "left"
+      ? "var(--gradient-brand-reverse)"
+      : "var(--gradient-brand)"};
   border-radius: 54px;
   border: none;
   cursor: pointer;
   color: var(--white-100);
   display: inline-flex;
-  gap: 12px;
+  gap: 8px;
   font-size: 16px;
   font-weight: 500;
   line-height: 28px;
   justify-content: center;
-  padding: 8px 8px 8px 16px;
+  padding: 8px;
   position: relative;
   z-index: 1;
   text-decoration: none;
@@ -70,6 +79,8 @@ const primaryButtonStyles = css<StyledProps>`
     cursor: not-allowed;
   }
 `;
+
+const TextSpacer = styled.span``;
 
 const PrimaryButton = styled.button<StyledProps>`
   ${primaryButtonStyles}
@@ -103,7 +114,7 @@ const secondaryButtonStyles = css<StyledProps>`
 
 const tertiaryButtonStyles = css<StyledProps>`
   ${secondaryButtonStyles}
-  color: var(--foreground);
+  color: var(--gray-dark);
 
   &:hover {
     color: var(--brand-primary);
@@ -152,25 +163,53 @@ const CodespacesLink = styled(Link)<StyledProps>`
   }
 `;
 
+type ButtonVariant = "primary" | "secondary" | "tertiary" | "codespaces";
+
 interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   onClick?: () => void;
   href?: string;
+  iconLeft?: ReactElement<{ size: number }>;
+  iconRight?: ReactElement<{ size: number }>;
   analyticsId: string;
   loading?: boolean;
   isSuccess?: boolean;
-  variant?: "primary" | "secondary" | "tertiary" | "codespaces";
+  variant?: ButtonVariant;
   Component?: any;
   target?: string;
+  size?: "md" | "lg";
 }
+
+const ButtonIconImpl = ({
+  success,
+  loading,
+  icon,
+  size,
+  variant,
+}: {
+  success?: boolean;
+  loading?: boolean;
+  icon: ReactElement<{ size: number }>;
+  size?: "md" | "lg";
+  variant?: ButtonVariant;
+}) => {
+  return (
+    <ButtonIcon $size={size} $variant={variant} role="presentation">
+      {success ? <BiCheck size={20} /> : loading ? <Spinner /> : icon}
+    </ButtonIcon>
+  );
+};
 
 const ButtonImpl = ({
   analyticsId,
   onClick,
+  iconLeft,
+  iconRight,
   loading,
   isSuccess,
   children,
   variant,
   Component,
+  size,
   ...buttonProps
 }: Props) => {
   const [success, setSuccess] = useState(false);
@@ -189,10 +228,13 @@ const ButtonImpl = ({
       clearTimeout(delay);
     };
   }, [isSuccess]);
+
   return (
     <Component
       {...buttonProps}
+      $size={size}
       $loading={loading}
+      $gradientDirection={iconLeft != null ? "left" : "right"}
       disabled={loading}
       onClick={() => {
         analytics.track("BUTTON_CLICK", { analyticsId });
@@ -200,19 +242,27 @@ const ButtonImpl = ({
       }}
     >
       {variant === "codespaces" && <BiLogoGithub size={24} />}
-      {children}
-      {variant === "primary" && (
-        <ButtonIcon role="presentation">
-          {success ? (
-            <BiCheck size={20} />
-          ) : loading ? (
-            <Spinner />
-          ) : (
-            <BiRightArrowAlt size={20} />
-          )}
-        </ButtonIcon>
+      {iconLeft == null && <TextSpacer />}
+      {iconLeft != null && (
+        <ButtonIconImpl
+          size={size}
+          icon={iconLeft}
+          loading={loading}
+          success={success}
+          variant={variant}
+        />
       )}
-      {variant === "tertiary" && <BiRightArrowAlt size={24} />}
+      {children}
+      {iconRight != null && (
+        <ButtonIconImpl
+          size={size}
+          icon={iconRight}
+          loading={loading}
+          success={success}
+          variant={variant}
+        />
+      )}
+      {iconRight == null && <TextSpacer />}
     </Component>
   );
 };

@@ -5,9 +5,9 @@ import styled from "styled-components";
 
 // import Button from "@/components/Button";
 import Heading from "@/components/Heading";
+import Sparkles from "@/components/icons/Sparkles";
 import Section from "@/components/Section";
 import Spacer from "@/components/Spacer";
-import Sparkle from "@/components/Sparkle";
 import Text from "@/components/Text";
 import { mobile } from "@/constants/breakpoints";
 // import { scrollToId } from "@/utils";
@@ -19,7 +19,7 @@ const DefaultHeading = () => {
       <br />
       <em>
         Fearlessly
-        <Sparkle />
+        <Sparkles />
       </em>
     </>
   );
