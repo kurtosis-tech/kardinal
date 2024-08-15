@@ -9,7 +9,6 @@ import analytics from "@/lib/analytics";
 interface StyledProps {
   $loading?: boolean;
   $size?: "md" | "lg";
-  $gradientDirection?: "left" | "right";
 }
 
 const spin = keyframes`
@@ -46,10 +45,7 @@ const ButtonIcon = styled.span<{
 const primaryButtonStyles = css<StyledProps>`
   height: ${({ $size }) => ($size === "lg" ? "48px" : "40px")};
   align-items: center;
-  background: ${({ $gradientDirection }) =>
-    $gradientDirection === "left"
-      ? "var(--gradient-brand-reverse)"
-      : "var(--gradient-brand)"};
+  background: var(--gradient-brand-reverse);
   border-radius: 54px;
   border: none;
   cursor: pointer;
@@ -234,7 +230,6 @@ const ButtonImpl = ({
       {...buttonProps}
       $size={size}
       $loading={loading}
-      $gradientDirection={iconLeft != null ? "left" : "right"}
       disabled={loading}
       onClick={() => {
         analytics.track("BUTTON_CLICK", { analyticsId });

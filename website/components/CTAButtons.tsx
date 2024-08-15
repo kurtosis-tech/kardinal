@@ -26,7 +26,7 @@ const CTAButtons = () => {
         target="_blank"
         iconRight={<Sparkles size={16} />}
       >
-        Try in playground
+        Try in Playground
       </ButtonTertiary>
     </S.CTAButtons>
   );
