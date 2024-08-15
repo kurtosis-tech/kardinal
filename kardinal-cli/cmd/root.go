@@ -96,7 +96,15 @@ var templateCreateCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		templateName := args[0]
 
+		// TODO - add a special parser that throws an error if the template is not valid
+		// A valid template only modifies the kardinal.service.dev annotations
+		// A valid template only modifies services
+		// A valid template has metadata.name
+		// A valid template modifies at least one service
 		serviceConfigs, err := parseKubernetesManifestFile(templateYamlFile)
+		if err != nil {
+			log.Fatalf("Error loading template file: %v", err)
+		}
 
 		var services []corev1.Service
 
