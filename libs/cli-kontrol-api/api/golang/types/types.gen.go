@@ -85,8 +85,36 @@ type ServiceConfig struct {
 	Service    corev1.Service   `json:"service"`
 }
 
+// Template defines model for Template.
+type Template struct {
+	Description *string `json:"description,omitempty"`
+	Name        string  `json:"name"`
+	TemplateId  string  `json:"template-id"`
+}
+
+// TemplateConfig defines model for TemplateConfig.
+type TemplateConfig struct {
+	// Description The description of the template
+	Description *string `json:"description,omitempty"`
+
+	// Name The name to give the template
+	Name    string           `json:"name"`
+	Service []corev1.Service `json:"service"`
+}
+
+// TemplateSpec defines model for TemplateSpec.
+type TemplateSpec struct {
+	Arguments *map[string]interface{} `json:"arguments,omitempty"`
+
+	// TemplateName name of the template
+	TemplateName string `json:"template_name"`
+}
+
 // FlowId defines model for flow-id.
 type FlowId = string
+
+// TemplateName defines model for template-name.
+type TemplateName = string
 
 // Uuid defines model for uuid.
 type Uuid = string
@@ -109,8 +137,17 @@ type NotFound struct {
 	ResourceType string `json:"resource-type"`
 }
 
+// PostTenantUuidFlowCreateJSONBody defines parameters for PostTenantUuidFlowCreate.
+type PostTenantUuidFlowCreateJSONBody struct {
+	FlowSpec     FlowSpec      `json:"flow_spec"`
+	TemplateSpec *TemplateSpec `json:"template_spec,omitempty"`
+}
+
 // PostTenantUuidDeployJSONRequestBody defines body for PostTenantUuidDeploy for application/json ContentType.
 type PostTenantUuidDeployJSONRequestBody = MainClusterConfig
 
 // PostTenantUuidFlowCreateJSONRequestBody defines body for PostTenantUuidFlowCreate for application/json ContentType.
-type PostTenantUuidFlowCreateJSONRequestBody = FlowSpec
+type PostTenantUuidFlowCreateJSONRequestBody PostTenantUuidFlowCreateJSONBody
+
+// PostTenantUuidTemplatesCreateJSONRequestBody defines body for PostTenantUuidTemplatesCreate for application/json ContentType.
+type PostTenantUuidTemplatesCreateJSONRequestBody = TemplateConfig
