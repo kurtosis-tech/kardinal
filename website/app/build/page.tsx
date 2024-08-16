@@ -1,7 +1,6 @@
 import { Metadata } from "next";
 
 import LandingPageTemplate from "@/components/LandingPageTemplate";
-import Sparkle from "@/components/Sparkle";
 
 export const metadata: Metadata = {
   title: "Kardinal",
@@ -15,10 +14,7 @@ const Page = () => {
         <>
           Develop in prod
           <br />
-          <em>
-            Fearlessly
-            <Sparkle />
-          </em>
+          <em>Fearlessly</em>
         </>
       }
     >

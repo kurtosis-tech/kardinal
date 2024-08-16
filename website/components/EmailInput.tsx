@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { BiRightArrowAlt } from "react-icons/bi";
 import styled from "styled-components";
 
 import Button from "@/components/Button";
@@ -38,6 +39,7 @@ const EmailInput = ({
         type="submit"
         loading={isLoading}
         isSuccess={isSuccess}
+        iconRight={<BiRightArrowAlt size={20} />}
       >
         Get a demo
       </S.SubmitButton>

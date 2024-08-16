@@ -96,14 +96,11 @@ const LandingPageTemplate = ({
         routing for you.
       </Content>
 
-      <CTASmall
-        heading={
-          <>
-            Want a demo? Sign up <em>here</em>
-          </>
-        }
-        myPrecious={iAmTheLordOfTheRings}
-      >
+      <CTASmall heading={"Want a demo?"} myPrecious={iAmTheLordOfTheRings}>
+        <TextBase>
+          Sign up below and we’ll contact you to get you <br data-desktop /> a
+          personalized demo of Kardinal.
+        </TextBase>
         <EmailCapture buttonAnalyticsId="button_footer_join_waitlist" />
       </CTASmall>
     </>

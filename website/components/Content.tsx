@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import { PropsWithChildren, ReactNode } from "react";
+import { BiRightArrowAlt } from "react-icons/bi";
 import styled, { CSSProperties } from "styled-components";
 
 import Button from "@/components/Button";
@@ -9,7 +10,6 @@ import Responsive from "@/components/Responsive";
 import Section from "@/components/Section";
 import Text from "@/components/Text";
 import { mobile, tablet } from "@/constants/breakpoints";
-// import { scrollToId } from "@/utils";
 import continuityImg from "@/public/illustrations/continuity-2.svg";
 
 interface BaseProps {
@@ -103,6 +103,7 @@ const Content = ({
               <Button.Tertiary
                 analyticsId={buttonAnalyticsId || "button_see_how"}
                 href="/docs"
+                iconRight={<BiRightArrowAlt size={20} />}
               >
                 {buttonText}
               </Button.Tertiary>
@@ -145,9 +146,6 @@ const Content = ({
   );
 };
 
-// display: flex;
-// align-items: center;
-// flex-direction: ${(props) => (props.$column ? "column" : "row-reverse")};
 namespace S {
   export const Content = styled.div<{
     $hasImage?: boolean;
@@ -159,9 +157,7 @@ namespace S {
   }>`
     display: grid;
     grid-template-columns: ${(props) =>
-      props.$column
-        ? "minmax(auto, 1fr);"
-        : "minmax(auto, 856px) minmax(auto, 711px);"};
+      props.$column ? "minmax(auto, 1fr);" : "auto 617px"};
 
     gap: 0px;
     margin-top: ${(props) => (props.$negativeTopOffset ? "-300px" : "unset")};
@@ -198,6 +194,7 @@ namespace S {
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
+    padding-bottom: 48px;
     gap: 24px;
     max-width: ${(props) => (props.$fullWidth ? "843px" : "617px")};
     text-align: ${(props) => (props.$centered ? "center" : "left")};
