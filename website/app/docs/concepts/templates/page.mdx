@@ -1,8 +1,8 @@
-# Kardinal Templates
+# Flow Templates
 
 ## Overview
 
-Kardinal Templates provide a powerful way to standardize and simplify the process of creating flows in your Kardinal deployments. They allow DevOps engineers or senior developers to define reusable configurations that can be easily applied by other team members.
+Flow Templates provide a powerful way to standardize and simplify the process of creating flows in your Kardinal deployments. They allow DevOps engineers or senior developers to define reusable configurations that can be easily applied by other team members.
 
 ## Key Features
 
@@ -45,7 +45,7 @@ metadata:
 
 ## Using Templates
 
-### Via CLI
+### Via the CLI
 
 ```bash
 kardinal flow create <service-name> <image> --template=<template-name> [--args=<args-file>]
@@ -56,7 +56,7 @@ Example:
 kardinal flow create frontend myrepo/frontend:dev --template=custom-postgres --args=db-config.yaml
 ```
 
-### Via UI
+### Via the UI
 
 1. Choose a template when creating a flow.
 2. Customize parameterized arguments or use default values.
@@ -142,5 +142,3 @@ db_name: myapp
 db_user: myuser
 db_password: mypassword
 ```
-
-This README provides a comprehensive guide to understanding, creating, and using Kardinal Templates.
