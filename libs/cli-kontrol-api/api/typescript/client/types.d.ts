@@ -249,9 +249,9 @@ export interface components {
     TemplateConfig: {
       service: unknown[];
       /** @description The name to give the template */
-      name: unknown;
+      name: string;
       /** @description The description of the template */
-      description?: unknown;
+      description?: string;
     };
     Template: {
       "template-id": string;
