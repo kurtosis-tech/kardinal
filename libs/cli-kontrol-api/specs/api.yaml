@@ -368,10 +368,10 @@ components:
               path: k8s.io/api/core/v1
               name: corev1
         name:
-            x-go-type: string
+            type: string
             description: The name to give the template
         description:
-            x-go-type: string
+            type: string
             description: The description of the template
       required:
         - service
