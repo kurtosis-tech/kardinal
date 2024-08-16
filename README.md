@@ -11,6 +11,7 @@ Kardinal is a framework for creating extremely lightweight ephemeral development
 ### Why choose Kardinal?
 - **Ephemeral Environments**: Spin up a new environment exactly when you need it, and just as quickly spin it down when you’re done.
 - **Minimal Resource Usage**: Only deploy the services you’re actively working on. Kardinal takes care of the rest, so you don’t waste resources.
+- **Stateless & Stateful**: Works for services backed up by persistant storage so you can connect to all of your favorite databases.
 - **Flexible Flow Types**: Whether you need to test a single service or an entire application, Kardinal has you covered:
     - Single-Service Flows: Perfect for when you’re tweaking just one service.
     - Multi-Service Flows: Ideal for when your feature involves multiple services.
