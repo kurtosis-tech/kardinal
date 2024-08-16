@@ -4,16 +4,19 @@ export const metadata = {
 
 # Introduction
 
-Kardinal is a framework for creating extremely lightweight ephemeral development environments within a shared Kubernetes cluster.
+Kardinal is a framework for creating extremely lightweight development environments within a shared Kubernetes cluster that gives you the following benefits:
 
-In Kardinal, an environment is called a "[flow](concepts/flows)" because it represents a path that a request takes through the cluster. Versions of services that are under development are deployed on-demand, and then shared across all development work that depends on that version.
+- **Ephemeral Environments**: Spin up a new environment exactly when you need it, and just as quickly spin it down when you’re done.
+- **Minimal Resource Usage**: Only deploy the services you’re actively working on. Kardinal takes care of the rest, so you don’t waste resources.
+- **Stateless & Stateful**: Works for services backed up by persistant storage so you can connect to all of your favorite databases.
+- **Flexible Flow Types**: Whether you need to test a single service or an entire application, Kardinal has you covered:
+    - Single-Service Flows: Perfect for when you’re tweaking just one service.
+    - Multi-Service Flows: Ideal for when your feature involves multiple services.
+    - State-Isolated Flows: Great for features that need their own databases or caches.
+    - Full Application Flows: For those times when you need end-to-end testing with full isolation.
+- **Cost Savings**: Kardinal can help you save big by avoiding unnecessary resource duplication. It’s a game-changer for teams looking to cut costs.
+- **Open source**: Kardinal is open source, so use it however fits best within your workflows
 
-When you create a [flow](concepts/flows) to test a feature, Kardinal will deploy only the set of services that are changing for that feature. Then, any requests related to testing that feature are routed to those versions.
+To get started, check out our [installation guide](getting-started/install) to install Kardinal and get running. 
 
-As you onboard deeper into Kardinal, you will be able to set up isolated state for [flows](concepts/flows) when desired (i.e. for testing database migrations or write-intensive workloads on shared state).
-
-Even with isolated state per [flow](concepts/flows), Kardinal will still deploy the absolute minimum resources necessary to test the changes. Isolation is done at the level of the request route, not by duplicating services in your cluster unnecessarily.
-
-To see how Kardinal compares to other tools, and to get an idea of how would fit into your workflow, check out the [comparisons to alternatives](references/comparisons) section.
-
-To get started, [install Kardinal](getting-started/install) and then [create your first flow](getting-started/own-app).
+If you're not ready to install anything yet, but want to test Kardinal head over to our [playground](https://github.com/kurtosis-tech/kardinal-playground) for a demo.
