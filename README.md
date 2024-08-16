@@ -34,7 +34,7 @@ Make sure that kubectl is pointing to your cluster, and then run the following c
 ```
 kardinal manager deploy kloud-kontrol
 ```
-
+Once installed check out our docs on [creating your first flow](https://kardinal.dev/docs/getting-started/own-app).
 ## Try it out in a Playground
 
 We have a playground that runs in Github Codespaces so you can try Kardinal right now without installing anything. Click below to open a Codespace with the playground. The default settings for the Codespace will work just fine.
