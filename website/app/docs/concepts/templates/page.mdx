@@ -1,0 +1,152 @@
+# Kardinal Templates
+
+## Overview
+
+Kardinal Templates provide a powerful way to standardize and simplify the process of creating flows in your Kardinal deployments. They allow DevOps engineers or senior developers to define reusable configurations that can be easily applied by other team members.
+
+## Key Features
+
+- **Standardization**: Enforce best practices and consistent configurations across your team.
+- **Customization**: Allow for parameterized values that can be adjusted per flow.
+- **Flexibility**: Support for various template types to suit different deployment needs.
+- **Integration**: Seamlessly works with Kardinal's existing flow creation process.
+
+## Template Types
+
+1. **Default**: Uses the configuration specified in the manifest without modifications.
+2. **Stable, Mirrored**: Configures services to share the production environment, with traffic mirrored downstream.
+3. **Stable, Redirected**: Similar to mirrored, but with traffic redirected into the service.
+4. **Custom**: User-defined templates that can override or extend the base manifest configuration.
+
+## Creating a Template
+
+Templates are defined using YAML and can include overrides to the base manifest and parameterized values.
+
+### Basic Structure
+
+```yaml
+metadata:
+    name: postgres
+    annotations:
+        kardinal.dev.service/plugins: |
+        - name: github.com/kurtosis-tech/postgres-seed-plugin
+            args:
+            seed_script: |
+                -- Your SQL script here
+            db_name: ${db_name:-myapp}
+            db_user: ${db_user:-dbuser}
+            db_password: ${db_password:-dbpass}
+```
+
+### Guidelines
+
+- Use descriptive names and provide detailed descriptions.
+- Use parameterized values (e.g., `${parameter:-default}`) for customizable fields.
+- Only use annotations with the `kardinal.dev.service` suffix.
+- Ensure `metadata.name` is present and corresponds to a valid service.
+
+## Using Templates
+
+### Via CLI
+
+```bash
+kardinal flow create <service-name> <image> --template=<template-name> [--args=<args-file>]
+```
+
+Example:
+```bash
+kardinal flow create frontend myrepo/frontend:dev --template=custom-postgres --args=db-config.yaml
+```
+
+### Via UI
+
+1. Choose a template when creating a flow.
+2. Customize parameterized arguments or use default values.
+3. Review and submit the flow creation request.
+
+## Template Management
+
+### Create a Template
+
+```bash
+kardinal template create <template-name> -t <template-file.yaml> -d "this is an awesoem template"
+```
+
+### List Templates
+
+```bash
+kardinal template ls
+```
+
+### Delete a Template
+
+```bash
+kardinal template delete <template-name>
+```
+
+## Advanced Features
+
+- **Shared Resources**: Use `kardinal.dev.service/shared: "true"` annotation to specify shared instances of services across flows.
+
+## Best Practices
+
+1. Use parameters for values likely to change between uses.
+1. Store templates in version control.
+1. Test templates before making them available to the team.
+1. Regularly review and update templates to ensure compatibility with current deployments.
+
+## Example Template
+
+Here's an example of a template for a PostgreSQL service with seeded data:
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+    name: postgres
+    annotations:
+        kardinal.dev.service/plugins: |
+        - name: github.com/kurtosis-tech/postgres-seed-plugin
+            args:
+            seed_script: |
+                CREATE TABLE IF NOT EXISTS public.items(
+                    id bigserial PRIMARY KEY,
+                    created_at TIMESTAMP WITH TIME ZONE,
+                    updated_at TIMESTAMP WITH TIME ZONE,
+                    deleted_at TIMESTAMP WITH TIME ZONE,
+                    user_id TEXT,
+                    product_id TEXT,
+                    quantity INTEGER
+                );
+                
+                INSERT INTO public.items (id, created_at, updated_at, deleted_at, user_id, product_id, quantity) 
+                VALUES (1, '2024-08-02 13:02:07.656104 +00:00', '2024-08-02 13:02:07.656104 +00:00', null, '0494c5e0-dde0-48fa-a6d8-f7962f5476bf', '66VCHSJNUP', 1);
+                
+                INSERT INTO public.items (id, created_at, updated_at, deleted_at, user_id, product_id, quantity) 
+                VALUES (2, '2024-08-02 13:02:10.891407 +00:00', '2024-08-02 13:02:10.891407 +00:00', null, '0494c5e0-dde0-48fa-a6d8-f7962f5476bf', '2ZYFJ3GM2N', 1);
+                
+                INSERT INTO public.items (id, created_at, updated_at, deleted_at, user_id, product_id, quantity) 
+                VALUES (3, '2024-08-02 13:03:10.891407 +00:00', '2024-08-02 13:02:10.891407 +00:00', null, '0494c5e0-dde0-48fa-a6d8-f7962f5476bf', '2ZYFJ3GM2N', ${last_insert_quantity:-1});
+                
+                SELECT setval('public.items_id_seq', (SELECT MAX(id) FROM public.items));
+            db_name: ${db_name:-cart}
+            db_user: ${db_user:-postgresuser}
+            db_password: ${db_password:-postgrespass}
+```
+
+To use this template:
+
+```bash
+kardinal flow create frontend leoporoli/new-obd:dev --template=postgres-seed-template --args=postgres-args.yaml
+```
+
+Where `postgres-args.yaml` might contain:
+
+```yaml
+last_insert_quantity: 3
+db_name: myapp
+db_user: myuser
+db_password: mypassword
+```
+
+This README provides a comprehensive guide to understanding, creating, and using Kardinal Templates.
