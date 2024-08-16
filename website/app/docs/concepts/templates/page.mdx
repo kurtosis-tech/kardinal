@@ -14,9 +14,7 @@ Kardinal Templates provide a powerful way to standardize and simplify the proces
 ## Template Types
 
 1. **Default**: Uses the configuration specified in the manifest without modifications.
-2. **Stable, Mirrored**: Configures services to share the production environment, with traffic mirrored downstream.
-3. **Stable, Redirected**: Similar to mirrored, but with traffic redirected into the service.
-4. **Custom**: User-defined templates that can override or extend the base manifest configuration.
+1. **Custom**: User-defined templates that can override or extend the base manifest configuration.
 
 ## Creating a Template
 
@@ -83,10 +81,6 @@ kardinal template ls
 ```bash
 kardinal template delete <template-name>
 ```
-
-## Advanced Features
-
-- **Shared Resources**: Use `kardinal.dev.service/shared: "true"` annotation to specify shared instances of services across flows.
 
 ## Best Practices
 
