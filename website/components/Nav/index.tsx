@@ -1,34 +1,15 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { BiBookOpen, BiChat, BiMenu, BiRss, BiX } from "react-icons/bi";
+import { BiMenu, BiX } from "react-icons/bi";
 import { FiGithub } from "react-icons/fi";
-import { TbPrompt, TbSparkles } from "react-icons/tb";
 import styled from "styled-components";
 
-import Banner from "@/components/Banner";
-import Button from "@/components/Button";
-import Responsive from "@/components/Responsive";
 import ResponsiveNav from "@/components/ResponsiveNav";
 import { mobile, tablet } from "@/constants/breakpoints";
 import { useModal } from "@/context/ModalContext";
 import analytics from "@/lib/analytics";
 import kardinalLogo from "@/public/kardinal-orange.png";
-
-const WaitlistButton = () => {
-  const { toggleModal } = useModal();
-  return (
-    <Button.Secondary
-      analyticsId="button_nav_join_waitlist"
-      onClick={toggleModal}
-      style={{ justifyContent: "flex-start" }}
-    >
-      <TbSparkles size={18} />
-      Join the beta
-    </Button.Secondary>
-  );
-};
 
 const NavLinksAndButton = () => {
   return (
@@ -40,7 +21,6 @@ const NavLinksAndButton = () => {
             analytics.track("BUTTON_CLICK", { analyticsId: "link_nav_docs" })
           }
         >
-          <BiBookOpen size={18} />
           Docs
         </S.NavLink>
         <S.NavLink
@@ -52,18 +32,7 @@ const NavLinksAndButton = () => {
             })
           }
         >
-          <TbPrompt size={18} />
           Playground
-        </S.NavLink>
-        <S.NavLink
-          href={"https://github.com/kurtosis-tech/kardinal"}
-          target="_blank"
-          onClick={() =>
-            analytics.track("BUTTON_CLICK", { analyticsId: "link_nav_github" })
-          }
-        >
-          <FiGithub size={15} style={{ marginRight: "3px" }} />
-          Github
         </S.NavLink>
         <S.NavLink
           href={"https://discuss.kardinal.dev"}
@@ -71,7 +40,6 @@ const NavLinksAndButton = () => {
             analytics.track("BUTTON_CLICK", { analyticsId: "link_nav_forum" })
           }
         >
-          <BiChat size={18} />
           Forum
         </S.NavLink>
         <S.NavLink
@@ -80,10 +48,19 @@ const NavLinksAndButton = () => {
             analytics.track("BUTTON_CLICK", { analyticsId: "link_nav_blog" })
           }
         >
-          <BiRss size={18} />
           Blog
         </S.NavLink>
-        <WaitlistButton />
+        <S.NavLink
+          $emphasis
+          href={"https://github.com/kurtosis-tech/kardinal"}
+          target="_blank"
+          onClick={() =>
+            analytics.track("BUTTON_CLICK", { analyticsId: "link_nav_github" })
+          }
+        >
+          <FiGithub size={18} style={{ marginRight: 4 }} />
+          View on Github
+        </S.NavLink>
       </S.NavItemsWrapper>
     </ResponsiveNav>
   );
@@ -91,11 +68,8 @@ const NavLinksAndButton = () => {
 
 const Nav = () => {
   const { toggleNav, isNavOpen } = useModal();
-  const pathname = usePathname();
-  const isDocs = pathname.includes("/docs");
   return (
     <S.Nav>
-      {isDocs && <Banner />}
       <S.Container>
         <S.Wordmark href={"/"}>
           <S.LogoImage
@@ -108,9 +82,6 @@ const Nav = () => {
           <S.LogoText>Kardinal</S.LogoText>
         </S.Wordmark>
         <S.NavSpacer />
-        <Responsive.Mobile>
-          <WaitlistButton />
-        </Responsive.Mobile>
         <S.MobileNavButton onClick={toggleNav}>
           {isNavOpen ? <BiX size={24} /> : <BiMenu size={24} />}
         </S.MobileNavButton>
@@ -188,7 +159,7 @@ namespace S {
     }
   `;
 
-  export const NavLink = styled(Link)`
+  export const NavLink = styled(Link)<{ $emphasis?: boolean }>`
     align-items: center;
     display: flex;
     gap: 4px;
@@ -198,10 +169,14 @@ namespace S {
     transition: all 0.2s ease-in-out;
     user-select: none;
     font-size: 16px;
+    color: ${({ $emphasis }) =>
+      $emphasis ? "var(--brand-primary)" : "var(--gray)"};
+    font-weight: ${({ $emphasis }) => ($emphasis ? 500 : "normal")};
 
     &:hover {
       transform: translateY(-2px);
-      color: var(--brand-primary);
+      color: ${({ $emphasis }) =>
+        $emphasis ? "var(--brand-secondary)" : "var(--brand-primary)"};
     }
   `;
 

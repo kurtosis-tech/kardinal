@@ -24,14 +24,17 @@ export interface paths {
           uuid: components["parameters"]["uuid"];
         };
       };
-      /** @description Create a dev flow */
+      /** @description Create a dev flow using FlowSpec, optionally with a TemplateSpec */
       requestBody: {
         content: {
-          "application/json": components["schemas"]["FlowSpec"];
+          "application/json": {
+            flow_spec: components["schemas"]["FlowSpec"];
+            template_spec?: components["schemas"]["TemplateSpec"];
+          };
         };
       };
       responses: {
-        /** @description Dev flow creation status */
+        /** @description Flow creation status */
         200: {
           content: {
             "application/json": components["schemas"]["Flow"];
@@ -123,6 +126,68 @@ export interface paths {
       };
     };
   };
+  "/tenant/{uuid}/templates/create": {
+    post: {
+      parameters: {
+        path: {
+          uuid: components["parameters"]["uuid"];
+        };
+      };
+      /** @description Create a new template */
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["TemplateConfig"];
+        };
+      };
+      responses: {
+        /** @description Template creation status */
+        200: {
+          content: {
+            "application/json": components["schemas"]["Template"];
+          };
+        };
+        404: components["responses"]["NotFound"];
+        500: components["responses"]["Error"];
+      };
+    };
+  };
+  "/tenant/{uuid}/templates": {
+    get: {
+      parameters: {
+        path: {
+          uuid: components["parameters"]["uuid"];
+        };
+      };
+      responses: {
+        /** @description List of templates for the given tenant */
+        200: {
+          content: {
+            "application/json": components["schemas"]["Template"][];
+          };
+        };
+        404: components["responses"]["NotFound"];
+        500: components["responses"]["Error"];
+      };
+    };
+  };
+  "/tenant/{uuid}/templates/{template-name}": {
+    delete: {
+      parameters: {
+        path: {
+          uuid: components["parameters"]["uuid"];
+          "template-name": components["parameters"]["template-name"];
+        };
+      };
+      responses: {
+        404: components["responses"]["NotFound"];
+        500: components["responses"]["Error"];
+        /** @description Template deletion status */
+        "2xx": {
+          content: never;
+        };
+      };
+    };
+  };
 }
 
 export type webhooks = Record<string, never>;
@@ -144,6 +209,13 @@ export interface components {
         /** @example backend-service-a */
         "service-name": string;
       }[];
+    TemplateSpec: {
+      /** @description name of the template */
+      template_name: string;
+      arguments?: {
+        [key: string]: unknown;
+      };
+    };
     Node: {
       /** @description Unique identifier for the node. */
       id: string;
@@ -174,6 +246,18 @@ export interface components {
     ServiceConfig: {
       service: unknown;
       deployment: unknown;
+    };
+    TemplateConfig: {
+      service: unknown[];
+      /** @description The name to give the template */
+      name: string;
+      /** @description The description of the template */
+      description?: string;
+    };
+    Template: {
+      "template-id": string;
+      name: string;
+      description?: string;
     };
     IngressConfig: {
       ingress: unknown;
@@ -208,6 +292,8 @@ export interface components {
     uuid: string;
     /** @description Flow identifier */
     "flow-id": string;
+    /** @description name of the template */
+    "template-name": string;
   };
   requestBodies: never;
   headers: never;

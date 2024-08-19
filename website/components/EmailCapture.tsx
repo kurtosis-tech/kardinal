@@ -21,9 +21,6 @@ const EmailCapture = ({
     // eslint-disable-next-line no-unused-vars
     subscribe: (d: MailchimpFormData) => void,
   ) => {
-    // if (!email.includes("@")) {
-    //   return;
-    // }
     // log some analytics in segment
     // try catch this because people use adblockers, which will cause this call to fail
     // eslint-disable-next-line no-unused-vars
@@ -44,8 +41,8 @@ const EmailCapture = ({
     // do the actual mailchimp submission
     subscribe({
       EMAIL: email,
-      COMMS: "NOT_COLLECTED", // this form does not have these inputs
-      FEATURES: "NOT_COLLECTED", // this form does not have these inputs
+      COMMS: "DEMO",
+      FEATURES: "DEMO",
       UTM_SOURCE: utmParams.utm_source || "NOT_SET",
       UTM_MEDIUM: utmParams.utm_medium || "NOT_SET",
       UTM_CAMP: utmParams.utm_campaign || "NOT_SET",
@@ -87,8 +84,8 @@ const EmailCapture = ({
                   // @ts-ignore
                   status === "success" && (
                     <S.SuccessMessage>
-                      Success! You’ve been added to our list of beta users. Keep
-                      an eye on your inbox!
+                      Success! We will reach out soon, so keep an eye on your
+                      inbox!
                     </S.SuccessMessage>
                   )
                 }

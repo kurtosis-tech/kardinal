@@ -9,16 +9,16 @@
   /*   "Fira Mono", "Droid Sans Mono", "Courier New", monospace; */
 
   /* color vars */
-  --brand-primary: #ff7e5f;
+  --brand-primary: #ff602C;
   --brand-primary-dark: rgba(168, 50, 5, 0.4);
-  --brand-secondary: #feb47b;
+  --brand-secondary: #FCA061;
   --gradient-from-bg: linear-gradient(84deg, transparent 0%, white 100%);
   --gradient-to-bg: linear-gradient(180deg, transparent 0%, white 100%);
 
   --gradient-brand: linear-gradient(to right, var(--brand-primary), var(--brand-secondary));
   --gradient-brand-reverse: linear-gradient(to right, var(--brand-secondary), var(--brand-primary));
 
-  --gradient-brand-dark: linear-gradient(90deg, #fca061, rgba(168, 50, 5, 0.4));
+  --gradient-brand-dark: linear-gradient(90deg, #fCA061, rgba(168, 50, 5, 0.4));
   --gray-bg: #1f232a;
   --gray-bg-light: #212121;
   --gray-dark: #21262d;

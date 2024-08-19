@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 
 import Content from "@/components/Content";
 import CTA from "@/components/CTA";
+import CTAButtons from "@/components/CTAButtons";
 import CTASmall from "@/components/CTASmall";
 import EmailCapture from "@/components/EmailCapture";
 import { TextBase } from "@/components/Text";
@@ -39,7 +40,7 @@ const LandingPageTemplate = ({
     <>
       <CTA imageUrl={null} buttonText={null} fullHeight heading={heading}>
         <TextBase>{children}</TextBase>
-        <EmailCapture buttonAnalyticsId="button_hero_join_waitlist" />
+        <CTAButtons />
       </CTA>
       <Content
         negativeTopOffset
@@ -90,11 +91,16 @@ const LandingPageTemplate = ({
         fullWidthImageUrl={architectureDiagram}
         mobileFullWidthImageUrl={architectureDiagramMobile}
       >
-        Kardinal integrates with your existing distributed tracing, and will handle the heavy lifting of configuring a service mesh for traffic routing for you.
+        Kardinal integrates with your existing distributed tracing, and will
+        handle the heavy lifting of configuring a service mesh for traffic
+        routing for you.
       </Content>
 
-      <CTASmall heading={heading} myPrecious={iAmTheLordOfTheRings}>
-        <TextBase>{children}</TextBase>
+      <CTASmall heading={"Want a demo?"} myPrecious={iAmTheLordOfTheRings}>
+        <TextBase>
+          Sign up below and we’ll contact you to get you <br data-desktop /> a
+          personalized demo of Kardinal.
+        </TextBase>
         <EmailCapture buttonAnalyticsId="button_footer_join_waitlist" />
       </CTASmall>
     </>

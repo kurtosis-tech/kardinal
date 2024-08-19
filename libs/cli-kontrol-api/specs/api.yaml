@@ -21,19 +21,26 @@ paths:
       parameters:
         - $ref: "#/components/parameters/uuid"
       requestBody:
-        description: Create a dev flow
+        description: Create a dev flow using FlowSpec, optionally with a TemplateSpec
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/FlowSpec"
+              type: object
+              properties:
+                flow_spec:
+                  $ref: "#/components/schemas/FlowSpec"
+                template_spec:
+                  $ref: "#/components/schemas/TemplateSpec"
+              required:
+                - flow_spec
       responses:
         "500":
           $ref: "#/components/responses/Error"
         "404":
           $ref: "#/components/responses/NotFound"
         "200":
-          description: Dev flow creation status
+          description: Flow creation status
           content:
             application/json:
               schema:
@@ -109,6 +116,60 @@ paths:
               schema:
                 $ref: "#/components/schemas/ClusterTopology"
 
+  /tenant/{uuid}/templates/create:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/uuid"
+      requestBody:
+        description: Create a new template
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TemplateConfig"
+      responses:
+        "500":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "200":
+          description: Template creation status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Template"
+
+  /tenant/{uuid}/templates:
+    get:
+      parameters:
+        - $ref: "#/components/parameters/uuid"
+      responses:
+        "500":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "200":
+          description: List of templates for the given tenant
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Template"
+
+  /tenant/{uuid}/templates/{template-name}:
+    delete:
+      parameters:
+        - $ref: "#/components/parameters/uuid"
+        - $ref: "#/components/parameters/template-name"
+      responses:
+        "500":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "2xx":
+          description: Template deletion status
+
 components:
   responses:
     Error:
@@ -160,6 +221,15 @@ components:
       schema:
         type: string
 
+
+    template-name:
+      name: template-name
+      in: path
+      required: true
+      description: name of the template
+      schema:
+        type: string
+
   schemas:
     MainClusterConfig:
       type: object
@@ -202,6 +272,18 @@ components:
         required:
           - image-locator
           - service-name
+
+    TemplateSpec:
+      type: object
+      properties:
+        template_name:
+          type: string
+          description: name of the template
+        arguments:
+          type: object
+          additionalProperties: true
+      required:
+        - template_name
 
     Node:
       type: object
@@ -275,6 +357,40 @@ components:
       required:
         - service
         - deployment
+
+    TemplateConfig:
+      type: object
+      properties:
+        service:
+          type: array
+          items:
+            # TODO(gm) - is there a way to use the k8s types in TS
+            x-go-type: corev1.Service
+            x-go-type-import:
+              path: k8s.io/api/core/v1
+              name: corev1
+        name:
+          type: string
+          description: The name to give the template
+        description:
+          type: string
+          description: The description of the template
+      required:
+        - service
+        - name
+
+    Template:
+      type: object
+      properties:
+        template-id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+      required:
+        - template-id
+        - name
 
     IngressConfig:
       type: object

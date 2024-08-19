@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.2.0](https://github.com/kurtosis-tech/kardinal/compare/0.1.12...0.2.0) (2024-08-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* api definitions for templates ([#141](https://github.com/kurtosis-tech/kardinal/issues/141))
+
+### Features
+
+* add `IngressConfig` to api ([#151](https://github.com/kurtosis-tech/kardinal/issues/151)) ([467b3e4](https://github.com/kurtosis-tech/kardinal/commit/467b3e4abf1155217a367ff9515cd1f7e7f56842))
+* api definitions for templates ([#141](https://github.com/kurtosis-tech/kardinal/issues/141)) ([c1c7687](https://github.com/kurtosis-tech/kardinal/commit/c1c76872dfbe3af887cd7be47b33e04aba46f38e))
+* website changes for launch ([#152](https://github.com/kurtosis-tech/kardinal/issues/152)) ([43fd1af](https://github.com/kurtosis-tech/kardinal/commit/43fd1aff2c0d0207a3c03de5fd3e874f42253d5d))
+
+
+### Bug Fixes
+
+* update privacy policy link ([#156](https://github.com/kurtosis-tech/kardinal/issues/156)) ([cd88c1b](https://github.com/kurtosis-tech/kardinal/commit/cd88c1bd82822a8c4d81c7e1a45303cf80850ef2))
+
 ## [0.1.12](https://github.com/kurtosis-tech/kardinal/compare/0.1.11...0.1.12) (2024-08-09)
 
 

@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"gopkg.in/yaml.v3"
 	"kardinal.cli/consts"
 	"kardinal.cli/multi_os_cmd_executor"
 	"log"
@@ -11,7 +12,6 @@ import (
 	"strings"
 
 	"github.com/kurtosis-tech/stacktrace"
-	"github.com/samber/lo"
 	"github.com/segmentio/analytics-go/v3"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -48,6 +48,10 @@ var (
 	kubernetesManifestFile string
 	devMode                bool
 	serviceImagePairs      []string
+	templateName           string
+	templateYamlFile       string
+	templateDescription    string
+	templateArgsFile       string
 )
 
 var rootCmd = &cobra.Command{
@@ -65,6 +69,11 @@ var managerCmd = &cobra.Command{
 	Short: "Manage Kardinal manager",
 }
 
+var templateCmd = &cobra.Command{
+	Use:   "template",
+	Short: "Manage template creation",
+}
+
 var deployCmd = &cobra.Command{
 	Use:   "deploy",
 	Short: "Deploy services",
@@ -80,6 +89,65 @@ var deployCmd = &cobra.Command{
 		}
 
 		deploy(tenantUuid.String(), serviceConfigs, ingressConfigs, namespace)
+	},
+}
+
+var templateCreateCmd = &cobra.Command{
+	Use:   "create <template-name>",
+	Short: "Create a new template",
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		templateName := args[0]
+
+		// TODO - add a special parser that throws an error if the template is not valid
+		// A valid template only modifies the kardinal.service.dev annotations
+		// A valid template only modifies services
+		// A valid template has metadata.name
+		// A valid template modifies at least one service
+		serviceConfigs, _, _, err := parseKubernetesManifestFile(templateYamlFile)
+		if err != nil {
+			log.Fatalf("Error loading template file: %v", err)
+		}
+
+		var services []corev1.Service
+
+		for _, config := range serviceConfigs {
+			services = append(services, config.Service)
+		}
+
+		tenantUuid, err := tenant.GetOrCreateUserTenantUUID()
+		if err != nil {
+			log.Fatal("Error getting or creating user tenant UUID", err)
+		}
+
+		createTemplate(tenantUuid.String(), templateName, services, templateDescription)
+	},
+}
+
+var templateDeleteCmd = &cobra.Command{
+	Use:   "delete <template-name>",
+	Short: "Delete a template",
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		templateName := args[0]
+		tenantUuid, err := tenant.GetOrCreateUserTenantUUID()
+		if err != nil {
+			log.Fatal("Error getting or creating user tenant UUID", err)
+		}
+		deleteTemplate(tenantUuid.String(), templateName)
+	},
+}
+
+var templateListCmd = &cobra.Command{
+	Use:   "ls",
+	Short: "List all templates",
+	Args:  cobra.ExactArgs(0),
+	Run: func(cmd *cobra.Command, args []string) {
+		tenantUuid, err := tenant.GetOrCreateUserTenantUUID()
+		if err != nil {
+			log.Fatal("Error getting or creating user tenant UUID", err)
+		}
+		listTemplates(tenantUuid.String())
 	},
 }
 
@@ -117,7 +185,16 @@ var createCmd = &cobra.Command{
 		}
 
 		logrus.Infof("Creating service %s with image %s in development mode...\n", serviceName, imageName)
-		createDevFlow(tenantUuid.String(), pairsMap)
+		if templateName != "" {
+			logrus.Infof("Using template: %s\n", templateName)
+		}
+
+		templateArgs, err := parseTemplateArgs(templateArgsFile)
+		if err != nil {
+			log.Fatalf("Error parsing template arguments: %v", err)
+		}
+
+		createDevFlow(tenantUuid.String(), pairsMap, templateName, templateArgs)
 	},
 }
 
@@ -268,17 +345,25 @@ func init() {
 	rootCmd.AddCommand(flowCmd)
 	rootCmd.AddCommand(managerCmd)
 	rootCmd.AddCommand(deployCmd)
+	rootCmd.AddCommand(templateCmd)
 	rootCmd.AddCommand(dashboardCmd)
 	rootCmd.AddCommand(gatewayCmd)
 	rootCmd.AddCommand(reportInstall)
 	flowCmd.AddCommand(listCmd, createCmd, deleteCmd)
 	managerCmd.AddCommand(deployManagerCmd, removeManagerCmd)
 
+	templateCmd.AddCommand(templateCreateCmd, templateDeleteCmd, templateListCmd)
+
 	createCmd.Flags().StringSliceVarP(&serviceImagePairs, "service-image", "s", []string{}, "Extra service and respective image to include in the same flow (can be used multiple times)")
+	createCmd.Flags().StringVarP(&templateName, "template", "t", "", "Template name to use for the flow creation")
+	createCmd.Flags().StringVarP(&templateArgsFile, "template-args", "a", "", "Path to YAML file containing template arguments")
 
 	deployCmd.PersistentFlags().StringVarP(&kubernetesManifestFile, "k8s-manifest", "k", "", "Path to the K8S manifest file")
 	deployCmd.MarkPersistentFlagRequired("k8s-manifest")
 
+	templateCreateCmd.Flags().StringVarP(&templateYamlFile, "template-yaml", "t", "", "Path to the YAML file containing the template")
+	templateCreateCmd.Flags().StringVarP(&templateDescription, "description", "d", "", "Description of the template")
+	templateCreateCmd.MarkFlagRequired("template-yaml")
 }
 
 func Execute() error {
@@ -374,6 +459,25 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.Ser
 	return finalServiceConfigs, finalIngressConfigs, namespace, nil
 }
 
+func parseTemplateArgs(filename string) (map[string]interface{}, error) {
+	if filename == "" {
+		return nil, nil
+	}
+
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	var args map[string]interface{}
+	err = yaml.Unmarshal(data, &args)
+	if err != nil {
+		return nil, err
+	}
+
+	return args, nil
+}
+
 // Use in priority the label app value
 func getObjectName(obj *metav1.ObjectMeta) string {
 	labelApp, ok := obj.GetLabels()["app"]
@@ -394,7 +498,7 @@ func listDevFlow(tenantUuid api_types.Uuid) {
 	}
 
 	if resp.StatusCode() == 200 {
-		printTable(*resp.JSON200)
+		printFlowTable(*resp.JSON200)
 		return
 	}
 
@@ -408,7 +512,7 @@ func listDevFlow(tenantUuid api_types.Uuid) {
 	os.Exit(1)
 }
 
-func createDevFlow(tenantUuid api_types.Uuid, pairsMap map[string]string) {
+func createDevFlow(tenantUuid api_types.Uuid, pairsMap map[string]string, templateName string, templateArgs map[string]interface{}) {
 	ctx := context.Background()
 
 	devSpec := api_types.FlowSpec{}
@@ -424,7 +528,18 @@ func createDevFlow(tenantUuid api_types.Uuid, pairsMap map[string]string) {
 
 	client := getKontrolServiceClient()
 
-	resp, err := client.PostTenantUuidFlowCreateWithResponse(ctx, tenantUuid, devSpec)
+	var templateSpec *api_types.TemplateSpec
+	if templateName != "" {
+		templateSpec = &api_types.TemplateSpec{
+			TemplateName: templateName,
+			Arguments:    &templateArgs,
+		}
+	}
+
+	resp, err := client.PostTenantUuidFlowCreateWithResponse(ctx, tenantUuid, api_types.PostTenantUuidFlowCreateJSONRequestBody{
+		FlowSpec:     devSpec,
+		TemplateSpec: templateSpec,
+	})
 	if err != nil {
 		log.Fatalf("Failed to create dev flow: %v", err)
 	}
@@ -531,6 +646,85 @@ func removeManager() error {
 	return nil
 }
 
+func createTemplate(tenantUuid api_types.Uuid, templateName string, services []corev1.Service, description string) {
+	ctx := context.Background()
+
+	client := getKontrolServiceClient()
+
+	templateConfig := api_types.TemplateConfig{
+		Name:    templateName,
+		Service: services,
+	}
+
+	if description != "" {
+		templateConfig.Description = &description
+	}
+
+	resp, err := client.PostTenantUuidTemplatesCreateWithResponse(ctx, tenantUuid, api_types.PostTenantUuidTemplatesCreateJSONRequestBody(templateConfig))
+	if err != nil {
+		log.Fatalf("Failed to create template: %v", err)
+	}
+
+	if resp.StatusCode() == 200 {
+		fmt.Printf("Template '%s' created successfully. Template ID: %s\n", resp.JSON200.Name, resp.JSON200.TemplateId)
+		if resp.JSON200.Description != nil {
+			fmt.Printf("Template Description: %s\n", *resp.JSON200.Description)
+		}
+		return
+	}
+
+	if resp.StatusCode() == 404 {
+		fmt.Printf("Could not create template, missing %s: %s\n", resp.JSON404.ResourceType, resp.JSON404.Id)
+	} else if resp.StatusCode() == 500 {
+		fmt.Printf("Could not create template, error %s: %v\n", resp.JSON500.Error, resp.JSON500.Msg)
+	} else {
+		fmt.Printf("Failed to create template: %s\n", string(resp.Body))
+	}
+	log.Fatal("Template creation failed")
+}
+
+func deleteTemplate(tenantUuid api_types.Uuid, templateName string) {
+	ctx := context.Background()
+	client := getKontrolServiceClient()
+
+	resp, err := client.DeleteTenantUuidTemplatesTemplateName(ctx, tenantUuid, templateName)
+	if err != nil {
+		log.Fatalf("Failed to delete template: %v", err)
+	}
+
+	respCode := resp.StatusCode
+	if respCode >= 200 && respCode < 300 {
+		fmt.Printf("Template '%s' has been deleted\n", templateName)
+	} else {
+		fmt.Printf("Failed to delete template!\n")
+		os.Exit(1)
+	}
+}
+
+func listTemplates(tenantUuid api_types.Uuid) {
+	ctx := context.Background()
+	client := getKontrolServiceClient()
+
+	resp, err := client.GetTenantUuidTemplatesWithResponse(ctx, tenantUuid)
+	if err != nil {
+		log.Fatalf("Failed to list templates: %v", err)
+	}
+
+	if resp.StatusCode() == 200 {
+		printTemplateTable(*resp.JSON200)
+		return
+	}
+
+	if resp.StatusCode() == 404 {
+		fmt.Printf("Could not list templates, missing %s: %s\n", resp.JSON404.ResourceType, resp.JSON404.Id)
+	} else if resp.StatusCode() == 500 {
+		fmt.Printf("Could not list templates, error %s: %v\n", resp.JSON500.Error, resp.JSON500.Msg)
+	} else {
+		fmt.Printf("Failed to list templates: %s\n", string(resp.Body))
+	}
+	os.Exit(1)
+}
+
 func getKontrolServiceClient() *api.ClientWithResponses {
 	kontrolHostApi, err := getKontrolBaseURLForCLI()
 	if err != nil {
@@ -629,51 +823,4 @@ func getClusterResourcesURL(tenantUuid api_types.Uuid) (string, error) {
 	clusterResourcesURL := fmt.Sprintf(kontrolClusterResourcesEndpointTmpl, kontrolBaseURL, tenantUuid)
 
 	return clusterResourcesURL, nil
-}
-
-func printTable(flows []api_types.Flow) {
-	// Find the maximum width of each column
-	data := lo.Map(flows, func(flow api_types.Flow, _ int) []string {
-		return []string{
-			flow.FlowId,
-			strings.Join(lo.Map(flow.FlowUrls, func(item string, _ int) string { return fmt.Sprintf("http://%s", item) }), ", "),
-		}
-	})
-	header := [][]string{{"Flow ID", "Flow URL"}}
-	data = append(header, data...)
-
-	colWidths := make([]int, len(data[0]))
-	for _, row := range data {
-		for i, cell := range row {
-			if len(cell) > colWidths[i] {
-				colWidths[i] = len(cell)
-			}
-		}
-	}
-
-	for _, width := range colWidths {
-		fmt.Print("|", strings.Repeat("-", width+2))
-	}
-	fmt.Println("|")
-
-	// Print the table
-	for rowNum, row := range data {
-		for i, cell := range row {
-			fmt.Printf("| %-*s ", colWidths[i], cell)
-		}
-		fmt.Println("|")
-
-		// Print separator after header
-		if rowNum == 0 {
-			for _, width := range colWidths {
-				fmt.Print("|", strings.Repeat("-", width+2))
-			}
-			fmt.Println("|")
-		}
-	}
-
-	for _, width := range colWidths {
-		fmt.Print("|", strings.Repeat("-", width+2))
-	}
-	fmt.Println("|")
 }

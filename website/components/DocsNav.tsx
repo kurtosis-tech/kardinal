@@ -36,14 +36,13 @@ const navItems: NavItem[] = [
     children: [
       { path: "flows", title: "Flows" },
       { path: "plugins", title: "Plugins for State Isolation" },
+      { path: "templates", title: "Flow Templates" },
     ],
   },
   {
     path: "references",
     title: "References",
-    children: [
-      { path: "comparisons", title: "Comparison to alternatives" },
-    ],
+    children: [{ path: "comparisons", title: "Comparison to alternatives" }],
   },
 ];
 
@@ -102,7 +101,7 @@ const DocsNav = () => {
 
 namespace S {
   export const NavItemsWrapper = styled.div`
-    padding-top: 240px;
+    padding-top: 172px;
     @media ${mobile} {
       padding-top: 0;
     }
