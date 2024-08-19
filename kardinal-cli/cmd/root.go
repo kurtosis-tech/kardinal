@@ -79,7 +79,7 @@ var deployCmd = &cobra.Command{
 	Short: "Deploy services",
 	Args:  cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
-		serviceConfigs, ingressConfigs, err := parseKubernetesManifestFile(kubernetesManifestFile)
+		serviceConfigs, ingressConfigs, namespace, err := parseKubernetesManifestFile(kubernetesManifestFile)
 		if err != nil {
 			log.Fatalf("Error loading k8s manifest file: %v", err)
 		}
@@ -88,7 +88,7 @@ var deployCmd = &cobra.Command{
 			log.Fatal("Error getting or creating user tenant UUID", err)
 		}
 
-		deploy(tenantUuid.String(), serviceConfigs, ingressConfigs)
+		deploy(tenantUuid.String(), serviceConfigs, ingressConfigs, namespace)
 	},
 }
 
@@ -104,7 +104,7 @@ var templateCreateCmd = &cobra.Command{
 		// A valid template only modifies services
 		// A valid template has metadata.name
 		// A valid template modifies at least one service
-		serviceConfigs, _, err := parseKubernetesManifestFile(templateYamlFile)
+		serviceConfigs, _, _, err := parseKubernetesManifestFile(templateYamlFile)
 		if err != nil {
 			log.Fatalf("Error loading template file: %v", err)
 		}
@@ -390,14 +390,15 @@ func parsePairs(pairs []string) map[string]string {
 	return pairsMap
 }
 
-func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.ServiceConfig, []api_types.IngressConfig, error) {
+func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.ServiceConfig, []api_types.IngressConfig, string, error) {
 	fileBytes, err := loadKubernetesManifestFile(kubernetesManifestFile)
 	if err != nil {
 		log.Fatalf("Error loading kubernetest manifest file: %v", err)
-		return nil, nil, err
+		return nil, nil, "", err
 	}
 
 	manifest := string(fileBytes)
+	var namespace string
 	serviceConfigs := map[string]*api_types.ServiceConfig{}
 	ingressConfigs := map[string]*api_types.IngressConfig{}
 	decode := scheme.Codecs.UniversalDeserializer().Decode
@@ -407,7 +408,7 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.Ser
 		}
 		obj, _, err := decode([]byte(spec), nil, nil)
 		if err != nil {
-			return nil, nil, stacktrace.Propagate(err, "An error occurred parsing the spec: %s", spec)
+			return nil, nil, "", stacktrace.Propagate(err, "An error occurred parsing the spec: %s", spec)
 		}
 		switch obj := obj.(type) {
 		case *corev1.Service:
@@ -436,8 +437,12 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.Ser
 			ingress := obj
 			ingressName := getObjectName(ingress.GetObjectMeta().(*metav1.ObjectMeta))
 			ingressConfigs[ingressName] = &api_types.IngressConfig{Ingress: *ingress}
+		case *corev1.Namespace:
+			namespaceObj := obj
+			namespaceName := getObjectName(namespaceObj.GetObjectMeta().(*metav1.ObjectMeta))
+			namespace = namespaceName
 		default:
-			return nil, nil, stacktrace.NewError("An error occurred parsing the manifest because of an unsupported kubernetes type")
+			return nil, nil, "", stacktrace.NewError("An error occurred parsing the manifest because of an unsupported kubernetes type")
 		}
 	}
 
@@ -451,7 +456,7 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.Ser
 		finalIngressConfigs = append(finalIngressConfigs, *ingressConfig)
 	}
 
-	return finalServiceConfigs, finalIngressConfigs, nil
+	return finalServiceConfigs, finalIngressConfigs, namespace, nil
 }
 
 func parseTemplateArgs(filename string) (map[string]interface{}, error) {
@@ -557,12 +562,13 @@ func createDevFlow(tenantUuid api_types.Uuid, pairsMap map[string]string, templa
 	os.Exit(1)
 }
 
-func deploy(tenantUuid api_types.Uuid, serviceConfigs []api_types.ServiceConfig, ingressConfigs []api_types.IngressConfig) {
+func deploy(tenantUuid api_types.Uuid, serviceConfigs []api_types.ServiceConfig, ingressConfigs []api_types.IngressConfig, namespace string) {
 	ctx := context.Background()
 
 	body := api_types.PostTenantUuidDeployJSONRequestBody{
 		ServiceConfigs: &serviceConfigs,
 		IngressConfigs: &ingressConfigs,
+		Namespace:      &namespace,
 	}
 	client := getKontrolServiceClient()
 

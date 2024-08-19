@@ -197,6 +197,7 @@ export interface components {
     MainClusterConfig: {
       "service-configs"?: components["schemas"]["ServiceConfig"][];
       "ingress-configs"?: components["schemas"]["IngressConfig"][];
+      namespace?: string;
     };
     Flow: {
       "flow-id": string;

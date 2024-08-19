@@ -55,6 +55,7 @@ type IngressConfig struct {
 // MainClusterConfig defines model for MainClusterConfig.
 type MainClusterConfig struct {
 	IngressConfigs *[]IngressConfig `json:"ingress-configs,omitempty"`
+	Namespace      *string          `json:"namespace,omitempty"`
 	ServiceConfigs *[]ServiceConfig `json:"service-configs,omitempty"`
 }
 
