@@ -6,7 +6,7 @@
 
 ## What is Kardinal?
 
-Kardinal is a framework for creating extremely lightweight ephemeral development environments within a shared Kubernetes cluster. Read more about Kardinal in our [docs](https://kardinal.dev/docs).
+Kardinal is a framework for creating extremely lightweight ephemeral development environments within a shared Kubernetes cluster. In Kardinal, an environment is called a "[flow](https://kardinal.dev/docs/concepts/flows)" because it represents a path that a request takes through the cluster. Versions of services that are under development are deployed on-demand, and then shared across all development work that depends on that version. Read more about Kardinal in our [docs](https://kardinal.dev/docs).
 
 ### Why choose Kardinal?
 - **Ephemeral Environments**: Spin up a new environment exactly when you need it, and just as quickly spin it down when you’re done.
