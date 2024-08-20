@@ -142,3 +142,23 @@ db_name: myapp
 db_user: myuser
 db_password: mypassword
 ```
+
+## Advanced Features
+
+You can use the *`kardinal.dev.service/shared`* annotation and set it to *`true`* on a service if you want the service to be shared amongst
+different flows. Kardinal will make sure a *`shared`* version of the service is spun up and then deleted when all flows depending on the shared
+version are deleted
+
+Example: 
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  annotations:
+    kardinal.dev.service/shared: "true"
+```
+
+Note that this annotation can also be used on the base manifest if we want sharing to be enabled on all flows and not just the ones using a template.
+If sharing is enabled on the base manifest you can disable it on a flow using a template by setting the value of the annotation to *`"false"`*.
