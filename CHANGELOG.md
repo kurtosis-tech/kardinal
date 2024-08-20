@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/kurtosis-tech/kardinal/compare/0.2.0...0.2.1) (2024-08-20)
+
+
+### Features
+
+* parse namespace k8s objects ([#158](https://github.com/kurtosis-tech/kardinal/issues/158)) ([cd0cef7](https://github.com/kurtosis-tech/kardinal/commit/cd0cef72eee54c2eb08ee36230103c08383a41c2))
+
 ## [0.2.0](https://github.com/kurtosis-tech/kardinal/compare/0.1.12...0.2.0) (2024-08-16)
 
 
