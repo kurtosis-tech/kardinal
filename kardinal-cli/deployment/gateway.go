@@ -2,6 +2,7 @@ package deployment
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -51,6 +52,12 @@ func StartGateway(host, flowId string) error {
 	pod, err := findPodForService(client.clientSet)
 	if err != nil {
 		return fmt.Errorf("failed to find pod for service: %v", err)
+	}
+
+	// Check for the Envoy filter before proceeding
+	err = checkGatewayEnvoyFilter(client.clientSet, host)
+	if err != nil {
+		return err
 	}
 
 	// Start port forwarding
@@ -188,6 +195,47 @@ func findPodForService(client *kubernetes.Clientset) (string, error) {
 
 	podName := pods.Items[0].Name
 	return podName, nil
+}
+
+func checkGatewayEnvoyFilter(client *kubernetes.Clientset, host string) error {
+	for retry := 0; retry < maxRetries; retry++ {
+		envoyFilterRaw, err := client.RESTClient().
+			Get().
+			AbsPath("/apis/networking.istio.io/v1alpha3/namespaces/istio-system/envoyfilters/kardinal-gateway-tracing").
+			Do(context.Background()).
+			Raw()
+		if err != nil {
+			log.Printf("Error getting Envoy filter (attempt %d/%d): %v", retry+1, maxRetries, err)
+			time.Sleep(retryInterval)
+			continue
+		}
+
+		var envoyFilter map[string]interface{}
+		err = json.Unmarshal(envoyFilterRaw, &envoyFilter)
+		if err != nil {
+			log.Printf("Error unmarshaling Envoy filter (attempt %d/%d): %v", retry+1, maxRetries, err)
+			time.Sleep(retryInterval)
+			continue
+		}
+
+		luaCode, ok := envoyFilter["spec"].(map[string]interface{})["configPatches"].([]interface{})[0].(map[string]interface{})["patch"].(map[string]interface{})["value"].(map[string]interface{})["typed_config"].(map[string]interface{})["inlineCode"].(string)
+		if !ok {
+			log.Printf("Error getting Lua code from Envoy filter (attempt %d/%d)", retry+1, maxRetries)
+			time.Sleep(retryInterval)
+			continue
+		}
+
+		if !strings.Contains(luaCode, host) {
+			log.Printf("Envoy filter 'kardinal-gateway-tracing' does not contain the expected host string: %s (attempt %d/%d)", host, retry+1, maxRetries)
+			time.Sleep(retryInterval)
+			continue
+		}
+
+		log.Printf("Envoy filter 'kardinal-gateway-tracing' found and contains the expected host string: %s", host)
+		return nil
+	}
+
+	return fmt.Errorf("failed to find Envoy filter 'kardinal-gateway-tracing' containing the expected host string after %d attempts", maxRetries)
 }
 
 func portForwardPod(config *rest.Config, podName string, stopChan <-chan struct{}, readyChan chan struct{}) error {
