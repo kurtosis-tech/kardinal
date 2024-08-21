@@ -55,7 +55,7 @@ func StartGateway(host, flowId string) error {
 	}
 
 	// Check for the Envoy filter before proceeding
-	err = checkEnvoyFilter(client.clientSet, host)
+	err = checkGatewayEnvoyFilter(client.clientSet, host)
 	if err != nil {
 		return err
 	}
@@ -197,7 +197,7 @@ func findPodForService(client *kubernetes.Clientset) (string, error) {
 	return podName, nil
 }
 
-func checkEnvoyFilter(client *kubernetes.Clientset, host string) error {
+func checkGatewayEnvoyFilter(client *kubernetes.Clientset, host string) error {
 	for retry := 0; retry < maxRetries; retry++ {
 		envoyFilterRaw, err := client.RESTClient().
 			Get().
