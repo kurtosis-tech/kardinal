@@ -254,6 +254,8 @@ components:
           type: array
           items:
             type: string
+        template-name:
+          type: string
       required:
         - flow-id
         - flow-urls
