@@ -201,9 +201,7 @@ func checkGatewayEnvoyFilter(client *kubernetes.Clientset, host string) error {
 	for retry := 0; retry < maxRetries; retry++ {
 		envoyFilterRaw, err := client.RESTClient().
 			Get().
-			Resource("envoyfilters").
-			Namespace("istio-system").
-			Name("kardinal-gateway-tracing").
+			AbsPath("/apis/networking.istio.io/v1alpha3/namespaces/istio-system/envoyfilters/kardinal-gateway-tracing").
 			Do(context.Background()).
 			Raw()
 		if err != nil {
@@ -220,7 +218,7 @@ func checkGatewayEnvoyFilter(client *kubernetes.Clientset, host string) error {
 			continue
 		}
 
-		luaCode, ok := envoyFilter["spec"].(map[string]interface{})["proxyConfig"].(map[string]interface{})["truncatedStat"].(map[string]interface{})["lua"].(string)
+		luaCode, ok := envoyFilter["spec"].(map[string]interface{})["configPatches"].([]interface{})[0].(map[string]interface{})["patch"].(map[string]interface{})["value"].(map[string]interface{})["typed_config"].(map[string]interface{})["inlineCode"].(string)
 		if !ok {
 			log.Printf("Error getting Lua code from Envoy filter (attempt %d/%d)", retry+1, maxRetries)
 			time.Sleep(retryInterval)
