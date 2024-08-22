@@ -202,6 +202,7 @@ export interface components {
     Flow: {
       "flow-id": string;
       "flow-urls": string[];
+      "template-name"?: string;
     };
     FlowSpec: {
         /** @example backend-a:latest */
