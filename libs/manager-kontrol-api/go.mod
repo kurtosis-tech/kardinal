@@ -8,6 +8,7 @@ require (
 	github.com/getkin/kin-openapi v0.125.0
 	github.com/labstack/echo/v4 v4.12.0
 	github.com/oapi-codegen/runtime v1.1.1
+	gopkg.in/yaml.v2 v2.4.0
 	istio.io/client-go v1.22.1
 	k8s.io/api v0.30.2
 )
@@ -41,7 +42,6 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20240318140521-94a12d6c2237 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	istio.io/api v1.22.1-0.20240524024004-b6815be0740d // indirect
 	k8s.io/apimachinery v0.30.2 // indirect
