@@ -13,6 +13,8 @@ import (
 	"net/url"
 	"strings"
 
+	"gopkg.in/yaml.v2"
+
 	. "github.com/kurtosis-tech/kardinal/libs/cli-kontrol-api/api/golang/types"
 	"github.com/oapi-codegen/runtime"
 )
@@ -109,6 +111,9 @@ type ClientInterface interface {
 	// GetTenantUuidFlows request
 	GetTenantUuidFlows(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetTenantUuidManifest request
+	GetTenantUuidManifest(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetTenantUuidTemplates request
 	GetTenantUuidTemplates(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -198,6 +203,18 @@ func (c *Client) DeleteTenantUuidFlowFlowId(ctx context.Context, uuid Uuid, flow
 
 func (c *Client) GetTenantUuidFlows(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetTenantUuidFlowsRequest(c.Server, uuid)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetTenantUuidManifest(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetTenantUuidManifestRequest(c.Server, uuid)
 	if err != nil {
 		return nil, err
 	}
@@ -464,6 +481,40 @@ func NewGetTenantUuidFlowsRequest(server string, uuid Uuid) (*http.Request, erro
 	return req, nil
 }
 
+// NewGetTenantUuidManifestRequest generates requests for GetTenantUuidManifest
+func NewGetTenantUuidManifestRequest(server string, uuid Uuid) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "uuid", runtime.ParamLocationPath, uuid)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/tenant/%s/manifest", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetTenantUuidTemplatesRequest generates requests for GetTenantUuidTemplates
 func NewGetTenantUuidTemplatesRequest(server string, uuid Uuid) (*http.Request, error) {
 	var err error
@@ -682,6 +733,9 @@ type ClientWithResponsesInterface interface {
 	// GetTenantUuidFlowsWithResponse request
 	GetTenantUuidFlowsWithResponse(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*GetTenantUuidFlowsResponse, error)
 
+	// GetTenantUuidManifestWithResponse request
+	GetTenantUuidManifestWithResponse(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*GetTenantUuidManifestResponse, error)
+
 	// GetTenantUuidTemplatesWithResponse request
 	GetTenantUuidTemplatesWithResponse(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*GetTenantUuidTemplatesResponse, error)
 
@@ -808,6 +862,30 @@ func (r GetTenantUuidFlowsResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetTenantUuidFlowsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetTenantUuidManifestResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	YAML200      *string
+	JSON404      *NotFound
+	JSON500      *Error
+}
+
+// Status returns HTTPResponse.Status
+func (r GetTenantUuidManifestResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetTenantUuidManifestResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -968,6 +1046,15 @@ func (c *ClientWithResponses) GetTenantUuidFlowsWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParseGetTenantUuidFlowsResponse(rsp)
+}
+
+// GetTenantUuidManifestWithResponse request returning *GetTenantUuidManifestResponse
+func (c *ClientWithResponses) GetTenantUuidManifestWithResponse(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*GetTenantUuidManifestResponse, error) {
+	rsp, err := c.GetTenantUuidManifest(ctx, uuid, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetTenantUuidManifestResponse(rsp)
 }
 
 // GetTenantUuidTemplatesWithResponse request returning *GetTenantUuidTemplatesResponse
@@ -1187,6 +1274,46 @@ func ParseGetTenantUuidFlowsResponse(rsp *http.Response) (*GetTenantUuidFlowsRes
 			return nil, err
 		}
 		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetTenantUuidManifestResponse parses an HTTP response from a GetTenantUuidManifestWithResponse call
+func ParseGetTenantUuidManifestResponse(rsp *http.Response) (*GetTenantUuidManifestResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetTenantUuidManifestResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "yaml") && rsp.StatusCode == 200:
+		var dest string
+		if err := yaml.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.YAML200 = &dest
 
 	}
 

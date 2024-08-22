@@ -10,7 +10,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"path"
@@ -28,9 +27,6 @@ type ServerInterface interface {
 	// Cluster resource definition
 	// (GET /tenant/{uuid}/cluster-resources)
 	GetTenantUuidClusterResources(ctx echo.Context, uuid Uuid) error
-	// Cluster resource definition in a manifest YAML response
-	// (GET /tenant/{uuid}/cluster-resources/manifest)
-	GetTenantUuidClusterResourcesManifest(ctx echo.Context, uuid Uuid) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -51,22 +47,6 @@ func (w *ServerInterfaceWrapper) GetTenantUuidClusterResources(ctx echo.Context)
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.GetTenantUuidClusterResources(ctx, uuid)
-	return err
-}
-
-// GetTenantUuidClusterResourcesManifest converts echo context to params.
-func (w *ServerInterfaceWrapper) GetTenantUuidClusterResourcesManifest(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "uuid" -------------
-	var uuid Uuid
-
-	err = runtime.BindStyledParameterWithOptions("simple", "uuid", ctx.Param("uuid"), &uuid, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter uuid: %s", err))
-	}
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.GetTenantUuidClusterResourcesManifest(ctx, uuid)
 	return err
 }
 
@@ -99,7 +79,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	}
 
 	router.GET(baseURL+"/tenant/:uuid/cluster-resources", wrapper.GetTenantUuidClusterResources)
-	router.GET(baseURL+"/tenant/:uuid/cluster-resources/manifest", wrapper.GetTenantUuidClusterResourcesManifest)
 
 }
 
@@ -134,53 +113,11 @@ func (response GetTenantUuidClusterResourcesdefaultJSONResponse) VisitGetTenantU
 	return json.NewEncoder(w).Encode(response.Body)
 }
 
-type GetTenantUuidClusterResourcesManifestRequestObject struct {
-	Uuid Uuid `json:"uuid"`
-}
-
-type GetTenantUuidClusterResourcesManifestResponseObject interface {
-	VisitGetTenantUuidClusterResourcesManifestResponse(w http.ResponseWriter) error
-}
-
-type GetTenantUuidClusterResourcesManifest200ApplicationxYamlResponse struct {
-	Body          io.Reader
-	ContentLength int64
-}
-
-func (response GetTenantUuidClusterResourcesManifest200ApplicationxYamlResponse) VisitGetTenantUuidClusterResourcesManifestResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/x-yaml")
-	if response.ContentLength != 0 {
-		w.Header().Set("Content-Length", fmt.Sprint(response.ContentLength))
-	}
-	w.WriteHeader(200)
-
-	if closer, ok := response.Body.(io.ReadCloser); ok {
-		defer closer.Close()
-	}
-	_, err := io.Copy(w, response.Body)
-	return err
-}
-
-type GetTenantUuidClusterResourcesManifestdefaultJSONResponse struct {
-	Body       ResponseInfo
-	StatusCode int
-}
-
-func (response GetTenantUuidClusterResourcesManifestdefaultJSONResponse) VisitGetTenantUuidClusterResourcesManifestResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(response.StatusCode)
-
-	return json.NewEncoder(w).Encode(response.Body)
-}
-
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 	// Cluster resource definition
 	// (GET /tenant/{uuid}/cluster-resources)
 	GetTenantUuidClusterResources(ctx context.Context, request GetTenantUuidClusterResourcesRequestObject) (GetTenantUuidClusterResourcesResponseObject, error)
-	// Cluster resource definition in a manifest YAML response
-	// (GET /tenant/{uuid}/cluster-resources/manifest)
-	GetTenantUuidClusterResourcesManifest(ctx context.Context, request GetTenantUuidClusterResourcesManifestRequestObject) (GetTenantUuidClusterResourcesManifestResponseObject, error)
 }
 
 type StrictHandlerFunc = strictecho.StrictEchoHandlerFunc
@@ -220,49 +157,22 @@ func (sh *strictHandler) GetTenantUuidClusterResources(ctx echo.Context, uuid Uu
 	return nil
 }
 
-// GetTenantUuidClusterResourcesManifest operation middleware
-func (sh *strictHandler) GetTenantUuidClusterResourcesManifest(ctx echo.Context, uuid Uuid) error {
-	var request GetTenantUuidClusterResourcesManifestRequestObject
-
-	request.Uuid = uuid
-
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.GetTenantUuidClusterResourcesManifest(ctx.Request().Context(), request.(GetTenantUuidClusterResourcesManifestRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "GetTenantUuidClusterResourcesManifest")
-	}
-
-	response, err := handler(ctx, request)
-
-	if err != nil {
-		return err
-	} else if validResponse, ok := response.(GetTenantUuidClusterResourcesManifestResponseObject); ok {
-		return validResponse.VisitGetTenantUuidClusterResourcesManifestResponse(ctx.Response())
-	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
-	}
-	return nil
-}
-
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/8RW32/bNhD+VwRuj7IZNy+D34KlDYwuSeEmG4YiCBj5JF9Dkdzx6EYL/L8PFCXLaWwn",
-	"A7bmST/u13cfT/fpURS2dtaAYS+mj8IpUjUwUPsUAi7idQG+IHSM1oipuL6enWa2zHgJGYG3gQoQucBo",
-	"c4qXIhdG1SCmKT4XBH8FJFiIKVOAXPhiCbWKiblx0c8zoanEer2Ozt5Z46EFcGH58j7eFNYwGI63yjmN",
-	"hYpg5FcfET1uZfyZoBRT8ZMc+pLJ6uW8Sz0zpU3FvmvMwIODgmGRAZElEV264Jj7Vx08A827nhNhZB0Q",
-	"Y3pSgZeW8O8W3a2zGovOggx1e/Mwquyo63s1uQNWk/HJdtinGNWIfPAcYe0stc13xHaBIk+ETwV6RjtG",
-	"KwuNYHhUWenuK6kceumhCITcyD4qttUhUESqES0TTtum7udgJ1zlnF9Nxqcb18Mgk/uA8f4XHxEqhzKa",
-	"5GofEs9oEoMU9EH6lHZLdTw+HULmQcNL3KWo15FngL9ZukdTyU3gLtRgVra5LVH3385hxO+j+4fW+y3Q",
-	"Vorhm2r2wjvr7D8AmgdaYXHglAtLsJqMPye/w5CS786Ri6Z9I7dC4qD07YtYNgT9niJeBer/OMLhhb37",
-	"CgXHLp6st2erqbALiNfSUq04Lmc0fPxObBKhYaiAYqYavFcV7NjQvffrFu1V9E1LvVeALynBUCNPyG4O",
-	"NHTVlQQT6pjh/Xx+ORe5mF18uBS5+ONkfjG7ONtKsa0n2LHByDrazpVRFZD8aA2T1dnJp5nIxQrIJxGY",
-	"jI/GR7G6dWCUQzEVx+2rdHotl5LBKMPyMQrcWhZJF0a0LQwVtDMQj6BdTLOFmIoz4Ks29Drg4pmc5E/k",
-	"98tujgcX2crr+uY7zXx3dPSfKeYziDtU83MoCvC+DDrrcaQ1XqqgeV+FDWSZNL5dBaGuFTVi2ivt5vci",
-	"W0CJBtuKuWBVRX7Ec95vYpqXTkfWymAJnreO6WlLV0v0GZiFs2g4I+BAxmdK6/af52O4AzLA4Ad8paXW",
-	"1hXL2DqrbdVkaDJrIKuDZtxAyHoEA2P5v5mU876BHzExD6NG1frpzOz4zt50KCLNamD1z5Pz37ap3T8w",
-	"udgMw816vV7/EwAA//8hLsi2EAsAAA==",
+	"H4sIAAAAAAAC/8RWTXPbNhD9K5ptj5RgxZcOb5468Wg6tTOK3R4yHg8CraiNSQBdLJSwHv73DgjqI7Ek",
+	"+9A2J4Lct4u3D9A+PYFxjXcWrQQon8Br1g0Kcv8WIy3Sc4HBMHkhZ6GEu7vZ5cgtR7LCEWNwkQ1CAZRi",
+	"XssKCrC6QShzfgGMf0ViXEApHLGAYFbY6FRYWp9wQZhsBV3XJXDwzgbsCVw7uXlMC+OsoJW01N7XZHQi",
+	"oz6HxOhpr+LPjEso4Se160vlaFDzofTMLl3e7LvGLH71aAQXI2R2DAkyJKfav9YxCPJ86DkLxs4jC+U3",
+	"HWXlmP7u2T14V5MZIiTY9Iuv48qNh77X008oejq52E97n7JaKHbIMTXecd/8IOyQCEUWvAQKQm5CTpma",
+	"0Mq4cso/Vkp7CiqgiUzSqk1WamtgoJl1C70SvnZts7kHB+lq78N6OrncQk+TzPAdx8dfQmKoPakUUutj",
+	"TIKQzQpyrE/Kp2u/0ueTy13KPNb4knY563XiWZQvjh/JVmqbeIg12rVrH5ZUb347pxm/TfB3PfpHsK20",
+	"4BfdHqV3NcT/B2oBeU3mxCkbx7ieTj5k3GlKGXvwyqXQsSu3Jpao64cXuWwF+iNnvIrUf3GEuw/u02c0",
+	"krr4Zrw9G03GLTA9l44bLWk4k5XzN7AtRFawQk6VGgxBV3hgQm/Qrxu0twmbh/rGAT7mArs9iszs/kRD",
+	"t8OWaGOTKrydz2/mUMDs+t0NFPDnxfx6dn21V2LfT2hQQ0jqFPtdW10hq9+cFXb16OL9DApYI4dsAtPJ",
+	"2eQs7e48Wu0JSjjvP+XT67VUglZbUU/J4Dplsi+Med8YKuzvQDqCfjDNFlDCFcptn3oXafHMTopv7Pfj",
+	"YY13ENXba3f/nWe+OTv71xzzGcUDrvkhGoMhLGM92vDIY3ypYy3HdthSVtnj+1EQm0ZzC+XGabd/L0YL",
+	"XJKlfscCRFdJH3iu+33Xdd0/AQAA//8hn+431AgAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

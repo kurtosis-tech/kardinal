@@ -20,25 +20,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/ClusterResources"
 
-  /tenant/{uuid}/cluster-resources/manifest:
-    get:
-      tags:
-        - cluster-resources
-        - manifest
-      summary: Cluster resource definition in a manifest YAML response
-      description: This endpoint returns all the Kubernetes resource for the cluster topology in one multi-resource manifest response
-      parameters:
-        - $ref: "#/components/parameters/uuid"
-      responses:
-        default:
-          $ref: "#/components/responses/NotOk"
-        '200':
-          description: Successful response
-          content:
-            application/x-yaml:
-              schema:
-                type: string
-
 components:
   parameters:
     uuid:

@@ -12,8 +12,6 @@ import (
 	"net/url"
 	"strings"
 
-	"gopkg.in/yaml.v2"
-
 	. "github.com/kurtosis-tech/kardinal/libs/manager-kontrol-api/api/golang/types"
 	"github.com/oapi-codegen/runtime"
 )
@@ -93,25 +91,10 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 type ClientInterface interface {
 	// GetTenantUuidClusterResources request
 	GetTenantUuidClusterResources(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// GetTenantUuidClusterResourcesManifest request
-	GetTenantUuidClusterResourcesManifest(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) GetTenantUuidClusterResources(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetTenantUuidClusterResourcesRequest(c.Server, uuid)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GetTenantUuidClusterResourcesManifest(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetTenantUuidClusterResourcesManifestRequest(c.Server, uuid)
 	if err != nil {
 		return nil, err
 	}
@@ -139,40 +122,6 @@ func NewGetTenantUuidClusterResourcesRequest(server string, uuid Uuid) (*http.Re
 	}
 
 	operationPath := fmt.Sprintf("/tenant/%s/cluster-resources", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewGetTenantUuidClusterResourcesManifestRequest generates requests for GetTenantUuidClusterResourcesManifest
-func NewGetTenantUuidClusterResourcesManifestRequest(server string, uuid Uuid) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "uuid", runtime.ParamLocationPath, uuid)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/tenant/%s/cluster-resources/manifest", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -235,9 +184,6 @@ func WithBaseURL(baseURL string) ClientOption {
 type ClientWithResponsesInterface interface {
 	// GetTenantUuidClusterResourcesWithResponse request
 	GetTenantUuidClusterResourcesWithResponse(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*GetTenantUuidClusterResourcesResponse, error)
-
-	// GetTenantUuidClusterResourcesManifestWithResponse request
-	GetTenantUuidClusterResourcesManifestWithResponse(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*GetTenantUuidClusterResourcesManifestResponse, error)
 }
 
 type GetTenantUuidClusterResourcesResponse struct {
@@ -263,29 +209,6 @@ func (r GetTenantUuidClusterResourcesResponse) StatusCode() int {
 	return 0
 }
 
-type GetTenantUuidClusterResourcesManifestResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	YAML200      *string
-	JSONDefault  *NotOk
-}
-
-// Status returns HTTPResponse.Status
-func (r GetTenantUuidClusterResourcesManifestResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetTenantUuidClusterResourcesManifestResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 // GetTenantUuidClusterResourcesWithResponse request returning *GetTenantUuidClusterResourcesResponse
 func (c *ClientWithResponses) GetTenantUuidClusterResourcesWithResponse(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*GetTenantUuidClusterResourcesResponse, error) {
 	rsp, err := c.GetTenantUuidClusterResources(ctx, uuid, reqEditors...)
@@ -293,15 +216,6 @@ func (c *ClientWithResponses) GetTenantUuidClusterResourcesWithResponse(ctx cont
 		return nil, err
 	}
 	return ParseGetTenantUuidClusterResourcesResponse(rsp)
-}
-
-// GetTenantUuidClusterResourcesManifestWithResponse request returning *GetTenantUuidClusterResourcesManifestResponse
-func (c *ClientWithResponses) GetTenantUuidClusterResourcesManifestWithResponse(ctx context.Context, uuid Uuid, reqEditors ...RequestEditorFn) (*GetTenantUuidClusterResourcesManifestResponse, error) {
-	rsp, err := c.GetTenantUuidClusterResourcesManifest(ctx, uuid, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetTenantUuidClusterResourcesManifestResponse(rsp)
 }
 
 // ParseGetTenantUuidClusterResourcesResponse parses an HTTP response from a GetTenantUuidClusterResourcesWithResponse call
@@ -331,39 +245,6 @@ func ParseGetTenantUuidClusterResourcesResponse(rsp *http.Response) (*GetTenantU
 			return nil, err
 		}
 		response.JSONDefault = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseGetTenantUuidClusterResourcesManifestResponse parses an HTTP response from a GetTenantUuidClusterResourcesManifestWithResponse call
-func ParseGetTenantUuidClusterResourcesManifestResponse(rsp *http.Response) (*GetTenantUuidClusterResourcesManifestResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetTenantUuidClusterResourcesManifestResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
-		var dest NotOk
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSONDefault = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "yaml") && rsp.StatusCode == 200:
-		var dest string
-		if err := yaml.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.YAML200 = &dest
 
 	}
 

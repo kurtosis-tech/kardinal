@@ -170,6 +170,27 @@ paths:
         "2xx":
           description: Template deletion status
 
+  /tenant/{uuid}/manifest:
+    get:
+      tags:
+        - tenant
+        - manifest
+      summary: Cluster resource definition in a manifest YAML response
+      description: This endpoint returns all the Kubernetes resource for the cluster topology in one multi-resource manifest response
+      parameters:
+        - $ref: "#/components/parameters/uuid"
+      responses:
+        '500':
+          $ref: "#/components/responses/Error"
+        '404':
+          $ref: "#/components/responses/NotFound"
+        '200':
+          description: Successful response
+          content:
+            application/x-yaml:
+              schema:
+                type: string
+
 components:
   responses:
     Error:
