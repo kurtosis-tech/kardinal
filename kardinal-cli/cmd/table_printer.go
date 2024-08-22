@@ -33,13 +33,18 @@ func printTemplateTable(templates []api_types.Template) {
 // Update the existing printFlowTable function to use the new generic function
 func printFlowTable(flows []api_types.Flow) {
 	data := lo.Map(flows, func(flow api_types.Flow, _ int) []string {
+		templateName := "default"
+		if flow.TemplateName != nil {
+			templateName = *flow.TemplateName
+		}
 		return []string{
 			flow.FlowId,
 			strings.Join(lo.Map(flow.FlowUrls, func(item string, _ int) string { return fmt.Sprintf("http://%s", item) }), ", "),
+			templateName,
 		}
 	})
 
-	header := []string{"Flow ID", "Flow URL"}
+	header := []string{"Flow ID", "Flow URL", "Template"}
 	printGenericTable(header, data)
 }
 
