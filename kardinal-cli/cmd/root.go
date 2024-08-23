@@ -44,6 +44,9 @@ const (
 
 	httpSchme   = "http"
 	httpsScheme = httpSchme + "s"
+
+	addTraceRouterFlagName = "add-trace-router"
+	yamlSeparator          = "---"
 )
 
 var (
@@ -223,7 +226,12 @@ var deleteCmd = &cobra.Command{
 var topologyManifestCmd = &cobra.Command{
 	Use:   "print-manifest",
 	Short: "print the current cluster topology manifest deployed in Kontrol",
+	Args:  cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
+		addTraceRouter, err := cmd.Flags().GetBool(addTraceRouterFlagName)
+		if err != nil {
+			log.Fatalf("Error getting add-trace-router flag: %v", err)
+		}
 
 		tenantUuid, err := tenant.GetOrCreateUserTenantUUID()
 		if err != nil {
@@ -248,9 +256,19 @@ var topologyManifestCmd = &cobra.Command{
 			return
 		}
 
-		bodyString := string(bodyBytes)
+		topologyManifest := string(bodyBytes)
 
-		fmt.Println(bodyString)
+		manifestToPrint := topologyManifest
+
+		if addTraceRouter {
+			traceRouterManifest, err := deployment.GetKardinalTraceRouterManifest()
+			if err != nil {
+				log.Fatalf("Error getting kardinal-trace router manifest: %v", err)
+			}
+			manifestToPrint = manifestToPrint + yamlSeparator + traceRouterManifest
+		}
+
+		fmt.Println(manifestToPrint)
 	},
 }
 
@@ -396,6 +414,7 @@ func init() {
 
 	templateCmd.AddCommand(templateCreateCmd, templateDeleteCmd, templateListCmd)
 	topologyCmd.AddCommand(topologyManifestCmd)
+	topologyManifestCmd.Flags().BoolP(addTraceRouterFlagName, "", false, "Include the trace router in the printed manifest")
 
 	createCmd.Flags().StringSliceVarP(&serviceImagePairs, "service-image", "s", []string{}, "Extra service and respective image to include in the same flow (can be used multiple times)")
 	createCmd.Flags().StringVarP(&templateName, "template", "t", "", "Template name to use for the flow creation")
