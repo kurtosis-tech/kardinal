@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"gopkg.in/yaml.v3"
+	"io"
 	"kardinal.cli/consts"
 	"kardinal.cli/multi_os_cmd_executor"
 	"log"
@@ -29,8 +30,9 @@ import (
 )
 
 const (
-	kontrolBaseURLTmpl                  = "%s://%s"
-	kontrolClusterResourcesEndpointTmpl = "%s/tenant/%s/cluster-resources"
+	kontrolBaseURLTmpl                          = "%s://%s"
+	kontrolClusterResourcesEndpointTmpl         = "%s/tenant/%s/cluster-resources"
+	kontrolClusterResourcesManifestEndpointTmpl = "%s/tenant/%s/cluster-resources/manifest"
 
 	kontrolTrafficConfigurationURLTmpl = "%s/%s/traffic-configuration"
 
@@ -72,6 +74,11 @@ var managerCmd = &cobra.Command{
 var templateCmd = &cobra.Command{
 	Use:   "template",
 	Short: "Manage template creation",
+}
+
+var topologyCmd = &cobra.Command{
+	Use:   "topology",
+	Short: "Manage Kardinal topologies",
 }
 
 var deployCmd = &cobra.Command{
@@ -213,6 +220,40 @@ var deleteCmd = &cobra.Command{
 	},
 }
 
+var topologyManifestCmd = &cobra.Command{
+	Use:   "print-manifest",
+	Short: "print the current cluster topology manifest deployed in Kontrol",
+	Run: func(cmd *cobra.Command, args []string) {
+
+		tenantUuid, err := tenant.GetOrCreateUserTenantUUID()
+		if err != nil {
+			log.Fatal("Error getting or creating user tenant UUID", err)
+		}
+
+		ctx := context.Background()
+		client := getKontrolServiceClient()
+
+		resp, err := client.GetTenantUuidManifest(ctx, tenantUuid.String())
+		if err != nil {
+			log.Fatalf("Failed to get topology manifest: %v", err)
+		}
+
+		if resp == nil || resp.StatusCode != 200 {
+			log.Fatalf("Not Topology manifest successfull response, response status code: %d", resp.StatusCode)
+		}
+
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatalf("Error reading response body: %v\n", err)
+			return
+		}
+
+		bodyString := string(bodyBytes)
+
+		fmt.Println(bodyString)
+	},
+}
+
 var deployManagerCmd = &cobra.Command{
 	Use:       fmt.Sprintf("deploy [kontrol location] accepted values: %s and %s ", kontrol.KontrolLocationLocalMinikube, kontrol.KontrolLocationKloudKontrol),
 	Short:     "Deploy Kardinal manager into the cluster",
@@ -349,10 +390,12 @@ func init() {
 	rootCmd.AddCommand(dashboardCmd)
 	rootCmd.AddCommand(gatewayCmd)
 	rootCmd.AddCommand(reportInstall)
+	rootCmd.AddCommand(topologyCmd)
 	flowCmd.AddCommand(listCmd, createCmd, deleteCmd)
 	managerCmd.AddCommand(deployManagerCmd, removeManagerCmd)
 
 	templateCmd.AddCommand(templateCreateCmd, templateDeleteCmd, templateListCmd)
+	topologyCmd.AddCommand(topologyManifestCmd)
 
 	createCmd.Flags().StringSliceVarP(&serviceImagePairs, "service-image", "s", []string{}, "Extra service and respective image to include in the same flow (can be used multiple times)")
 	createCmd.Flags().StringVarP(&templateName, "template", "t", "", "Template name to use for the flow creation")
@@ -821,6 +864,17 @@ func getClusterResourcesURL(tenantUuid api_types.Uuid) (string, error) {
 	}
 
 	clusterResourcesURL := fmt.Sprintf(kontrolClusterResourcesEndpointTmpl, kontrolBaseURL, tenantUuid)
+
+	return clusterResourcesURL, nil
+}
+
+func getClusterResourcesManifestURL(tenantUuid api_types.Uuid) (string, error) {
+	kontrolBaseURL, err := getKontrolBaseURLForManager()
+	if err != nil {
+		return "", stacktrace.Propagate(err, "An error occurred getting the Kontrol base URL")
+	}
+
+	clusterResourcesURL := fmt.Sprintf(kontrolClusterResourcesManifestEndpointTmpl, kontrolBaseURL, tenantUuid)
 
 	return clusterResourcesURL, nil
 }
