@@ -188,6 +188,29 @@ export interface paths {
       };
     };
   };
+  "/tenant/{uuid}/manifest": {
+    /**
+     * Cluster resource definition in a manifest YAML response
+     * @description This endpoint returns all the Kubernetes resource for the cluster topology in one multi-resource manifest response
+     */
+    get: {
+      parameters: {
+        path: {
+          uuid: components["parameters"]["uuid"];
+        };
+      };
+      responses: {
+        /** @description Successful response */
+        200: {
+          content: {
+            "application/x-yaml": string;
+          };
+        };
+        404: components["responses"]["NotFound"];
+        500: components["responses"]["Error"];
+      };
+    };
+  };
 }
 
 export type webhooks = Record<string, never>;

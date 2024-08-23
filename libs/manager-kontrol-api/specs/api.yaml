@@ -13,7 +13,7 @@ paths:
       responses:
         default:
           $ref: "#/components/responses/NotOk"
-        "200":
+        '200':
           description: Successful response
           content:
             application/json:
