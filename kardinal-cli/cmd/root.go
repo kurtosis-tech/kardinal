@@ -3,13 +3,14 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"gopkg.in/yaml.v3"
-	"kardinal.cli/consts"
-	"kardinal.cli/multi_os_cmd_executor"
 	"log"
 	"os"
 	"path"
 	"strings"
+
+	"gopkg.in/yaml.v3"
+	"kardinal.cli/consts"
+	"kardinal.cli/multi_os_cmd_executor"
 
 	"github.com/kurtosis-tech/stacktrace"
 	"github.com/segmentio/analytics-go/v3"
@@ -327,10 +328,15 @@ var reportInstall = &cobra.Command{
 		analyticsClient := analytics.New("IMYNcUACcPpcIJuS6ChHpMd4z4ZpvVFq")
 		defer analyticsClient.Close()
 
+		props := analytics.NewProperties()
+		if username, exists := os.LookupEnv("KARDINAL_PLAYGROUND_USERNAME"); exists {
+			props.Set("playground_username", username)
+		}
+
 		analyticsClient.Enqueue(analytics.Track{
 			Event:      "install_cli",
 			UserId:     tenantUuid.String(),
-			Properties: analytics.NewProperties(),
+			Properties: props,
 		})
 		log.Println("Thank you for helping us improve Kardinal! 🧡")
 	},
