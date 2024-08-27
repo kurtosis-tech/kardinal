@@ -48,8 +48,6 @@ const (
 
 	deleteAllDevFlowsFlagName = "all"
 
-	devModeGlobalFlagName = "dev-mode"
-
 	addTraceRouterFlagName = "add-trace-router"
 	yamlSeparator          = "---"
 )
@@ -469,8 +467,6 @@ func init() {
 	rootCmd.AddCommand(reportInstall)
 	rootCmd.AddCommand(topologyCmd)
 	rootCmd.AddCommand(tenantCmd)
-
-	rootCmd.PersistentFlags().BoolVar(&devMode, devModeGlobalFlagName, false, "set the development mode, this flag overwrite the KARDINAL_CLI_DEV_MODE env var")
 
 	flowCmd.AddCommand(listCmd, createCmd, deleteCmd)
 	managerCmd.AddCommand(deployManagerCmd, removeManagerCmd)
