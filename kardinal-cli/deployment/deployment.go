@@ -11,10 +11,11 @@ import (
 )
 
 const (
-	kardinalNamespace                 = "default"
-	kardinalManagerDeploymentTmplName = "kardinal-manager-deployment"
+	kardinalNamespace                   = "default"
+	kardinalManagerDeploymentTmplName   = "kardinal-manager-deployment"
+	kardinalTraceRouterManifestTmplName = "kardinal-trace-router-manifest"
 
-	kardinalManagerDeploymentTmpl = `
+	kardinalManagerAuthTmpl = `
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -50,8 +51,10 @@ roleRef:
   kind: ClusterRole
   name: kardinal-manager-role
   apiGroup: rbac.authorization.k8s.io
-
 ---
+`
+
+	kardinalManagerDeploymentTmpl = `
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -84,6 +87,9 @@ spec:
             - name: KARDINAL_MANAGER_FETCHER_JOB_DURATION_SECONDS
               value: "10"
 ---
+`
+
+	kardinalTraceRouterDeploymentTmpl = `
 apiVersion: v1
 kind: Service
 metadata:
@@ -120,7 +126,7 @@ spec:
       containers:
         - name: trace-router
           image: kurtosistech/kardinal-router:latest
-          imagePullPolicy: {{.KardinalManagerContainerImagePullPolicy}}
+          imagePullPolicy: {{.KardinalTraceRouterContainerImagePullPolicy}}
           ports:
             - containerPort: 8080
           env:
@@ -170,15 +176,21 @@ spec:
           env:
             - name: ALLOW_EMPTY_PASSWORD
               value: "yes"
+---
 `
+
+	kardinalTraceRouterManifestTmpl = kardinalManagerAuthTmpl + kardinalTraceRouterDeploymentTmpl
+
+	allKardinalTmpls = kardinalManagerAuthTmpl + kardinalManagerDeploymentTmpl + kardinalTraceRouterDeploymentTmpl
 )
 
 type templateData struct {
-	Namespace                               string
-	ClusterResourcesURL                     string
-	KardinalAppIDLabelKey                   string
-	KardinalManagerAppIDLabelValue          string
-	KardinalManagerContainerImagePullPolicy string
+	Namespace                                   string
+	ClusterResourcesURL                         string
+	KardinalAppIDLabelKey                       string
+	KardinalManagerAppIDLabelValue              string
+	KardinalManagerContainerImagePullPolicy     string
+	KardinalTraceRouterContainerImagePullPolicy string
 }
 
 func DeployKardinalManagerInCluster(ctx context.Context, clusterResourcesURL string, kontrolLocation string) error {
@@ -187,7 +199,7 @@ func DeployKardinalManagerInCluster(ctx context.Context, clusterResourcesURL str
 		return stacktrace.Propagate(err, "An error occurred while creating the Kubernetes client")
 	}
 
-	kardinalManagerDeploymentTemplate, err := template.New(kardinalManagerDeploymentTmplName).Parse(kardinalManagerDeploymentTmpl)
+	kardinalManagerDeploymentTemplate, err := template.New(kardinalManagerDeploymentTmplName).Parse(allKardinalTmpls)
 	if err != nil {
 		return stacktrace.Propagate(err, "An error occurred while parsing the kardinal-manager deployment template")
 	}
@@ -204,11 +216,12 @@ func DeployKardinalManagerInCluster(ctx context.Context, clusterResourcesURL str
 	}
 
 	templateDataObj := templateData{
-		Namespace:                               kardinalNamespace,
-		ClusterResourcesURL:                     clusterResourcesURL,
-		KardinalAppIDLabelKey:                   consts.KardinalAppIDLabelKey,
-		KardinalManagerAppIDLabelValue:          consts.KardinalManagerAppIDLabelValue,
-		KardinalManagerContainerImagePullPolicy: imagePullPolicy,
+		Namespace:                                   kardinalNamespace,
+		ClusterResourcesURL:                         clusterResourcesURL,
+		KardinalAppIDLabelKey:                       consts.KardinalAppIDLabelKey,
+		KardinalManagerAppIDLabelValue:              consts.KardinalManagerAppIDLabelValue,
+		KardinalManagerContainerImagePullPolicy:     imagePullPolicy,
+		KardinalTraceRouterContainerImagePullPolicy: imagePullPolicy,
 	}
 
 	yamlFileContentsBuffer := &bytes.Buffer{}
@@ -239,4 +252,28 @@ func RemoveKardinalManagerFromCluster(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func GetKardinalTraceRouterManifest() (string, error) {
+	kardinalTraceRouterManifestTemplate, err := template.New(kardinalTraceRouterManifestTmplName).Parse(kardinalTraceRouterManifestTmpl)
+	if err != nil {
+		return "", stacktrace.Propagate(err, "An error occurred while parsing the Kardinal trace router manifest template")
+	}
+
+	imagePullPolicy := "Always"
+
+	templateDataObj := templateData{
+		Namespace:                                   kardinalNamespace,
+		KardinalAppIDLabelKey:                       consts.KardinalAppIDLabelKey,
+		KardinalManagerAppIDLabelValue:              consts.KardinalManagerAppIDLabelValue,
+		KardinalTraceRouterContainerImagePullPolicy: imagePullPolicy,
+	}
+
+	yamlFileContentsBuffer := &bytes.Buffer{}
+
+	if err = kardinalTraceRouterManifestTemplate.Execute(yamlFileContentsBuffer, templateDataObj); err != nil {
+		return "", stacktrace.Propagate(err, "An error occurred while executing the template '%s' with data objects '%+v'", kardinalTraceRouterManifestTmplName, templateDataObj)
+	}
+
+	return yamlFileContentsBuffer.String(), nil
 }

@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path"
@@ -30,8 +31,9 @@ import (
 )
 
 const (
-	kontrolBaseURLTmpl                  = "%s://%s"
-	kontrolClusterResourcesEndpointTmpl = "%s/tenant/%s/cluster-resources"
+	kontrolBaseURLTmpl                          = "%s://%s"
+	kontrolClusterResourcesEndpointTmpl         = "%s/tenant/%s/cluster-resources"
+	kontrolClusterResourcesManifestEndpointTmpl = "%s/tenant/%s/cluster-resources/manifest"
 
 	kontrolTrafficConfigurationURLTmpl = "%s/%s/traffic-configuration"
 
@@ -47,6 +49,9 @@ const (
 	deleteAllDevFlowsFlagName = "all"
 
 	devModeGlobalFlagName = "dev-mode"
+
+	addTraceRouterFlagName = "add-trace-router"
+	yamlSeparator          = "---"
 )
 
 var (
@@ -77,6 +82,11 @@ var managerCmd = &cobra.Command{
 var templateCmd = &cobra.Command{
 	Use:   "template",
 	Short: "Manage template creation",
+}
+
+var topologyCmd = &cobra.Command{
+	Use:   "topology",
+	Short: "Manage Kardinal topologies",
 }
 
 var tenantCmd = &cobra.Command{
@@ -254,6 +264,55 @@ var deleteCmd = &cobra.Command{
 	},
 }
 
+var topologyManifestCmd = &cobra.Command{
+	Use:   "print-manifest",
+	Short: "print the current cluster topology manifest deployed in Kontrol",
+	Args:  cobra.ExactArgs(0),
+	Run: func(cmd *cobra.Command, args []string) {
+		addTraceRouter, err := cmd.Flags().GetBool(addTraceRouterFlagName)
+		if err != nil {
+			log.Fatalf("Error getting add-trace-router flag: %v", err)
+		}
+
+		tenantUuid, err := tenant.GetOrCreateUserTenantUUID()
+		if err != nil {
+			log.Fatal("Error getting or creating user tenant UUID", err)
+		}
+
+		ctx := context.Background()
+		client := getKontrolServiceClient()
+
+		resp, err := client.GetTenantUuidManifest(ctx, tenantUuid.String())
+		if err != nil {
+			log.Fatalf("Failed to get topology manifest: %v", err)
+		}
+
+		if resp == nil || resp.StatusCode != 200 {
+			log.Fatalf("Not Topology manifest successfull response, response status code: %d", resp.StatusCode)
+		}
+
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatalf("Error reading response body: %v\n", err)
+			return
+		}
+
+		topologyManifest := string(bodyBytes)
+
+		manifestToPrint := topologyManifest
+
+		if addTraceRouter {
+			traceRouterManifest, err := deployment.GetKardinalTraceRouterManifest()
+			if err != nil {
+				log.Fatalf("Error getting kardinal-trace router manifest: %v", err)
+			}
+			manifestToPrint = manifestToPrint + yamlSeparator + traceRouterManifest
+		}
+
+		fmt.Println(manifestToPrint)
+	},
+}
+
 var deployManagerCmd = &cobra.Command{
 	Use:       fmt.Sprintf("deploy [kontrol location] accepted values: %s and %s ", kontrol.KontrolLocationLocalMinikube, kontrol.KontrolLocationKloudKontrol),
 	Short:     "Deploy Kardinal manager into the cluster",
@@ -408,6 +467,7 @@ func init() {
 	rootCmd.AddCommand(dashboardCmd)
 	rootCmd.AddCommand(gatewayCmd)
 	rootCmd.AddCommand(reportInstall)
+	rootCmd.AddCommand(topologyCmd)
 	rootCmd.AddCommand(tenantCmd)
 
 	rootCmd.PersistentFlags().BoolVar(&devMode, devModeGlobalFlagName, false, "set the development mode, this flag overwrite the KARDINAL_CLI_DEV_MODE env var")
@@ -415,6 +475,8 @@ func init() {
 	flowCmd.AddCommand(listCmd, createCmd, deleteCmd)
 	managerCmd.AddCommand(deployManagerCmd, removeManagerCmd)
 	templateCmd.AddCommand(templateCreateCmd, templateDeleteCmd, templateListCmd)
+	topologyCmd.AddCommand(topologyManifestCmd)
+	topologyManifestCmd.Flags().BoolP(addTraceRouterFlagName, "", false, "Include the trace router in the printed manifest")
 	tenantCmd.AddCommand(tenantShowCmd)
 
 	createCmd.Flags().StringSliceVarP(&serviceImagePairs, "service-image", "s", []string{}, "Extra service and respective image to include in the same flow (can be used multiple times)")
@@ -887,6 +949,17 @@ func getClusterResourcesURL(tenantUuid api_types.Uuid) (string, error) {
 	}
 
 	clusterResourcesURL := fmt.Sprintf(kontrolClusterResourcesEndpointTmpl, kontrolBaseURL, tenantUuid)
+
+	return clusterResourcesURL, nil
+}
+
+func getClusterResourcesManifestURL(tenantUuid api_types.Uuid) (string, error) {
+	kontrolBaseURL, err := getKontrolBaseURLForManager()
+	if err != nil {
+		return "", stacktrace.Propagate(err, "An error occurred getting the Kontrol base URL")
+	}
+
+	clusterResourcesURL := fmt.Sprintf(kontrolClusterResourcesManifestEndpointTmpl, kontrolBaseURL, tenantUuid)
 
 	return clusterResourcesURL, nil
 }
