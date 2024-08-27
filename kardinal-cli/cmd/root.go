@@ -3,14 +3,15 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"gopkg.in/yaml.v3"
 	"io"
-	"kardinal.cli/consts"
-	"kardinal.cli/multi_os_cmd_executor"
 	"log"
 	"os"
 	"path"
 	"strings"
+
+	"gopkg.in/yaml.v3"
+	"kardinal.cli/consts"
+	"kardinal.cli/multi_os_cmd_executor"
 
 	"github.com/kurtosis-tech/stacktrace"
 	"github.com/segmentio/analytics-go/v3"
@@ -82,6 +83,11 @@ var templateCmd = &cobra.Command{
 var topologyCmd = &cobra.Command{
 	Use:   "topology",
 	Short: "Manage Kardinal topologies",
+}
+
+var tenantCmd = &cobra.Command{
+	Use:   "tenant",
+	Short: "Manage tenant",
 }
 
 var deployCmd = &cobra.Command{
@@ -386,12 +392,30 @@ var reportInstall = &cobra.Command{
 		analyticsClient := analytics.New("IMYNcUACcPpcIJuS6ChHpMd4z4ZpvVFq")
 		defer analyticsClient.Close()
 
+		props := analytics.NewProperties()
+		if username, exists := os.LookupEnv("KARDINAL_PLAYGROUND_USERNAME"); exists {
+			props.Set("playground_username", username)
+		}
+
 		analyticsClient.Enqueue(analytics.Track{
 			Event:      "install_cli",
 			UserId:     tenantUuid.String(),
-			Properties: analytics.NewProperties(),
+			Properties: props,
 		})
 		log.Println("Thank you for helping us improve Kardinal! 🧡")
+	},
+}
+
+var tenantShowCmd = &cobra.Command{
+	Use:   "show",
+	Short: "Show tenant UUID",
+	Args:  cobra.ExactArgs(0),
+	Run: func(cmd *cobra.Command, args []string) {
+		tenantUuid, err := tenant.GetOrCreateUserTenantUUID()
+		if err != nil {
+			log.Fatal("Error getting or creating user tenant UUID", err)
+		}
+		fmt.Printf("%s\n", tenantUuid)
 	},
 }
 
@@ -409,12 +433,13 @@ func init() {
 	rootCmd.AddCommand(gatewayCmd)
 	rootCmd.AddCommand(reportInstall)
 	rootCmd.AddCommand(topologyCmd)
+	rootCmd.AddCommand(tenantCmd)
 	flowCmd.AddCommand(listCmd, createCmd, deleteCmd)
 	managerCmd.AddCommand(deployManagerCmd, removeManagerCmd)
-
 	templateCmd.AddCommand(templateCreateCmd, templateDeleteCmd, templateListCmd)
 	topologyCmd.AddCommand(topologyManifestCmd)
 	topologyManifestCmd.Flags().BoolP(addTraceRouterFlagName, "", false, "Include the trace router in the printed manifest")
+	tenantCmd.AddCommand(tenantShowCmd)
 
 	createCmd.Flags().StringSliceVarP(&serviceImagePairs, "service-image", "s", []string{}, "Extra service and respective image to include in the same flow (can be used multiple times)")
 	createCmd.Flags().StringVarP(&templateName, "template", "t", "", "Template name to use for the flow creation")
