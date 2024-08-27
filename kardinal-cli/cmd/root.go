@@ -74,6 +74,11 @@ var templateCmd = &cobra.Command{
 	Short: "Manage template creation",
 }
 
+var tenantCmd = &cobra.Command{
+	Use:   "tenant",
+	Short: "Manage tenant",
+}
+
 var deployCmd = &cobra.Command{
 	Use:   "deploy",
 	Short: "Deploy services",
@@ -336,6 +341,19 @@ var reportInstall = &cobra.Command{
 	},
 }
 
+var tenantShowCmd = &cobra.Command{
+	Use:   "show",
+	Short: "Show tenant UUID",
+	Args:  cobra.ExactArgs(0),
+	Run: func(cmd *cobra.Command, args []string) {
+		tenantUuid, err := tenant.GetOrCreateUserTenantUUID()
+		if err != nil {
+			log.Fatal("Error getting or creating user tenant UUID", err)
+		}
+		fmt.Printf("%s\n", tenantUuid)
+	},
+}
+
 func init() {
 	devMode = false
 	if os.Getenv("KARDINAL_CLI_DEV_MODE") == "TRUE" {
@@ -349,10 +367,11 @@ func init() {
 	rootCmd.AddCommand(dashboardCmd)
 	rootCmd.AddCommand(gatewayCmd)
 	rootCmd.AddCommand(reportInstall)
+	rootCmd.AddCommand(tenantCmd)
 	flowCmd.AddCommand(listCmd, createCmd, deleteCmd)
 	managerCmd.AddCommand(deployManagerCmd, removeManagerCmd)
-
 	templateCmd.AddCommand(templateCreateCmd, templateDeleteCmd, templateListCmd)
+	tenantCmd.AddCommand(tenantShowCmd)
 
 	createCmd.Flags().StringSliceVarP(&serviceImagePairs, "service-image", "s", []string{}, "Extra service and respective image to include in the same flow (can be used multiple times)")
 	createCmd.Flags().StringVarP(&templateName, "template", "t", "", "Template name to use for the flow creation")
