@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.2.2](https://github.com/kurtosis-tech/kardinal/compare/0.2.1...0.2.2) (2024-08-27)
+
+
+### Features
+
+* adding the cluster resources manifest endpoint in Kontrol API spec and bindings ([#171](https://github.com/kurtosis-tech/kardinal/issues/171)) ([b4e7d71](https://github.com/kurtosis-tech/kardinal/commit/b4e7d7134bdae58f939a4e3813daeec40a27d879))
+* report playground user ([#173](https://github.com/kurtosis-tech/kardinal/issues/173)) ([bb4b2fa](https://github.com/kurtosis-tech/kardinal/commit/bb4b2fa71a5fbe7e52d0cf093e9e06f8c0d8348e))
+* Tenant show command ([#174](https://github.com/kurtosis-tech/kardinal/issues/174)) ([1faaa44](https://github.com/kurtosis-tech/kardinal/commit/1faaa447ae769858459aaa89ab3ec388e71c7752))
+
+
+### Bug Fixes
+
+* check if envoy filters are updated before starting gateway ([#168](https://github.com/kurtosis-tech/kardinal/issues/168)) ([7e79072](https://github.com/kurtosis-tech/kardinal/commit/7e790724894ae4f26b4bca92c19b09465eb1156f))
+
 ## [0.2.1](https://github.com/kurtosis-tech/kardinal/compare/0.2.0...0.2.1) (2024-08-20)
 
 
