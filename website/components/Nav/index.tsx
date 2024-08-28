@@ -2,9 +2,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { BiMenu, BiX } from "react-icons/bi";
-import { FiGithub } from "react-icons/fi";
 import styled from "styled-components";
 
+import { ButtonTertiary } from "@/components/Button";
+import Sparkles from "@/components/icons/Sparkles";
 import ResponsiveNav from "@/components/ResponsiveNav";
 import { mobile, tablet } from "@/constants/breakpoints";
 import { useModal } from "@/context/ModalContext";
@@ -24,15 +25,13 @@ const NavLinksAndButton = () => {
           Docs
         </S.NavLink>
         <S.NavLink
-          href={"https://github.com/kurtosis-tech/kardinal-playground/"}
+          href={"https://github.com/kurtosis-tech/kardinal"}
           target="_blank"
           onClick={() =>
-            analytics.track("BUTTON_CLICK", {
-              analyticsId: "link_nav_playground",
-            })
+            analytics.track("BUTTON_CLICK", { analyticsId: "link_nav_github" })
           }
         >
-          Playground
+          GitHub
         </S.NavLink>
         <S.NavLink
           href={"https://discuss.kardinal.dev"}
@@ -50,19 +49,17 @@ const NavLinksAndButton = () => {
         >
           Blog
         </S.NavLink>
-        <S.NavLink
-          $emphasis
-          href={"https://github.com/kurtosis-tech/kardinal"}
+        <ButtonTertiary
+          analyticsId="button_nav_playground"
+          href="https://github.com/kurtosis-tech/kardinal-playground"
+          rel="noopener noreferrer"
           target="_blank"
-          onClick={() =>
-            analytics.track("BUTTON_CLICK", { analyticsId: "link_nav_github" })
-          }
+          iconRight={<Sparkles size={16} />}
         >
-          <FiGithub size={18} style={{ marginRight: 4 }} />
-          View on Github
-        </S.NavLink>
+          Try in Playground
+        </ButtonTertiary>
       </S.NavItemsWrapper>
-    </ResponsiveNav>
+    </ResponsiveNav >
   );
 };
 
@@ -159,7 +156,7 @@ namespace S {
     }
   `;
 
-  export const NavLink = styled(Link)<{ $emphasis?: boolean }>`
+  export const NavLink = styled(Link) <{ $emphasis?: boolean }>`
     align-items: center;
     display: flex;
     gap: 4px;
@@ -176,7 +173,7 @@ namespace S {
     &:hover {
       transform: translateY(-2px);
       color: ${({ $emphasis }) =>
-        $emphasis ? "var(--brand-secondary)" : "var(--brand-primary)"};
+      $emphasis ? "var(--brand-secondary)" : "var(--brand-primary)"};
     }
   `;
 
