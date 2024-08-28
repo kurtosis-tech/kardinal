@@ -1,8 +1,7 @@
 "use client";
-import { FiGithub } from "react-icons/fi";
 import styled from "styled-components";
 
-import { ButtonPrimary, ButtonTertiary } from "@/components/Button";
+import { ButtonTertiary } from "@/components/Button";
 import EmailCapture from "@/components/EmailCapture";
 import Sparkles from "@/components/icons/Sparkles";
 import { mobile } from "@/constants/breakpoints";
@@ -10,17 +9,6 @@ import { mobile } from "@/constants/breakpoints";
 const CTAButtons = () => {
   return (
     <S.CTAButtons>
-      <EmailCapture buttonAnalyticsId="button_footer_join_waitlist" />
-      <ButtonPrimary
-        analyticsId="button_hero_github"
-        href="https://github.com/kurtosis-tech/kardinal"
-        rel="noopener noreferrer"
-        target="_blank"
-        iconLeft={<FiGithub size={18} />}
-        size="lg"
-      >
-        View on GitHub
-      </ButtonPrimary>
       <ButtonTertiary
         analyticsId="button_hero_playground"
         href="https://github.com/kurtosis-tech/kardinal-playground"
@@ -30,12 +18,14 @@ const CTAButtons = () => {
       >
         Try in Playground
       </ButtonTertiary>
+      <EmailCapture buttonAnalyticsId="button_footer_join_waitlist" />
     </S.CTAButtons>
   );
 };
 
 namespace S {
   export const CTAButtons = styled.div`
+    margin-top: 16px;
     display: flex;
     flex-direction: column;
     align-items: center;
