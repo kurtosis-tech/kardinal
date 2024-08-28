@@ -2,14 +2,14 @@
 import { FiGithub } from "react-icons/fi";
 import styled from "styled-components";
 
-import { ButtonPrimary, ButtonTertiary } from "@/components/Button";
-import Sparkles from "@/components/icons/Sparkles";
+import { ButtonTertiary } from "@/components/Button";
+import EmailCapture from "@/components/EmailCapture";
 import { mobile } from "@/constants/breakpoints";
 
 const CTAButtons = () => {
   return (
     <S.CTAButtons>
-      <ButtonPrimary
+      <ButtonTertiary 
         analyticsId="button_hero_github"
         href="https://github.com/kurtosis-tech/kardinal"
         rel="noopener noreferrer"
@@ -18,24 +18,18 @@ const CTAButtons = () => {
         size="lg"
       >
         View on GitHub
-      </ButtonPrimary>
-      <ButtonTertiary
-        analyticsId="button_hero_playground"
-        href="https://github.com/kurtosis-tech/kardinal-playground"
-        rel="noopener noreferrer"
-        target="_blank"
-        iconRight={<Sparkles size={16} />}
-      >
-        Try in Playground
-      </ButtonTertiary>
+      </ButtonTertiary >
+      <EmailCapture buttonAnalyticsId="button_footer_join_waitlist" />
     </S.CTAButtons>
   );
 };
 
 namespace S {
   export const CTAButtons = styled.div`
+    margin-top: 16px;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
+    align-items: center;
     gap: 16px;
     @media ${mobile} {
       flex-direction: column;

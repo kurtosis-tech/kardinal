@@ -17,6 +17,7 @@
   cli_shell = pkgs.callPackage ./kardinal-cli/shell.nix {inherit pkgs;};
   cli_kontrol_api_shell = pkgs.callPackage ./libs/cli-kontrol-api/shell.nix {inherit pkgs;};
   demo_shell = pkgs.callPackage ./examples/voting-app/shell.nix {inherit pkgs;};
+  website_shell = pkgs.callPackage ./website/shell.nix {inherit pkgs;};
 
   kardinal_shell = with pkgs;
     pkgs.mkShell {
@@ -75,4 +76,5 @@ in
     kardinal_shell
     cli_kontrol_api_shell
     demo_shell
+    website_shell
   ]
