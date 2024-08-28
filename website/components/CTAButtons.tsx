@@ -3,8 +3,8 @@ import { FiGithub } from "react-icons/fi";
 import styled from "styled-components";
 
 import { ButtonPrimary, ButtonTertiary } from "@/components/Button";
-import Sparkles from "@/components/icons/Sparkles";
 import EmailCapture from "@/components/EmailCapture";
+import Sparkles from "@/components/icons/Sparkles";
 import { mobile } from "@/constants/breakpoints";
 
 const CTAButtons = () => {
