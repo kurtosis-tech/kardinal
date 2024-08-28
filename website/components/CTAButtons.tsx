@@ -4,11 +4,13 @@ import styled from "styled-components";
 
 import { ButtonPrimary, ButtonTertiary } from "@/components/Button";
 import Sparkles from "@/components/icons/Sparkles";
+import EmailCapture from "@/components/EmailCapture";
 import { mobile } from "@/constants/breakpoints";
 
 const CTAButtons = () => {
   return (
     <S.CTAButtons>
+      <EmailCapture buttonAnalyticsId="button_footer_join_waitlist" />
       <ButtonPrimary
         analyticsId="button_hero_github"
         href="https://github.com/kurtosis-tech/kardinal"
@@ -35,7 +37,8 @@ const CTAButtons = () => {
 namespace S {
   export const CTAButtons = styled.div`
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
+    align-items: center;
     gap: 16px;
     @media ${mobile} {
       flex-direction: column;
