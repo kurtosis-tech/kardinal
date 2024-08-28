@@ -948,14 +948,3 @@ func getClusterResourcesURL(tenantUuid api_types.Uuid) (string, error) {
 
 	return clusterResourcesURL, nil
 }
-
-func getClusterResourcesManifestURL(tenantUuid api_types.Uuid) (string, error) {
-	kontrolBaseURL, err := getKontrolBaseURLForManager()
-	if err != nil {
-		return "", stacktrace.Propagate(err, "An error occurred getting the Kontrol base URL")
-	}
-
-	clusterResourcesURL := fmt.Sprintf(kontrolClusterResourcesManifestEndpointTmpl, kontrolBaseURL, tenantUuid)
-
-	return clusterResourcesURL, nil
-}
