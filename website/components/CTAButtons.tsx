@@ -1,23 +1,24 @@
 "use client";
+import { FiGithub } from "react-icons/fi";
 import styled from "styled-components";
 
 import { ButtonTertiary } from "@/components/Button";
 import EmailCapture from "@/components/EmailCapture";
-import Sparkles from "@/components/icons/Sparkles";
 import { mobile } from "@/constants/breakpoints";
 
 const CTAButtons = () => {
   return (
     <S.CTAButtons>
-      <ButtonTertiary
-        analyticsId="button_hero_playground"
-        href="https://github.com/kurtosis-tech/kardinal-playground"
+      <ButtonTertiary 
+        analyticsId="button_hero_github"
+        href="https://github.com/kurtosis-tech/kardinal"
         rel="noopener noreferrer"
         target="_blank"
-        iconRight={<Sparkles size={16} />}
+        iconLeft={<FiGithub size={18} />}
+        size="lg"
       >
-        Try in Playground
-      </ButtonTertiary>
+        View on GitHub
+      </ButtonTertiary >
       <EmailCapture buttonAnalyticsId="button_footer_join_waitlist" />
     </S.CTAButtons>
   );
