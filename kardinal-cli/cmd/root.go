@@ -46,6 +46,8 @@ const (
 	httpSchme   = "http"
 	httpsScheme = httpSchme + "s"
 
+	deleteAllDevFlowsFlagName = "all"
+
 	addTraceRouterFlagName = "add-trace-router"
 	yamlSeparator          = "---"
 )
@@ -109,7 +111,7 @@ var deployCmd = &cobra.Command{
 }
 
 var templateCreateCmd = &cobra.Command{
-	Use:   "create <template-name>",
+	Use:   "create [template-name]",
 	Short: "Create a new template",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -141,7 +143,7 @@ var templateCreateCmd = &cobra.Command{
 }
 
 var templateDeleteCmd = &cobra.Command{
-	Use:   "delete <template-name>",
+	Use:   "delete [template-name]",
 	Short: "Delete a template",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -215,17 +217,48 @@ var createCmd = &cobra.Command{
 }
 
 var deleteCmd = &cobra.Command{
-	Use:   "delete",
+	Use:   "delete [flow-id]",
 	Short: "Delete services",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		flowId := args[0]
+		var flowId string
+
+		if len(args) > 0 {
+			flowId = args[0]
+		}
+
+		shouldDeleteAllDevFlows, err := cmd.Flags().GetBool(deleteAllDevFlowsFlagName)
+		if err != nil {
+			log.Fatalf("Error getting %s flag: %v", deleteAllDevFlowsFlagName, err)
+		}
+
+		if !shouldDeleteAllDevFlows && flowId == "" {
+			log.Fatal("Either 'flow-id' argument or 'all' flag must be set")
+		}
 
 		tenantUuid, err := tenant.GetOrCreateUserTenantUUID()
 		if err != nil {
 			log.Fatal("Error getting or creating user tenant UUID", err)
 		}
-		deleteFlow(tenantUuid.String(), flowId)
+
+		allFlowIds := []string{}
+		if flowId != "" {
+			allFlowIds = append(allFlowIds, flowId)
+		}
+
+		if shouldDeleteAllDevFlows {
+			currentFlows, err := getTenantUuidFlows(tenantUuid.String())
+			if err != nil {
+				log.Fatalf("Failed to get the current dev flows: %v", err)
+			}
+			for _, currentDevFlow := range currentFlows {
+				allFlowIds = append(allFlowIds, currentDevFlow.FlowId)
+			}
+		}
+
+		for _, fID := range allFlowIds {
+			deleteFlow(tenantUuid.String(), fID)
+		}
 	},
 }
 
@@ -334,7 +367,7 @@ var dashboardCmd = &cobra.Command{
 }
 
 var gatewayCmd = &cobra.Command{
-	Use:   "gateway <flow-id>",
+	Use:   "gateway [flow-id]",
 	Short: "Opens a gateway to the given flow",
 	Args:  cobra.MatchAll(cobra.ExactArgs(1)),
 	Run: func(cmr *cobra.Command, args []string) {
@@ -434,6 +467,7 @@ func init() {
 	rootCmd.AddCommand(reportInstall)
 	rootCmd.AddCommand(topologyCmd)
 	rootCmd.AddCommand(tenantCmd)
+
 	flowCmd.AddCommand(listCmd, createCmd, deleteCmd)
 	managerCmd.AddCommand(deployManagerCmd, removeManagerCmd)
 	templateCmd.AddCommand(templateCreateCmd, templateDeleteCmd, templateListCmd)
@@ -451,6 +485,7 @@ func init() {
 	templateCreateCmd.Flags().StringVarP(&templateYamlFile, "template-yaml", "t", "", "Path to the YAML file containing the template")
 	templateCreateCmd.Flags().StringVarP(&templateDescription, "description", "d", "", "Description of the template")
 	templateCreateCmd.MarkFlagRequired("template-yaml")
+	deleteCmd.Flags().BoolP(deleteAllDevFlowsFlagName, "", false, "Delete all the current dev flows")
 }
 
 func Execute() error {
@@ -576,27 +611,29 @@ func getObjectName(obj *metav1.ObjectMeta) string {
 }
 
 func listDevFlow(tenantUuid api_types.Uuid) {
+	flows, err := getTenantUuidFlows(tenantUuid)
+	if err != nil {
+		log.Fatalf("Failed to get dev flow: %v", err)
+	}
+
+	printFlowTable(flows)
+	return
+}
+
+func getTenantUuidFlows(tenantUuid api_types.Uuid) ([]api_types.Flow, error) {
 	ctx := context.Background()
 	client := getKontrolServiceClient()
 
 	resp, err := client.GetTenantUuidFlowsWithResponse(ctx, tenantUuid)
 	if err != nil {
-		log.Fatalf("Failed to create dev flow: %v", err)
+		return nil, stacktrace.Propagate(err, "Failed to get tenant UUID %s dev flows", tenantUuid)
 	}
 
 	if resp.StatusCode() == 200 {
-		printFlowTable(*resp.JSON200)
-		return
+		return *resp.JSON200, nil
 	}
 
-	if resp.StatusCode() == 404 {
-		fmt.Printf("Could not create flow, missing %s: %s\n", resp.JSON404.ResourceType, resp.JSON404.Id)
-	} else if resp.StatusCode() == 500 {
-		fmt.Printf("Could not create flow, error %s: %v\n", resp.JSON500.Error, resp.JSON500.Msg)
-	} else {
-		fmt.Printf("Failed to create dev flow: %s\n", string(resp.Body))
-	}
-	os.Exit(1)
+	return nil, stacktrace.NewError("Failed to get tenant UUID '%s' dev flows, '%d' status code received", tenantUuid, resp.StatusCode())
 }
 
 func createDevFlow(tenantUuid api_types.Uuid, pairsMap map[string]string, templateName string, templateArgs map[string]interface{}) {
@@ -908,17 +945,6 @@ func getClusterResourcesURL(tenantUuid api_types.Uuid) (string, error) {
 	}
 
 	clusterResourcesURL := fmt.Sprintf(kontrolClusterResourcesEndpointTmpl, kontrolBaseURL, tenantUuid)
-
-	return clusterResourcesURL, nil
-}
-
-func getClusterResourcesManifestURL(tenantUuid api_types.Uuid) (string, error) {
-	kontrolBaseURL, err := getKontrolBaseURLForManager()
-	if err != nil {
-		return "", stacktrace.Propagate(err, "An error occurred getting the Kontrol base URL")
-	}
-
-	clusterResourcesURL := fmt.Sprintf(kontrolClusterResourcesManifestEndpointTmpl, kontrolBaseURL, tenantUuid)
 
 	return clusterResourcesURL, nil
 }
