@@ -86,8 +86,7 @@ spec:
               value: "{{.ClusterResourcesURL}}"
             - name: KARDINAL_MANAGER_FETCHER_JOB_DURATION_SECONDS
               value: "10"
----
-`
+---`
 
 	kardinalTraceRouterDeploymentTmpl = `
 apiVersion: v1
@@ -176,7 +175,6 @@ spec:
           env:
             - name: ALLOW_EMPTY_PASSWORD
               value: "yes"
----
 `
 
 	kardinalTraceRouterManifestTmpl = kardinalManagerAuthTmpl + kardinalTraceRouterDeploymentTmpl
