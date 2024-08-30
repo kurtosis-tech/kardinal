@@ -1,0 +1,100 @@
+# Our desired pipeline using only a Nix shell environment
+name: E2E tests
+
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*.*.*"
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  e2e_tests:
+    name: E2E tests
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+      
+      - name: Install Nix
+        uses: cachix/install-nix-action@v27
+        # relax sandbox due impure kontrol-service tests during build
+        with:
+          extra_nix_config: |
+            sandbox = relaxed
+
+      - name: Magic cache
+        uses: DeterminateSystems/magic-nix-cache-action@v7
+
+      - name: Install and start Minikube
+        run: |
+          curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube_latest_amd64.deb
+          dpkg -i minikube_latest_amd64.deb
+          kubectl config set-context minikube
+          minikube start --driver=docker
+          minikube addons enable ingress
+          minikube addons enable metrics-server
+          istioctl install --set profile=demo -y
+
+      - name: Start kontrol service and Postgres 
+        run: |
+          docker version
+          docker compose -f ci/docker-compose.yml up -d
+          docker ps
+
+      - name: Wait for docker network to be ready
+        run: sleep 10s
+        shell: bash
+
+      - name: Install CLI 
+        run: curl get.kardinal.dev -sL | sh
+      
+      - name: Verify kardinal command
+        run: bash -c 'source ~/.bashrc; if kardinal | grep -q "Kardinal CLI"; then exit 0; else exit 1; fi'
+
+      - name: Retrieve the tenant UUID
+        id: tenant
+        run: |
+          tenant_id=$(kardinal tenant show)
+          echo "id=${tenant_id}" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy boutique demo manifest
+        run: |
+          KARDINAL_CLI_DEV_MODE=TRUE kardinal deploy -k ci/obd-demo.yaml
+
+      - name: Create, validate and delete flow
+        run: |
+          KARDINAL_CLI_DEV_MODE=TRUE kardinal flow create frontend kurtosistech/frontend:demo-frontend > kardinal.out
+          flow_id=$(grep "Flow.*created" kardinal.out | cut -d ' ' -f2 | tr -d "\"")
+          KARDINAL_CLI_DEV_MODE=TRUE kardinal flow ls | grep ${flow_id}
+          KARDINAL_CLI_DEV_MODE=TRUE kardinal flow delete ${flow_id}
+
+      - name: Create, validate and delete a more complex flow
+        run: |
+          KARDINAL_CLI_DEV_MODE=TRUE kardinal flow create frontend kurtosistech/frontend:demo-on-sale -s productcatalogservice=kurtosistech/productcatalogservice:demo-on-sale > kardinal.out
+          flow_id=$(grep "Flow.*created" kardinal.out | cut -d ' ' -f2 | tr -d "\"")
+          KARDINAL_CLI_DEV_MODE=TRUE kardinal flow ls | grep ${flow_id}
+          KARDINAL_CLI_DEV_MODE=TRUE kardinal flow delete ${flow_id}
+      
+      - name: Create template
+        run: |
+          KARDINAL_CLI_DEV_MODE=TRUE kardinal template create extra-item-shared --template-yaml ci/template.yaml --description "Extra item and postgres is shared"
+          KARDINAL_CLI_DEV_MODE=TRUE kardinal template ls | grep "extra-item-shared"
+
+      - name: Create flow with template and delete flow
+        run: |
+          KARDINAL_CLI_DEV_MODE=TRUE kardinal flow create frontend kurtosistech/frontend:demo-frontend  --template-args ci/template_args.yaml --template extra-item-shared > kardinal.out
+          flow_id=$(grep "Flow.*created" kardinal.out | cut -d ' ' -f2 | tr -d "\"")
+          KARDINAL_CLI_DEV_MODE=TRUE kardinal flow ls | grep ${flow_id}
+          KARDINAL_CLI_DEV_MODE=TRUE kardinal flow delete ${flow_id}
+      
+      - name: Delete template
+        run: |
+          KARDINAL_CLI_DEV_MODE=TRUE kardinal template delete extra-item-shared
