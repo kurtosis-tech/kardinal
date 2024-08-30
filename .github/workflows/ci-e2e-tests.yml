@@ -55,6 +55,10 @@ jobs:
       
       - name: Verify kardinal command
         run: bash -c 'source ~/.bashrc; if kardinal | grep -q "Kardinal CLI"; then exit 0; else exit 1; fi'
+      
+      - name: Deploy Kardinal manager
+        run: |
+          KARDINAL_CLI_DEV_MODE=TRUE kardinal manager deploy local-minikube
 
       - name: Retrieve the tenant UUID
         id: tenant
@@ -65,6 +69,7 @@ jobs:
       - name: Deploy boutique demo manifest
         run: |
           KARDINAL_CLI_DEV_MODE=TRUE kardinal deploy -k ci/obd-demo.yaml
+          kubectl get pods -n prod
 
       - name: Create, validate and delete flow
         run: |
