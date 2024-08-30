@@ -33,16 +33,13 @@ jobs:
       - name: Magic cache
         uses: DeterminateSystems/magic-nix-cache-action@v7
 
-      - name: Install and start Minikube
-        run: |
-          curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube_latest_amd64.deb
-          dpkg -i minikube_latest_amd64.deb
-          kubectl config set-context minikube
-          minikube start --driver=docker
-          minikube addons enable ingress
-          minikube addons enable metrics-server
-          istioctl install --set profile=demo -y
-
+      - name: Start minikube
+        uses: medyagh/setup-minikube@latest
+        id: minikube
+        with:
+          driver: docker
+          addons: ingress,metrics-server
+      
       - name: Start kontrol service and Postgres 
         run: |
           docker version
