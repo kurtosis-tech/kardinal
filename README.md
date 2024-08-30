@@ -127,7 +127,7 @@ Is it possible to develop your app with Kardinal + [Tilt](https://tilt.dev/). He
 
 ### Deploy your application:
 
-#### Option 1 - Deploy your current Kardinal topology
+#### Option 1 - Use Tilt with existing Kardinal deployment
 
 Assuming you’ve already deployed your application’s manifest using the `kardinal deploy` command, your cluster topology is prepared for deployment with Tilt. Check the following example to learn how to do it:
 
@@ -151,7 +151,7 @@ local_resource(
 The first `local` call retrieves the cluster topology from Kardinal Kontrol using the `kardinal topology` command. This command prints a multi-resource manifest that Tilt captures and then applies with the `k8s_yaml` command.  
 Finally, the `local_resource` function executes the port forwarding command, allowing the Ingress Gateway to handle browser requests on the default port 80. This command requires `sudo` privileges because it binds to the default port 80.
 
-#### Option 2 - Deploy your manifest file with Kardinal annotations
+#### Option 2 - Using Tilt without existing Kardinal deployment
 
 You can also include the `kardinal deploy` command inside the Tilt to handle all the deployment flow directly with the `tilt up` command.
 
