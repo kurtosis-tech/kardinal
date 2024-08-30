@@ -111,6 +111,129 @@ kardinal flow ls
 
 Once you've deleted the flow, you can verify that the resources have been cleaned up by going to the dashboard again.
 
+## Develop with Kardinal + Tilt
+
+<details>
+<summary>Expand to see how to Develop with Kardinal + Tilt</summary>
+
+Is it possible to develop your app with Kardinal + [Tilt](https://tilt.dev/). Here’s how to do it::
+
+### Prerequisites:
+
+- [Kardinal CLI](https://github.com/kurtosis-tech/kardinal?tab=readme-ov-file#installation)
+- [Tilt](https://docs.tilt.dev/install.html)
+- Local K8s cluster, it could be [Minikube](https://minikube.sigs.k8s.io/docs/start) or [Docker desktop](https://docs.docker.com/desktop/kubernetes/) for instance
+- [Istio](https://istio.io/latest/docs/setup/install/istioctl/#install-istio-using-the-default-profile)
+
+### Deploy your application:
+
+#### Option 1 - Use Tilt with existing Kardinal deployment
+
+Assuming you’ve already deployed your application’s manifest using the `kardinal deploy` command, your cluster topology is prepared for deployment with Tilt. Check the following example to learn how to do it:
+
+Example:
+
+1- Create this `Tiltfile`
+```python
+kardinal_topology_yaml = local(['kardinal', 'topology', 'print-manifest', '--add-trace-router'], quiet=True)
+kardinal_topology_yaml_str = str(kardinal_topology_yaml)
+
+if kardinal_topology_yaml_str != '':
+    k8s_yaml(kardinal_topology_yaml, allow_duplicates = True)
+    
+local_resource(
+    name='ingress-gateway-port-forward',
+    serve_cmd=['kubectl', 'port-forward', 'service/istio-ingressgateway', '80:80', '-n', 'istio-system']
+)
+```
+2- Run `sudo tilt up`
+
+The first `local` call retrieves the cluster topology from Kardinal Kontrol using the `kardinal topology` command. This command prints a multi-resource manifest that Tilt captures and then applies with the `k8s_yaml` command.  
+Finally, the `local_resource` function executes the port forwarding command, allowing the Ingress Gateway to handle browser requests on the default port 80. This command requires `sudo` privileges because it binds to the default port 80.
+
+#### Option 2 - Using Tilt without existing Kardinal deployment
+
+You can also include the `kardinal deploy` command inside the Tilt to handle all the deployment flow directly with the `tilt up` command.
+
+Example:
+
+1- Create a `Tiltfile` like this, replacing the placeholder data with your own.
+```python
+local(['kardinal', 'deploy', '-k', '{your-kardinal-manifest-yaml-filepath}'])
+
+kardinal_topology_yaml = local(['kardinal', 'topology', 'print-manifest', '--add-trace-router'], quiet=True)
+kardinal_topology_yaml_str = str(kardinal_topology_yaml)
+
+if kardinal_topology_yaml_str != '':
+    k8s_yaml(kardinal_topology_yaml, allow_duplicates = True)
+    
+local_resource(
+    name='ingress-gateway-port-forward',
+    serve_cmd=['kubectl', 'port-forward', 'service/istio-ingressgateway', '80:80', '-n', 'istio-system']
+)
+```
+2- Run `sudo tilt up`
+
+In this example, the `kardinal deploy` command is used at the start to deploy the multi-resource manifest file to Kardinal Kontrol.
+
+### Build and Deploy your application:
+
+You can also integrate Kardinal with Tilt to build your app’s containers and set up development workflows that automatically reflect changes whenever you save your files.
+
+Example:
+
+1- Create a `Tiltfile` like this, replacing the placeholder data with your own.
+
+```python
+local(['kardinal', 'deploy', '-k', '{your-kardinal-manifest-yaml-filepath}'])
+
+local(['kardinal', 'flow', 'create', '{service}', '{service-dev-image}'])
+
+docker_build(
+	'{service-dev-image}',
+	context='{./src/}',
+	dockerfile='{./src/Dockerfile}',
+)
+
+kardinal_topology_yaml = local(['kardinal', 'topology', 'print-manifest', '--add-trace-router'], quiet=True)
+kardinal_topology_yaml_str = str(kardinal_topology_yaml)
+
+if kardinal_topology_yaml_str != '':
+    k8s_yaml(kardinal_topology_yaml, allow_duplicates = True)
+    
+local_resource(
+    name='ingress-gateway-port-forward',
+    serve_cmd=['kubectl', 'port-forward', 'service/istio-ingressgateway', '80:80', '-n', 'istio-system']
+)
+```
+
+2- Run `sudo tilt up`
+
+This example introduces two new elements: first, the `kardinal flow` local execution to create the development flow post-deployment. Note the image name `service-dev-image`, as it will be used in the second element.
+The second element is the `docker build` function call, where, we use `service-dev-image` as the first argument. This creates a link, between the container being built and the service in the development flow. Consequently, any changes to files within the specified context (the second argument) will trigger Tilt's hot reload mechanism, updating the Kardinal development flow.
+Note that in this example we are building the service’s container with the `docker_build` instruction but you can also use another build way as the [custom image builders](https://docs.tilt.dev/custom_build.html)
+
+### Access into the PROD and DEV flows:
+
+The `prod` and `dev` application URLs are printed on the logs screen of the Tiltfile execution, you can click on their links to access both flows in the browser.
+
+![image.png](./img/prod-flow-link.png)
+
+![image.png](./img/dev-flow-link.png)
+
+### Cleanup:
+
+After completing the development cycle, you can remove all created resources from the cluster by running the following command:
+
+`tilt down --delete-namespaces`
+
+The `delete-namespaces` flag is used to remove the application’s namespace, it won’t delete the `default` namespace
+
+### More configuration examples:
+
+For additional examples of configuring Kardinal with Tilt, refer to the [Tiltfile in the Kardinal Boutique demo app](https://github.com/kurtosis-tech/new-obd/blob/main/Tiltfile).
+</details>
+
 ## Helpful links
 
 - Explore our [docs](https://kardinal.dev/docs) to learn more about how Kardinal works.
