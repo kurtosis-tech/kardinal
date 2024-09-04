@@ -264,7 +264,7 @@ kardinal flow create frontend kurtosistech/frontend:demo-on-sale
 4- Take note the `port` where it's running because it will be used later
 5- Run the telepresence intercept command to intercept the traffic (replace the values between the brackets)
 ```shell
-telepresence intercept $(kubectl get deployments -l app=frontend,version=dev-y9qqo36yz8 -o jsonpath='{.items[*].metadata.name}' -n prod) --port {{local-port}}:http
+telepresence intercept $(kubectl get deployments -l app=frontend,version={{flow-id}} -o jsonpath='{.items[*].metadata.name}' -n prod) --port {{local-port}}:http
 ```
 6- Navigate the website in the browser to receive the request in the app running locally outside the cluster
 
