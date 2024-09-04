@@ -37,7 +37,8 @@
 
   --gray: #525157;
   --gray-light: #aaa;
-  --gray-lightest: #f2f2f2;
+  --gray-lighter: #f2f2f2;
+  --gray-lightest: #fafafa;
 
   --black: #000330;
   --white: #ffffff;
@@ -48,7 +49,7 @@
   --foreground-light: var(--gray-light);
 
   --foreground-inverted: var(--gray-light);
-  --foreground-dark-inverted: var(--gray-lightest);
+  --foreground-dark-inverted: var(--gray-lighter);
 
   --background: var(--white);
   --background-light: var(--gray-bg-light, #212121);
