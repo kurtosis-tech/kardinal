@@ -227,11 +227,47 @@ After completing the development cycle, you can remove all created resources fro
 
 `tilt down --delete-namespaces`
 
-The `delete-namespaces` flag is used to remove the application’s namespace, it won’t delete the `default` namespace
+The `delete-namespaces` flag is used to remove the application’s namespace, it won’t delete the `default` fdadf
 
 ### More configuration examples:
 
 For additional examples of configuring Kardinal with Tilt, refer to the [Tiltfile in the Kardinal Boutique demo app](https://github.com/kurtosis-tech/new-obd/blob/main/Tiltfile).
+</details>
+
+## Develop with Kardinal + Telepresence
+
+<details>
+<summary>Expand to see how to Develop with Kardinal + Telepresence</summary>
+
+Is it possible to use [Telepresence](https://tilt.dev/) in a Kardinal dev flow. Here’s how to do it:
+
+### Prerequisites:
+
+- [Kardinal CLI](https://github.com/kurtosis-tech/kardinal?tab=readme-ov-file#installation)
+- [Telepresence](https://www.getambassador.io/docs/telepresence-oss/latest/install)
+- Local K8s cluster, it could be [Minikube](https://minikube.sigs.k8s.io/docs/start) or [Docker desktop](https://docs.docker.com/desktop/kubernetes/) for instance
+- [Istio](https://istio.io/latest/docs/setup/install/istioctl/#install-istio-using-the-default-profile)
+- [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl)
+
+### Intercept your service in a Kardinal dev flow:
+
+Assuming you’ve already deployed your application’s manifest using the `kardinal deploy` command, your cluster topology is prepared for creating dev flows. Check the following example to learn how to do it:
+
+Example:
+
+1- Create a dev flow with `Kardinal`.
+```shell
+kardinal flow create frontend kurtosistech/frontend:demo-on-sale
+```
+2- Take note of the flow ID created
+3- Start the `frontend` app locally in a local port either with the terminal or your IDE, you can even start it in debug mode.
+4- Take note the `port` where it's running because it will be used later
+5- Run the telepresence intercept command to intercept the traffic (replace the values between the brackets)
+```shell
+telepresence intercept $(kubectl get deployments -l app=frontend,version=dev-y9qqo36yz8 -o jsonpath='{.items[*].metadata.name}' -n prod) --port {{local-port}}:http
+```
+6- Navigate the website in the browser to receive the request in the app running locally outside the cluster
+
 </details>
 
 ## Helpful links
