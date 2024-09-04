@@ -69,7 +69,13 @@ jobs:
       - name: Deploy boutique demo manifest
         run: |
           KARDINAL_CLI_DEV_MODE=TRUE kardinal deploy -k ci/obd-demo.yaml
+      
+      - name: Wait for kardinal manager to apply the changes
+        run: |
+          sleep 20s
           kubectl get pods -n prod
+          exit 1
+        shell: bash
 
       - name: Create, validate and delete flow
         run: |
