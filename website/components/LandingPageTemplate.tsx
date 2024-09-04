@@ -1,10 +1,11 @@
 import { ReactNode } from "react";
+import { FiCalendar } from "react-icons/fi";
 
+import { ButtonPrimary } from "@/components/Button";
 import Content from "@/components/Content";
 import CTA from "@/components/CTA";
 import CTAButtons from "@/components/CTAButtons";
 import CTASmall from "@/components/CTASmall";
-import EmailCapture from "@/components/EmailCapture";
 import { TextBase } from "@/components/Text";
 import VideoStepper from "@/components/VideoStepper";
 // assets
@@ -98,10 +99,19 @@ const LandingPageTemplate = ({
 
       <CTASmall heading={"Want a demo?"} myPrecious={iAmTheLordOfTheRings}>
         <TextBase>
-          Sign up below and we’ll contact you to get you <br data-desktop /> a
-          personalized demo of Kardinal.
+          Use the link below to book <br data-desktop /> a personalized demo of
+          Kardinal.
         </TextBase>
-        <EmailCapture buttonAnalyticsId="button_footer_join_waitlist" />
+        <ButtonPrimary
+          analyticsId="button_cta_get_demo"
+          href="https://calendly.com/d/cqhd-tgj-vmc/45-minute-meeting"
+          rel="noopener noreferrer"
+          target="_blank"
+          iconLeft={<FiCalendar size={18} />}
+          size="lg"
+        >
+          Get a Demo
+        </ButtonPrimary>
       </CTASmall>
     </>
   );
