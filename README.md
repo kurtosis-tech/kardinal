@@ -1,5 +1,4 @@
-[![Docker Hub](https://img.shields.io/badge/dockerhub-images-important.svg?logo=docker)](https://hub.docker.com/u/kurtosistech)
-
+[![Docker Hub](https://img.shields.io/badge/dockerhub-images-important.svg?logo=docker)](https://hub.docker.com/u/kurtosistech) 
 # Kardinal
 
 ![Kardi B](https://kardinal.dev/_next/static/media/kardinal-orange.65ea335b.png)
@@ -18,6 +17,8 @@ Kardinal is a framework for creating extremely lightweight ephemeral development
     - State-Isolated Flows: Great for features that need their own databases or caches.
     - Full Application Flows: For those times when you need end-to-end testing with full isolation.
 - **Cost Savings**: Kardinal can help you save big by avoiding unnecessary resource duplication. It’s a game-changer for teams looking to cut costs. Check out [this calculator](https://kardinal.streamlit.app) to run your own calculations.
+
+  <a href='https://calendly.com/d/cqhd-tgj-vmc/45-minute-meeting' target="_blank"><img alt='Demo' src='https://img.shields.io/badge/Get_a demo-100000?style=for-the-badge&logo=Demo&logoColor=white&labelColor=000000&color=000000'/></a>
 
 ## Installation
 
