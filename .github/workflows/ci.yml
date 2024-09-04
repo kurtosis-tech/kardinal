@@ -7,9 +7,13 @@ on:
       - main
     tags:
       - "v*.*.*"
+    paths-ignore:
+      - "website/**"
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - "website/**"
 
 env:
   MAIN_BRANCH: ${{ 'refs/heads/main' }}
