@@ -73,7 +73,7 @@ jobs:
       - name: Wait for kardinal manager to apply the changes
         run: |
           set -x
-          while [ $(kubectl get pods -n prod --field-selector=status.phase=Running --no-headers=true | wc -l) != 4 ]
+          while [ $(kubectl get pods -n prod --field-selector=status.phase=Running --no-headers=true | wc -l) -ne 4 ]
           do
               echo "Waiting for prod pods to run..."
               kubectl get pods -n prod
