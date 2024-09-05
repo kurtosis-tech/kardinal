@@ -56,7 +56,7 @@ jobs:
           path=$(find $result -name 'kardinal.cli*' -type f | head -n 1)
           binout="/tmp/kardinal-cli"
           ln -s $path $binout
-          if /tmp/kardinal-cli | grep -q "Kardinal CLI"; then exit 0; else exit 1; fi'
+          if /tmp/kardinal-cli | grep -q "Kardinal CLI"; then exit 0; else exit 1; fi
 
       - name: Build Kardinal manager and load image
         run: |
