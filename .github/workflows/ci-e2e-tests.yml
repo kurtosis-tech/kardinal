@@ -77,10 +77,6 @@ jobs:
           docker tag kurtosistech/kardinal-manager:latest-amd64 kurtosistech/kardinal-manager:latest     
           docker image ls
 
-      - name: Deploy Kardinal manager
-        run: |
-          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli manager deploy local-minikube
-
       - name: Build Kardinal CLI
         run: |
           result=$(nix build ./#kardinal-cli --no-link --print-out-paths)
@@ -88,6 +84,10 @@ jobs:
           binout="/tmp/kardinal-cli"
           ln -s $path $binout
           if /tmp/kardinal-cli | grep -q "Kardinal CLI"; then exit 0; else exit 1; fi
+
+      - name: Deploy Kardinal manager
+        run: |
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli manager deploy local-minikube
 
       - name: Retrieve the tenant UUID
         id: tenant
