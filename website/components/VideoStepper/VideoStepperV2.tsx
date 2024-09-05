@@ -98,7 +98,6 @@ const VideoStepper = ({
       setTimeout(() => {
         setShouldAnimateProgress(true);
       }, 100);
-      console.log("Step 0");
       return;
     }
     const part1end =
@@ -109,7 +108,6 @@ const VideoStepper = ({
       percentComplete < part1end
     ) {
       onStepChange(1);
-      console.log("Step 1");
       return;
     }
     const part2end =
@@ -120,11 +118,9 @@ const VideoStepper = ({
       percentComplete < part2end
     ) {
       onStepChange(2);
-      console.log("Step 2");
       return;
     }
     if (activeStep !== 3 && percentComplete > part2end) {
-      console.log("Step 3");
       onStepChange(3);
     }
   };
