@@ -1,11 +1,11 @@
 [![Docker Hub](https://img.shields.io/badge/dockerhub-images-important.svg?logo=docker)](https://hub.docker.com/u/kurtosistech) 
 # Kardinal
 
-![Kardi B](https://kardinal.dev/_next/static/media/kardinal-orange.65ea335b.png)
-
 ## What is Kardinal?
 
 Kardinal is a framework for creating extremely lightweight ephemeral development environments within a shared Kubernetes cluster. In Kardinal, an environment is called a "[flow](https://kardinal.dev/docs/concepts/flows)" because it represents a path that a request takes through the cluster. Versions of services that are under development are deployed on-demand, and then shared across all development work that depends on that version. Read more about Kardinal in our [docs](https://kardinal.dev/docs).
+
+https://github.com/user-attachments/assets/3b4316f7-9f08-4dfa-8ea5-f66e76e01012
 
 ### Why choose Kardinal?
 - **Ephemeral Environments**: Spin up a new environment exactly when you need it, and just as quickly spin it down when you’re done.
