@@ -44,12 +44,12 @@ jobs:
         shell: bash
 
       - name: Start minikube
-        uses: medyagh/setup-minikube@latest
+        uses: manusa/actions-setup-minikube@v2.11.0
         id: minikube
         with:
           driver: docker
-          addons: ingress,metrics-server,istio
-          start-args: --embed-certs
+          #addons: ingress,metrics-server
+          start args: --embed-certs --addons=ingress,metrics-server
       
       - name: Check minikube status
         run: |
