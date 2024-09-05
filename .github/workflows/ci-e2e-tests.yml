@@ -49,6 +49,7 @@ jobs:
         with:
           driver: docker
           addons: ingress,metrics-server
+          start-args: --embed-certs
 
       - name: Get kubeconfig
         id: kubeconfig
