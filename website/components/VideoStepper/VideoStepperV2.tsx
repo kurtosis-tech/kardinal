@@ -30,19 +30,19 @@ const steps: VideoStep[] = [
   {
     title: "Spin up a dev flow",
     content:
-      "Create an isolated, logical dev environment with just one command.",
+      "Create an isolated, logical dev environment containing only the services you need to change.",
     duration: 12 * SECOND,
   },
   {
     title: "Spin up a second dev flow",
     content:
-      "Create another isolated dev environment, spinning up only necessary services.",
+      "Test another change in a second isolated dev environment, spinning up a different set of services.",
     duration: 10 * SECOND,
   },
   {
     title: "Develop with confidence",
     content:
-      "Test new features on staging in an isolated traffic flow. Access to application state is isolated by a stateful service sidecar.",
+      "Your entire team develops on a single cluster with stability and environment isolation.",
     duration: 15 * SECOND,
   },
 ];
