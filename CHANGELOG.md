@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.2.3](https://github.com/kurtosis-tech/kardinal/compare/0.2.2...0.2.3) (2024-09-05)
+
+
+### Features
+
+* accept json as template args ([#188](https://github.com/kurtosis-tech/kardinal/issues/188)) ([3890abf](https://github.com/kurtosis-tech/kardinal/commit/3890abf9aad9ec7f719b09ca5e2bc4f189e9c5f3))
+* adding the `flow delete --all` cmd flag ([#175](https://github.com/kurtosis-tech/kardinal/issues/175)) ([96b1cca](https://github.com/kurtosis-tech/kardinal/commit/96b1cca947ef4e6c1a20d67e8110b202b7b48cad))
+* print cluster topology manifest CLI cmd ([#172](https://github.com/kurtosis-tech/kardinal/issues/172)) ([83e6dc2](https://github.com/kurtosis-tech/kardinal/commit/83e6dc2a83feb489ebb5dc266857ba6e0d06c71b))
+* replace email form with demo link ([#184](https://github.com/kurtosis-tech/kardinal/issues/184)) ([cd84864](https://github.com/kurtosis-tech/kardinal/commit/cd8486497d94e2f940e5a5dc1e826ea112c31553))
+* update video animation on homepage ([#187](https://github.com/kurtosis-tech/kardinal/issues/187)) ([b0eb232](https://github.com/kurtosis-tech/kardinal/commit/b0eb232516ec8e82a6774b47b61dc5dc04d6bd36))
+
+
+### Bug Fixes
+
+* clean shell name ([#183](https://github.com/kurtosis-tech/kardinal/issues/183)) ([c07ceeb](https://github.com/kurtosis-tech/kardinal/commit/c07ceebfbbd2771bf05596ef742d5cc86d90cb89))
+* Karninal manager manifest tmpl ([#178](https://github.com/kurtosis-tech/kardinal/issues/178)) ([3a81875](https://github.com/kurtosis-tech/kardinal/commit/3a81875fa7ad829207bfa9f19d28bec2844c54d5))
+* keeping telepresence annotation ([#182](https://github.com/kurtosis-tech/kardinal/issues/182)) ([b997afc](https://github.com/kurtosis-tech/kardinal/commit/b997afc8b8e35e8c203aa4d01fb80585e43f31fe))
+
 ## [0.2.2](https://github.com/kurtosis-tech/kardinal/compare/0.2.1...0.2.2) (2024-08-27)
 
 
