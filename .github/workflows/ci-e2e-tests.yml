@@ -50,15 +50,24 @@ jobs:
         run: sleep 10s
         shell: bash
 
-      - name: Install CLI 
-        run: curl get.kardinal.dev -sL | sh
-      
-      - name: Verify kardinal command
-        run: bash -c 'source ~/.bashrc; if kardinal | grep -q "Kardinal CLI"; then exit 0; else exit 1; fi'
-      
+      - name: Build Kardinal CLI and load
+        run: |
+          result=$(nix build ./#cross-compiled-cli.x86_64-linux.${{ matrix.os }}.${{ matrix.arch }} --no-link --print-out-paths)
+          path=$(find $result -name 'kardinal.cli*' -type f | head -n 1)
+          binout="/tmp/kardinal-cli"
+          ln -s $path $binout
+          if /tmp/kardinal-cli | grep -q "Kardinal CLI"; then exit 0; else exit 1; fi'
+
+      - name: Build Kardinal manager and load image
+        run: |
+          eval $(minikube docker-env)
+          docker load < $(nix build ./#containers.x86_64-linux.kardinal-manager.amd64 --no-link --print-out-paths)
+          docker images ls
+          exit 1
+
       - name: Deploy Kardinal manager
         run: |
-          KARDINAL_CLI_DEV_MODE=TRUE kardinal manager deploy local-minikube
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli manager deploy local-minikube
 
       - name: Retrieve the tenant UUID
         id: tenant
@@ -68,7 +77,7 @@ jobs:
 
       - name: Deploy boutique demo manifest
         run: |
-          KARDINAL_CLI_DEV_MODE=TRUE kardinal deploy -k ci/obd-demo.yaml
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli deploy -k ci/obd-demo.yaml
       
       - name: Wait for kardinal manager to apply the changes
         run: |
@@ -86,10 +95,10 @@ jobs:
 
       - name: Create, validate and delete flow
         run: |
-          KARDINAL_CLI_DEV_MODE=TRUE kardinal flow create frontend kurtosistech/frontend:demo-frontend > kardinal.out
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow create frontend kurtosistech/frontend:demo-frontend > kardinal.out
           cat kardinal.out
           flow_id=$(grep "Flow.*created" kardinal.out | cut -d ' ' -f2 | tr -d "\"")
-          KARDINAL_CLI_DEV_MODE=TRUE kardinal flow ls | grep ${flow_id}
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow ls | grep ${flow_id}
           while ! kubectl get pods -n prod --field-selector=status.phase=Running --no-headers=true | grep "frontend-dev-${flow_id}"
           do
               echo "Waiting for dev frontend pod to run..."
@@ -97,21 +106,21 @@ jobs:
               ((c++)) && ((c==12)) && exit 1
               sleep 10
           done
-          KARDINAL_CLI_DEV_MODE=TRUE kardinal flow delete ${flow_id}
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow delete ${flow_id}
         shell: bash
 
       - name: Create template
         run: |
-          KARDINAL_CLI_DEV_MODE=TRUE kardinal template create extra-item-shared --template-yaml ci/template.yaml --description "Extra item and postgres is shared"
-          KARDINAL_CLI_DEV_MODE=TRUE kardinal template ls | grep "extra-item-shared"
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli template create extra-item-shared --template-yaml ci/template.yaml --description "Extra item and postgres is shared"
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli template ls | grep "extra-item-shared"
 
       - name: Create flow with template and delete flow
         run: |
-          KARDINAL_CLI_DEV_MODE=TRUE kardinal flow create frontend kurtosistech/frontend:demo-frontend  --template-args ci/template_args.yaml --template extra-item-shared > kardinal.out
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow create frontend kurtosistech/frontend:demo-frontend  --template-args ci/template_args.yaml --template extra-item-shared > kardinal.out
           flow_id=$(grep "Flow.*created" kardinal.out | cut -d ' ' -f2 | tr -d "\"")
-          KARDINAL_CLI_DEV_MODE=TRUE kardinal flow ls | grep ${flow_id}
-          KARDINAL_CLI_DEV_MODE=TRUE kardinal flow delete ${flow_id}
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow ls | grep ${flow_id}
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow delete ${flow_id}
       
       - name: Delete template
         run: |
-          KARDINAL_CLI_DEV_MODE=TRUE kardinal template delete extra-item-shared
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli template delete extra-item-shared
