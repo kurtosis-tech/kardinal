@@ -33,13 +33,6 @@ jobs:
       - name: Magic cache
         uses: DeterminateSystems/magic-nix-cache-action@v7
 
-      - name: Start minikube
-        uses: medyagh/setup-minikube@latest
-        id: minikube
-        with:
-          driver: docker
-          addons: ingress,metrics-server
-      
       - name: Start kontrol service and Postgres 
         run: |
           docker version
@@ -58,11 +51,20 @@ jobs:
           ln -s $path $binout
           if /tmp/kardinal-cli | grep -q "Kardinal CLI"; then exit 0; else exit 1; fi
 
+      - name: Start minikube
+        uses: medyagh/setup-minikube@latest
+        id: minikube
+        with:
+          driver: docker
+          addons: ingress,metrics-server
+ 
       - name: Build Kardinal manager and load image
         run: |
           eval $(minikube docker-env)
           docker load < $(nix build ./#containers.x86_64-linux.kardinal-manager.amd64 --no-link --print-out-paths)
-          docker images ls
+          docker image ls
+          docker tag kurtosistech/kardinal-manager:latest-amd64 kurtosistech/kardinal-manager:latest     
+          docker image ls
           exit 1
 
       - name: Deploy Kardinal manager
