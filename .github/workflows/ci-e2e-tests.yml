@@ -48,8 +48,13 @@ jobs:
         id: minikube
         with:
           driver: docker
-          addons: ingress,metrics-server
+          addons: ingress,metrics-server,istio
           start-args: --embed-certs
+      
+      - name: Check minikube status
+        run: |
+          kubectl get nodes
+          kubectl get pods --all-namespaces
 
       - name: Get kubeconfig
         id: kubeconfig
