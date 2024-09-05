@@ -1,5 +1,4 @@
-import Card from "@/components/Card";
-import CardGroup from "@/components/CardGroup";
+import Calculator from "@/components/Calculator";
 import CTA from "@/components/CTA";
 import Section from "@/components/Section";
 import { TextBase } from "@/components/Text";
@@ -23,30 +22,7 @@ const Page = () => {
         </TextBase>
       </CTA>
       <Section>
-        <CardGroup>
-          <Card
-            title="Your stateless costs before"
-            values={[
-              { label: "Monthly cost", value: "$16.10" },
-              { label: "Yearly cost", value: "$30,912.00" },
-            ]}
-          />
-          <Card
-            title="Your stateless costs before"
-            values={[
-              { label: "Monthly cost", value: "$16.10" },
-              { label: "Yearly cost", value: "$30,912.00" },
-            ]}
-          />
-          <Card
-            isContrast
-            title="Your stateless costs before"
-            values={[
-              { label: "Monthly cost", value: "$16.10" },
-              { label: "Yearly cost", value: "$30,912.00" },
-            ]}
-          />
-        </CardGroup>
+        <Calculator />
       </Section>
     </>
   );
