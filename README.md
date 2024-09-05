@@ -227,7 +227,7 @@ After completing the development cycle, you can remove all created resources fro
 
 `tilt down --delete-namespaces`
 
-The `delete-namespaces` flag is used to remove the application’s namespace, it won’t delete the `default` fdadf
+The `delete-namespaces` flag is used to remove the application’s namespace, it won’t delete the `default` namespace
 
 ### More configuration examples:
 
