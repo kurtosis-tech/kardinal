@@ -71,4 +71,15 @@ minikube tunnel
 ```
 in a new terminal window, and then open https://prod.app.localhost in your browser.
 
+To create a dev flow for this sample application, run:
+```bash
+kardinal flow create frontend kurtosistech/frontend:demo-frontend
+```
+
+```bash
+curl -O https://raw.githubusercontent.com/kurtosis-tech/kardinal-playground/main/template.yaml;
+curl -O https://raw.githubusercontent.com/kurtosis-tech/kardinal-playground/main/template_args.yaml;
+kardinal flow create frontend kurtosistech/frontend:demo-frontend  --template-args ./template_args.yaml --template extra-item-shared
+```
+
 To deploy your application and create your first flow, follow our guide at [create your first flow](/docs/getting-started/own-app).
