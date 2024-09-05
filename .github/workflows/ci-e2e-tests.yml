@@ -18,7 +18,7 @@ on:
 jobs:
   e2e_tests:
     name: E2E tests
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
@@ -66,8 +66,8 @@ jobs:
         uses: huang195/actions-install-istio@v1.0.0
         with:
           kubeconfig: "${{steps.kubeconfig.outputs.config}}"
-          istio version: "1.23.0"
-          istio profile: "demo"
+          istio version: "1.15.2"
+          #istio profile: "demo"
  
       - name: Build Kardinal manager and load image
         run: |
