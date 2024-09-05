@@ -16,11 +16,12 @@ import (
 )
 
 const (
-	listOptionsTimeoutSeconds       int64 = 10
-	fieldManager                          = "kardinal-manager"
-	deleteOptionsGracePeriodSeconds int64 = 0
-	istioLabel                            = "istio-injection"
-	enabledIstioValue                     = "enabled"
+	listOptionsTimeoutSeconds         int64 = 10
+	fieldManager                            = "kardinal-manager"
+	deleteOptionsGracePeriodSeconds   int64 = 0
+	istioLabel                              = "istio-injection"
+	enabledIstioValue                       = "enabled"
+	telepresenceRestartedAtAnnotation       = "telepresence.getambassador.io/restartedAt"
 )
 
 var (
@@ -409,7 +410,7 @@ func (manager *ClusterManager) createOrUpdateDeployment(ctx context.Context, dep
 			return stacktrace.Propagate(err, "Failed to create deployment: %s", deployment.GetName())
 		}
 	} else {
-		deployment.ResourceVersion = existingDeployment.ResourceVersion
+		updateDeploymentWithRelevantValuesFromCurrentDeployment(deployment, existingDeployment)
 		_, err = deploymentClient.Update(ctx, deployment, globalUpdateOptions)
 		if err != nil {
 			return stacktrace.Propagate(err, "Failed to update deployment: %s", deployment.GetName())
@@ -417,6 +418,22 @@ func (manager *ClusterManager) createOrUpdateDeployment(ctx context.Context, dep
 	}
 
 	return nil
+}
+
+func updateDeploymentWithRelevantValuesFromCurrentDeployment(newDeployment *appsv1.Deployment, currentDeployment *appsv1.Deployment) {
+	newDeployment.ResourceVersion = currentDeployment.ResourceVersion
+	// merge annotations
+	newAnnotations := newDeployment.Spec.Template.GetAnnotations()
+	currentAnnotations := currentDeployment.Spec.Template.GetAnnotations()
+
+	for annotationKey, annotationValue := range currentAnnotations {
+		if annotationKey == telepresenceRestartedAtAnnotation {
+			// This key is necessary for Kardinal/Telepresence (https://www.telepresence.io/) integration
+			// keeping this annotation because otherwise the telepresence traffic-agent container will be removed from the pod
+			newAnnotations[annotationKey] = annotationValue
+		}
+	}
+	newDeployment.Spec.Template.Annotations = newAnnotations
 }
 
 func (manager *ClusterManager) createOrUpdateVirtualService(ctx context.Context, virtualService *v1alpha3.VirtualService) error {
