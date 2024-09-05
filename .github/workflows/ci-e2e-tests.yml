@@ -43,33 +43,42 @@ jobs:
         run: sleep 10s
         shell: bash
 
-      - name: Build Kardinal CLI and load
-        run: |
-          result=$(nix build ./#kardinal-cli --no-link --print-out-paths)
-          path=$(find $result -name 'kardinal.cli*' -type f | head -n 1)
-          binout="/tmp/kardinal-cli"
-          ln -s $path $binout
-          if /tmp/kardinal-cli | grep -q "Kardinal CLI"; then exit 0; else exit 1; fi
-
       - name: Start minikube
         uses: medyagh/setup-minikube@latest
         id: minikube
         with:
           driver: docker
           addons: ingress,metrics-server
+
+      - name: Get kubeconfig
+        id: kubeconfig
+        run: a="$(cat ~/.kube/config)"; a="${a//'%'/'%25'}"; a="${a//$'\n'/'%0A'}"; a="${a//$'\r'/'%0D'}"; echo "::set-output name=config::$a"
+
+      - name: Install Istio
+        uses: huang195/actions-install-istio@v1.0.0
+        with:
+          kubeconfig: "${{steps.kubeconfig.outputs.config}}"
+          istio version: "1.23.0"
+          istio profile: "demo"
  
       - name: Build Kardinal manager and load image
         run: |
           eval $(minikube docker-env)
           docker load < $(nix build ./#containers.x86_64-linux.kardinal-manager.amd64 --no-link --print-out-paths)
-          docker image ls
           docker tag kurtosistech/kardinal-manager:latest-amd64 kurtosistech/kardinal-manager:latest     
           docker image ls
-          exit 1
 
       - name: Deploy Kardinal manager
         run: |
           KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli manager deploy local-minikube
+
+      - name: Build Kardinal CLI
+        run: |
+          result=$(nix build ./#kardinal-cli --no-link --print-out-paths)
+          path=$(find $result -name 'kardinal.cli*' -type f | head -n 1)
+          binout="/tmp/kardinal-cli"
+          ln -s $path $binout
+          if /tmp/kardinal-cli | grep -q "Kardinal CLI"; then exit 0; else exit 1; fi
 
       - name: Retrieve the tenant UUID
         id: tenant
