@@ -50,3 +50,25 @@ Make sure that `kubectl` is pointing to your cluster, and then run the following
 ```bash
 kardinal manager deploy kloud-kontrol
 ```
+
+### Step 4: Deploy your application
+
+To deploy a sample application and see how Kardinal works, run:
+
+```bash
+curl -O https://raw.githubusercontent.com/kurtosis-tech/kardinal-playground/main/obd-demo.yaml
+kardinal deploy obd-demo.yaml
+```
+
+To see the sample application architecture in the Kardinal dashboard, run:
+```bash
+kardinal dashboard
+```
+
+To access the frontend of your application, run:
+```bash
+minikube tunnel
+```
+in a new terminal window, and then open https://prod.app.localhost in your browser.
+
+To deploy your application and create your first flow, follow our guide at [create your first flow](/docs/getting-started/own-app).
