@@ -33,7 +33,7 @@ jobs:
       - name: Magic cache
         uses: DeterminateSystems/magic-nix-cache-action@v7
 
-      - name: Start kontrol service and Postgres 
+      - name: Start Kardinal Kontrol service and Postgres 
         run: |
           docker version
           docker compose -f ci/docker-compose.yml up -d
@@ -52,11 +52,6 @@ jobs:
           driver: docker
           start args: --embed-certs --addons=ingress,metrics-server
       
-      - name: Check minikube status
-        run: |
-          kubectl get nodes
-          kubectl get pods --all-namespaces
-
       - name: Install Istio
         run: |
           ISTIO_VERSION="1.23.0"
@@ -118,7 +113,7 @@ jobs:
           cat kardinal.out
           flow_id=$(grep "Flow.*created" kardinal.out | cut -d ' ' -f2 | tr -d "\"")
           KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow ls | grep ${flow_id}
-          while ! kubectl get pods -n prod --field-selector=status.phase=Running --no-headers=true | grep "frontend-dev-${flow_id}"
+          while ! kubectl get pods -n prod --field-selector=status.phase=Running --no-headers=true | grep "frontend-${flow_id}"
           do
               echo "Waiting for dev frontend pod to run..."
               kubectl get pods -n prod
