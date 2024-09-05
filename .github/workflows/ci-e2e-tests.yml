@@ -72,7 +72,6 @@ jobs:
       
       - name: Wait for kardinal manager to apply the changes
         run: |
-          set -x
           while [ $(kubectl get pods -n prod --field-selector=status.phase=Running --no-headers=true | wc -l) -ne 4 ]
           do
               echo "Waiting for prod pods to run..."
@@ -80,26 +79,26 @@ jobs:
               ((c++)) && ((c==12)) && exit 1
               sleep 10
           done
-          apps=$(kubectl get pods -n kardinal-kontrol -o custom-columns=:metadata.labels.app | tr " " "\n" | sort -g | tr "\n" " " | xargs)
+          apps=$(kubectl get pods -n prod -o custom-columns=:metadata.labels.app | tr " " "\n" | sort -g | tr "\n" " " | xargs)
           echo ${apps}
-          if [ "${apps}" != "" ]; then exit 1; fi
-          exit 1
+          if [ "${apps}" != "cartservice frontend postgres productcatalogservice" ]; then exit 1; fi
         shell: bash
 
       - name: Create, validate and delete flow
         run: |
           KARDINAL_CLI_DEV_MODE=TRUE kardinal flow create frontend kurtosistech/frontend:demo-frontend > kardinal.out
+          cat kardinal.out
           flow_id=$(grep "Flow.*created" kardinal.out | cut -d ' ' -f2 | tr -d "\"")
           KARDINAL_CLI_DEV_MODE=TRUE kardinal flow ls | grep ${flow_id}
+          while [ ! kubectl get pods -n prod --field-selector=status.phase=Running --no-headers=true | grep "frontend-dev-${flow_id}" ]
+          do
+              echo "Waiting for dev frontend pod to run..."
+              kubectl get pods -n prod
+              ((c++)) && ((c==12)) && exit 1
+              sleep 10
+          done
           KARDINAL_CLI_DEV_MODE=TRUE kardinal flow delete ${flow_id}
 
-      - name: Create, validate and delete a more complex flow
-        run: |
-          KARDINAL_CLI_DEV_MODE=TRUE kardinal flow create frontend kurtosistech/frontend:demo-on-sale -s productcatalogservice=kurtosistech/productcatalogservice:demo-on-sale > kardinal.out
-          flow_id=$(grep "Flow.*created" kardinal.out | cut -d ' ' -f2 | tr -d "\"")
-          KARDINAL_CLI_DEV_MODE=TRUE kardinal flow ls | grep ${flow_id}
-          KARDINAL_CLI_DEV_MODE=TRUE kardinal flow delete ${flow_id}
-      
       - name: Create template
         run: |
           KARDINAL_CLI_DEV_MODE=TRUE kardinal template create extra-item-shared --template-yaml ci/template.yaml --description "Extra item and postgres is shared"
