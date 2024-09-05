@@ -27,7 +27,7 @@ const CTASmall = ({
         )}
         <S.Content>
           <S.CTAHeading>{heading}</S.CTAHeading>
-          {children}
+          <S.ChildrenWrapper>{children}</S.ChildrenWrapper>
         </S.Content>
       </S.CTASmall>
     </Section>
@@ -101,6 +101,13 @@ namespace S {
         height: 24px;
       }
     }
+  `;
+  export const ChildrenWrapper = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    align-items: center;
+    justify-content: center;
   `;
 }
 
