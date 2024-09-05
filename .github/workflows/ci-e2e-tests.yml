@@ -52,7 +52,7 @@ jobs:
 
       - name: Build Kardinal CLI and load
         run: |
-          result=$(nix build ./#cross-compiled-cli.x86_64-linux.${{ matrix.os }}.${{ matrix.arch }} --no-link --print-out-paths)
+          result=$(nix build ./#kardinal-cli --no-link --print-out-paths)
           path=$(find $result -name 'kardinal.cli*' -type f | head -n 1)
           binout="/tmp/kardinal-cli"
           ln -s $path $binout
