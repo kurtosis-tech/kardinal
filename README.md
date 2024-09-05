@@ -255,18 +255,26 @@ Assuming you’ve already deployed your application’s manifest using the `kard
 
 Example:
 
-1- Create a dev flow with `Kardinal`.
+1- Install Telepresence manager with Istio integration in your cluster (make sure that you have selected the targe cluster with kubectl before running it) 
+```shell
+telepresence helm install --set trafficManager.serviceMesh.type=istio 
+```
+2- Connect Telepresence to the namespace where Kardinal deployed the application
+```shell
+telepresence connect -n prod 
+```
+3- Create a dev flow with `Kardinal`.
 ```shell
 kardinal flow create frontend kurtosistech/frontend:demo-on-sale
 ```
-2- Take note of the flow ID created
-3- Start the `frontend` app locally in a local port either with the terminal or your IDE, you can even start it in debug mode.
-4- Take note the `port` where it's running because it will be used later
-5- Run the telepresence intercept command to intercept the traffic (replace the values between the brackets)
+4- Take note of the flow ID created
+5- Start the `frontend` app locally in a local port either with the terminal or your IDE, you can even start it in debug mode.
+6- Take note the `port` where it's running because it will be used later
+7- Run the telepresence intercept command to intercept the traffic (replace the values between the brackets)
 ```shell
 telepresence intercept $(kubectl get deployments -l app=frontend,version={{flow-id}} -o jsonpath='{.items[*].metadata.name}' -n prod) --port {{local-port}}:http
 ```
-6- Navigate the website in the browser to receive the request in the app running locally outside the cluster
+8- Navigate the website in the browser to receive the request in the app running locally outside the cluster
 
 </details>
 
