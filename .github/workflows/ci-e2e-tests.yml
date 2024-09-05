@@ -50,7 +50,6 @@ jobs:
           minikube version: "v1.33.0"
           kubernetes version: "v1.30.0"
           driver: docker
-          #addons: ingress,metrics-server
           start args: --embed-certs --addons=ingress,metrics-server
       
       - name: Check minikube status
@@ -92,14 +91,14 @@ jobs:
       - name: Retrieve the tenant UUID
         id: tenant
         run: |
-          tenant_id=$(kardinal tenant show)
+          tenant_id=$(/tmp/kardinal-cli tenant show)
           echo "id=${tenant_id}" >> "$GITHUB_OUTPUT"
 
       - name: Deploy boutique demo manifest
         run: |
           KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli deploy -k ci/obd-demo.yaml
       
-      - name: Wait for kardinal manager to apply the changes
+      - name: Validate that Kardinal manager started the prod pods
         run: |
           while [ $(kubectl get pods -n prod --field-selector=status.phase=Running --no-headers=true | wc -l) -ne 4 ]
           do
