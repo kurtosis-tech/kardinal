@@ -93,7 +93,7 @@ jobs:
         run: |
           KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli deploy -k ci/obd-demo.yaml
       
-      - name: Validate that Kardinal manager started the prod pods
+      - name: Validate that Kardinal manager applied the changes
         run: |
           while [ $(kubectl get pods -n prod --field-selector=status.phase=Running --no-headers=true | wc -l) -ne 4 ]
           do
@@ -102,10 +102,19 @@ jobs:
               ((c++)) && ((c==12)) && exit 1
               sleep 10
           done
+          kubectl get pods -n prod
           apps=$(kubectl get pods -n prod -o custom-columns=:metadata.labels.app | tr " " "\n" | sort -g | tr "\n" " " | xargs)
           echo ${apps}
           if [ "${apps}" != "cartservice frontend postgres productcatalogservice" ]; then exit 1; fi
-        shell: bash
+
+      - name: Start Minikube tunnel
+        run: |
+          minikube tunnel &
+          sleep 5
+
+      - name: Validate app access
+        run: |
+          curl -s -o /dev/null -w "%{http_code}" http://prod.app.localhost
 
       - name: Create, validate and delete flow
         run: |
@@ -120,8 +129,8 @@ jobs:
               ((c++)) && ((c==12)) && exit 1
               sleep 10
           done
+          kubectl get pods -n prod
           KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow delete ${flow_id}
-        shell: bash
 
       - name: Create template
         run: |
