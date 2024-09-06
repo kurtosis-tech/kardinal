@@ -6,6 +6,7 @@ import Content from "@/components/Content";
 import CTA from "@/components/CTA";
 import CTAButtons from "@/components/CTAButtons";
 import CTASmall from "@/components/CTASmall";
+import SavingsSection from "@/components/SavingsSection";
 import { TextBase } from "@/components/Text";
 import VideoStepper from "@/components/VideoStepper";
 // assets
@@ -94,6 +95,8 @@ const LandingPageTemplate = ({
         handle the heavy lifting of configuring a service mesh for traffic
         routing for you.
       </Content>
+
+      <SavingsSection />
 
       <CTASmall heading={"Want a demo?"} hasBackground>
         <TextBase>
