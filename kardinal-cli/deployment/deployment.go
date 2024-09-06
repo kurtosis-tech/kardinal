@@ -3,8 +3,9 @@ package deployment
 import (
 	"bytes"
 	"context"
-	"kardinal.cli/kontrol"
 	"text/template"
+
+	"kardinal.cli/kontrol"
 
 	"github.com/kurtosis-tech/stacktrace"
 	"kardinal.cli/consts"
@@ -169,7 +170,7 @@ spec:
       serviceAccountName: kardinal-manager
       containers:
         - name: redis
-          image: bitnami/redis:6.0.8
+          image: bitnami/redis:6.2
           ports:
             - containerPort: 6379
           env:

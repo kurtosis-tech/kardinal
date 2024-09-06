@@ -1,7 +1,7 @@
 version: "3"
 services:
   azure-vote-back:
-    image: bitnami/redis:6.0.8
+    image: bitnami/redis:6.2
     container_name: redis-prod
     environment:
       ALLOW_EMPTY_PASSWORD: "yes"
