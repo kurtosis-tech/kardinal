@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"slices"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -371,9 +372,9 @@ var dashboardCmd = &cobra.Command{
 var gatewayCmd = &cobra.Command{
 	Use:   "gateway [flow-id]",
 	Short: "Opens a gateway to the given flow",
-	Args:  cobra.MatchAll(cobra.ExactArgs(1)),
+	Args:  cobra.MatchAll(cobra.MinimumNArgs(1)),
 	Run: func(cmr *cobra.Command, args []string) {
-		flowId := args[0]
+		flowIds := args
 
 		tenantUuid, err := tenant.GetOrCreateUserTenantUUID()
 		if err != nil {
@@ -394,21 +395,24 @@ var gatewayCmd = &cobra.Command{
 
 		var host string
 
+		hostFlowIdMap := make(map[string]string)
+
 		for _, flow := range *resp.JSON200 {
-			if flow.FlowId == flowId {
+			if slices.Contains(flowIds, flow.FlowId) {
+				flowId := flow.FlowId
 				if len(flow.FlowUrls) > 0 {
 					host = flow.FlowUrls[0]
+					if host == "" {
+						log.Fatalf("Couldn't find flow with id '%s'", flowId)
+					}
+					hostFlowIdMap[host] = flowId
 				} else {
 					log.Fatalf("Flow '%s' has no hosts", flowId)
 				}
 			}
 		}
 
-		if host == "" {
-			log.Fatalf("Couldn't find flow with id '%s'", flowId)
-		}
-
-		if err := deployment.StartGateway(host, flowId); err != nil {
+		if err := deployment.StartGateway(hostFlowIdMap); err != nil {
 			log.Fatal("An error occurred while creating a gateway", err)
 		}
 	},
