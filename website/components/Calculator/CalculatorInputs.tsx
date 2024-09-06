@@ -6,9 +6,9 @@ import styled from "styled-components";
 import { ButtonPrimary } from "@/components/Button";
 import {
   CostInterval,
-  ResourceRequirement,
   useCalculatorContext,
 } from "@/context/CalcualtorContext";
+import { ResourceRequirement } from "@/types";
 
 interface Props {
   onCalculate: () => void;
@@ -27,12 +27,12 @@ const CostSavingsCalculator = ({ onCalculate }: Props) => {
   } = useCalculatorContext();
 
   const resourceRequirementsOptions: ResourceRequirement[] = [
-    "1vCPU, 2GB RAM (t2 small)",
-    "2vCPU, 4GB RAM (t2 medium)",
-    "4vCPU, 8GB RAM (t2 large)",
+    ResourceRequirement.MICRO,
+    ResourceRequirement.SMALL,
+    ResourceRequirement.MEDIUM,
   ];
 
-  const costIntervalOptions: CostInterval[] = ["Yearly", "Monthly", "Weekly"];
+  const costIntervalOptions: CostInterval[] = ["Year", "Month"];
 
   return (
     <S.Wrapper>
@@ -90,7 +90,7 @@ const CostSavingsCalculator = ({ onCalculate }: Props) => {
           >
             {costIntervalOptions.map((o) => (
               <option key={o} value={o}>
-                {o}
+                {o}ly
               </option>
             ))}
           </S.Select>

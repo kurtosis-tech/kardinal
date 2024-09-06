@@ -9,12 +9,9 @@ import {
   useState,
 } from "react";
 
-export type ResourceRequirement =
-  | "1vCPU, 2GB RAM (t2 small)"
-  | "2vCPU, 4GB RAM (t2 medium)"
-  | "4vCPU, 8GB RAM (t2 large)";
+import { ResourceRequirement } from "@/types";
 
-export type CostInterval = "Yearly" | "Monthly" | "Weekly";
+export type CostInterval = "Year" | "Month";
 
 interface CalculatorContextProps {
   engineers: number;
@@ -32,11 +29,11 @@ const CalculatorContext = createContext<CalculatorContextProps | undefined>(
 );
 
 export const CalculatorProvider = ({ children }: PropsWithChildren) => {
-  const [engineers, setEngineers] = useState<number>(35);
+  const [engineers, setEngineers] = useState<number>(60);
   const [microservices, setMicroservices] = useState<number>(20);
   const [resourceRequirement, setResourceRequirement] =
-    useState<ResourceRequirement>("1vCPU, 2GB RAM (t2 small)");
-  const [costInterval, setCostInterval] = useState<CostInterval>("Yearly");
+    useState<ResourceRequirement>(ResourceRequirement.MICRO);
+  const [costInterval, setCostInterval] = useState<CostInterval>("Year");
 
   return (
     <CalculatorContext.Provider
