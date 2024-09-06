@@ -1,5 +1,9 @@
+import { FiCalendar } from "react-icons/fi";
+
+import { ButtonPrimary } from "@/components/Button";
 import Calculator from "@/components/Calculator";
 import CTA from "@/components/CTA";
+import CTASmall from "@/components/CTASmall";
 import Section from "@/components/Section";
 import Spacer from "@/components/Spacer";
 import { TextBase } from "@/components/Text";
@@ -26,6 +30,25 @@ const Page = () => {
       <Section>
         <Calculator />
       </Section>
+      <Spacer height={48} />
+
+      <CTASmall heading={"Want a demo?"}>
+        <TextBase>
+          Use the link below to book <br data-desktop /> a personalized demo of
+          Kardinal.
+        </TextBase>
+        <ButtonPrimary
+          analyticsId="button_calculator_cta_get_demo"
+          href="https://calendly.com/d/cqhd-tgj-vmc/45-minute-meeting"
+          rel="noopener noreferrer"
+          target="_blank"
+          iconLeft={<FiCalendar size={18} />}
+          size="lg"
+        >
+          Get a Demo
+        </ButtonPrimary>
+      </CTASmall>
+
       <Spacer height={256} />
     </>
   );
