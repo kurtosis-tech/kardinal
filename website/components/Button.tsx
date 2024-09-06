@@ -9,6 +9,7 @@ import analytics from "@/lib/analytics";
 interface StyledProps {
   $loading?: boolean;
   $size?: "md" | "lg";
+  $hasNoIcons?: boolean;
 }
 
 const spin = keyframes`
@@ -56,7 +57,7 @@ const primaryButtonStyles = css<StyledProps>`
   font-weight: 500;
   line-height: 28px;
   justify-content: center;
-  padding: 8px;
+  padding: ${(props) => (props.$hasNoIcons ? "8px 16px" : "8px")};
   position: relative;
   z-index: 1;
   text-decoration: none;
@@ -230,6 +231,7 @@ const ButtonImpl = ({
       {...buttonProps}
       $size={size}
       $loading={loading}
+      $hasNoIcons={iconLeft == null && iconRight == null}
       disabled={loading}
       onClick={() => {
         analytics.track("BUTTON_CLICK", { analyticsId });

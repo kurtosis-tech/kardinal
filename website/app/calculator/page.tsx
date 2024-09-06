@@ -1,9 +1,10 @@
-import { FiCalendar } from "react-icons/fi";
+import { FiArrowRight } from "react-icons/fi";
 
 import { ButtonPrimary } from "@/components/Button";
 import Calculator from "@/components/Calculator";
 import CTA from "@/components/CTA";
 import CTASmall from "@/components/CTASmall";
+import SavingsGraph from "@/components/SavingsGraph";
 import Spacer from "@/components/Spacer";
 import { TextBase } from "@/components/Text";
 
@@ -17,13 +18,13 @@ const Page = () => {
         fullHeight
         heading={
           <>
-            Kardinal helps you <em>save money</em> on your infrastructure
+            Save <em>~90%</em> on dev sandbox costs with <em>Kardinal</em>
           </>
         }
       >
         <TextBase>
-          Replace your dev sandboxes with Kardinal <br data-desktop /> and see
-          how much money you could save.
+          Check out our calculator below to see <br data-desktop />{" "}
+          <em>exactly how much</em> your team could save.
         </TextBase>
       </CTA>
 
@@ -31,7 +32,9 @@ const Page = () => {
 
       <Spacer height={48} />
 
-      <CTASmall heading={"Want a demo?"}>
+      <SavingsGraph />
+
+      <CTASmall heading={"Want a demo?"} hasBackground>
         <TextBase>
           Use the link below to book <br data-desktop /> a personalized demo of
           Kardinal.
@@ -41,14 +44,11 @@ const Page = () => {
           href="https://calendly.com/d/cqhd-tgj-vmc/45-minute-meeting"
           rel="noopener noreferrer"
           target="_blank"
-          iconLeft={<FiCalendar size={18} />}
           size="lg"
         >
           Get a Demo
         </ButtonPrimary>
       </CTASmall>
-
-      <Spacer height={256} />
     </>
   );
 };

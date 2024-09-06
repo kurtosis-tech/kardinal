@@ -51,7 +51,7 @@ const CostSavingsCalculator = ({ onCalculate }: Props) => {
 
         <S.SliderContainer>
           <S.SliderLabel>
-            Number of stateless microservices in your architecture:
+            Number of microservices in your architecture:
           </S.SliderLabel>
           <S.Slider
             value={microservices}
@@ -150,12 +150,11 @@ namespace S {
   export const SliderLabel = styled.label`
     display: block;
     font-size: 14px;
-    color: #555;
   `;
 
   export const Slider = styled.input.attrs({
     type: "range",
-    min: "0",
+    min: "2",
     max: "100",
   })`
     appearance: none;
@@ -188,8 +187,8 @@ namespace S {
      * over-extends the ends of the slider (so its total range is over 100% of
      * the width).
      */
-    left: calc(${(props) => props.$value * 0.962}% - 5px);
-    bottom: -44px;
+    left: calc(${(props) => props.$value * 0.98}% - 16px);
+    bottom: -48px;
     width: 32px;
     height: 32px;
     line-height: 30px;
@@ -221,7 +220,7 @@ namespace S {
 
   export const Select = styled.select`
     width: 100%;
-    border: 1px solid #ddd;
+    border: 1px solid var(--gray-400);
     border-radius: 8px;
     font-size: 14px;
     display: flex;
@@ -230,7 +229,7 @@ namespace S {
     justify-content: center;
     align-items: flex-start;
     align-self: stretch;
-    border: 1px solid var(--gray-200, #e5e7eb);
+    border: 1px solid var(--gray-200);
     background-color: var(--white);
     -moz-appearance: none; /* Firefox */
     -webkit-appearance: none; /* Safari and Chrome */

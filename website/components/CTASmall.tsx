@@ -1,30 +1,32 @@
 "use client";
 
+import Image from "next/image";
 import { ReactNode } from "react";
 import styled from "styled-components";
 
 import Heading from "@/components/Heading";
 import Section from "@/components/Section";
 import { mobile, tablet } from "@/constants/breakpoints";
+import calendarLineImg from "@/public/illustrations/calendar-line.svg";
 
 const CTASmall = ({
   children,
   heading,
-  myPrecious,
+  hasBackground,
 }: {
   children?: ReactNode;
   heading: ReactNode;
-  myPrecious?: boolean;
+  hasBackground?: boolean;
 }) => {
   return (
     <Section>
-      <S.CTASmall>
-        {myPrecious && (
-          <>
-            <S.Torus1 />
-            <S.Torus2 />
-          </>
-        )}
+      <S.CTASmall $hasBackground={hasBackground}>
+        <Image
+          src={calendarLineImg}
+          width={83}
+          height={336}
+          alt="Image of a line with a calendar icon"
+        />
         <S.Content>
           <S.CTAHeading>{heading}</S.CTAHeading>
           <S.ChildrenWrapper>{children}</S.ChildrenWrapper>
@@ -35,17 +37,18 @@ const CTASmall = ({
 };
 
 namespace S {
-  export const CTASmall = styled.div`
+  export const CTASmall = styled.div<{ $hasBackground?: boolean }>`
     display: flex;
     flex-direction: column;
     align-items: center;
     border-radius: 12px;
-    background: rgba(252, 160, 97, 0.08);
     margin-bottom: 80px;
-    padding: 64px 0;
+    padding-bottom: 64px;
     width: 100%;
     align-self: stretch;
     position: relative;
+    background: ${({ $hasBackground }) =>
+      $hasBackground ? "url(/bg-static.svg)" : "none"};
 
     @media ${mobile} {
       padding: 16px;

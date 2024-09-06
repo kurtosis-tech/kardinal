@@ -72,7 +72,7 @@ const Calculator = () => {
       <CalculatorInputs onCalculate={handleCalculate} />
       <CardGroup>
         <Card
-          title="Your stateless costs before"
+          title="Your costs before"
           values={[
             {
               label: `Services cost before (per ${interval.toLowerCase()})`,
@@ -87,7 +87,7 @@ const Calculator = () => {
           ]}
         />
         <Card
-          title="Your stateless costs after"
+          title="Your costs after"
           values={[
             {
               label: `Services cost after (per ${interval.toLowerCase()})`,
@@ -120,7 +120,7 @@ const Calculator = () => {
       </CardGroup>
       <Spacer height={24} />
       <small>
-        * assuming dev sandboxes are up 8hrs/day Mon-Fri, 48 weeks/year
+        * Assumes dev sandboxes are up 8hrs/day Mon-Fri, 48 weeks/year
       </small>
     </Section>
   );
