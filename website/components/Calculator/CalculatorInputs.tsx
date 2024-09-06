@@ -4,6 +4,7 @@ import { FiArrowRight, FiChevronDown } from "react-icons/fi";
 import styled from "styled-components";
 
 import { ButtonPrimary } from "@/components/Button";
+import { tablet } from "@/constants/breakpoints";
 import { ResourceRequirement } from "@/constants/calculator";
 import {
   CostInterval,
@@ -13,6 +14,14 @@ import {
 interface Props {
   onCalculate: () => void;
 }
+
+const resourceRequirementsOptions: ResourceRequirement[] = [
+  ResourceRequirement.MICRO,
+  ResourceRequirement.SMALL,
+  ResourceRequirement.MEDIUM,
+];
+
+const costIntervalOptions: CostInterval[] = ["Year", "Month"];
 
 const CostSavingsCalculator = ({ onCalculate }: Props) => {
   const {
@@ -25,14 +34,6 @@ const CostSavingsCalculator = ({ onCalculate }: Props) => {
     costInterval,
     setCostInterval,
   } = useCalculatorContext();
-
-  const resourceRequirementsOptions: ResourceRequirement[] = [
-    ResourceRequirement.MICRO,
-    ResourceRequirement.SMALL,
-    ResourceRequirement.MEDIUM,
-  ];
-
-  const costIntervalOptions: CostInterval[] = ["Year", "Month"];
 
   return (
     <S.Wrapper>
@@ -115,7 +116,11 @@ namespace S {
   export const Columns = styled.div`
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-gap: 16px;
+    grid-gap: 32px;
+
+    @media ${tablet} {
+      grid-template-columns: 1fr;
+    }
   `;
 
   export const Wrapper = styled.div`
@@ -128,17 +133,22 @@ namespace S {
     margin-bottom: 24px;
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 52px;
   `;
 
   export const SliderContainer = styled.div`
-    margin-bottom: 20px;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    @media ${tablet} {
+      margin-bottom: 32px;
+    }
   `;
 
   export const SliderLabel = styled.label`
     display: block;
-    margin-bottom: 8px;
     font-size: 14px;
     color: #555;
   `;
@@ -203,8 +213,10 @@ namespace S {
   `;
 
   export const SelectContainer = styled.div`
-    margin-bottom: 20px;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
   `;
 
   export const Select = styled.select`
