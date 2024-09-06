@@ -106,7 +106,7 @@ jobs:
           apps=$(kubectl get pods -n prod -o custom-columns=:metadata.labels.app | tr " " "\n" | sort -g | tr "\n" " " | xargs)
           echo ${apps}
           if [ "${apps}" != "cartservice frontend postgres productcatalogservice" ]; then exit 1; fi
-          kubectl logs -l dev.kardinal.app-id:kardinal-manager
+          kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager
 
       - name: Create, validate and delete flow
         run: |
