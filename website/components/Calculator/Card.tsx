@@ -40,8 +40,9 @@ namespace S {
 
   export const Container = styled.div`
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
-    align-items: flex-end;
+    gap: 16px;
   `;
 
   export const ContentBox = styled.div`
@@ -66,7 +67,6 @@ namespace S {
         : "var(--gray-lightest)"};
     border-radius: 8px;
     padding: 16px;
-    max-width: 338px;
 
     ${Title}, ${Value}, ${Label} {
       ${(props) => (props.$isContrast ? "color: white" : "")};

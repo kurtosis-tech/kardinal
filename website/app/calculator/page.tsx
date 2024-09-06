@@ -1,12 +1,14 @@
 import Calculator from "@/components/Calculator";
 import CTA from "@/components/CTA";
 import Section from "@/components/Section";
+import Spacer from "@/components/Spacer";
 import { TextBase } from "@/components/Text";
 
 const Page = () => {
   return (
     <>
       <CTA
+        style={{ maxHeight: 640 }}
         imageUrl={null}
         buttonText={null}
         fullHeight
@@ -24,6 +26,7 @@ const Page = () => {
       <Section>
         <Calculator />
       </Section>
+      <Spacer height={256} />
     </>
   );
 };

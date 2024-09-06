@@ -20,15 +20,13 @@ const CostSavingsCalculator = () => {
   const [costType, setCostType] = useState<CostInterval>("Yearly");
 
   return (
-    <S.Card>
+    <S.Wrapper>
       <S.Columns>
         <S.SliderContainer>
           <S.SliderLabel>
             Number of engineers on your organization using dev sandboxes:
           </S.SliderLabel>
           <S.Slider
-            min="0"
-            max="100"
             value={engineers}
             onChange={(e) => setEngineers(parseInt(e.target.value))}
           />
@@ -40,8 +38,6 @@ const CostSavingsCalculator = () => {
             Number of stateless microservices in your architecture:
           </S.SliderLabel>
           <S.Slider
-            min="0"
-            max="100"
             value={microservices}
             onChange={(e) => setMicroservices(parseInt(e.target.value))}
           />
@@ -95,7 +91,7 @@ const CostSavingsCalculator = () => {
           Calculate!
         </ButtonPrimary>
       </S.ButtonWrapper>
-    </S.Card>
+    </S.Wrapper>
   );
 };
 
@@ -106,13 +102,14 @@ namespace S {
     grid-gap: 16px;
   `;
 
-  export const Card = styled.div`
+  export const Wrapper = styled.div`
     background-color: white;
     border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--gray-100);
+    box-shadow: 0px -4px 22px -12px rgba(33, 38, 45, 0.12);
     padding: 24px;
     width: 100%;
-    margin: 20px auto;
+    margin-bottom: 24px;
     display: flex;
     flex-direction: column;
     gap: 24px;
@@ -130,20 +127,27 @@ namespace S {
     color: #555;
   `;
 
-  export const Slider = styled.input.attrs({ type: "range" })`
-    width: 100%;
+  export const Slider = styled.input.attrs({
+    type: "range",
+    min: "0",
+    max: "100",
+  })`
+    appearance: none;
     -webkit-appearance: none;
     height: 4px;
+    width: 100%;
     border-radius: 2px;
-    background: #f0f0f0;
+    background: var(--brand-secondary);
     outline: none;
-    &::-webkit-slider-thumb {
+    &::-webkit-slider-thumb,
+    &::-moz-range-thumb {
       -webkit-appearance: none;
       appearance: none;
       width: 20px;
       height: 20px;
       border-radius: 50%;
-      background: #ff7f50;
+      background: var(--white);
+      border: 1px solid var(--brand-secondary);
       cursor: pointer;
     }
   `;
@@ -154,7 +158,7 @@ namespace S {
     justify-content: center;
     position: absolute;
     left: calc(${(props) => props.$value}% - 14px);
-    bottom: -40px;
+    bottom: -44px;
     width: 32px;
     height: 32px;
     line-height: 30px;

@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import { PropsWithChildren, ReactNode } from "react";
-import styled from "styled-components";
+import styled, { CSSProperties } from "styled-components";
 
 import Heading from "@/components/Heading";
 import Section from "@/components/Section";
@@ -27,6 +27,7 @@ const CTA = ({
   fullHeight,
   padTop,
   padBottom,
+  style,
 }: PropsWithChildren<{
   heading?: ReactNode;
   buttonText?: null | string;
@@ -35,6 +36,7 @@ const CTA = ({
   fullHeight?: boolean;
   padTop?: boolean;
   padBottom?: boolean;
+  style?: CSSProperties;
 }>) => {
   return (
     <S.CTA
@@ -42,6 +44,7 @@ const CTA = ({
       $fullHeight={fullHeight}
       $padTop={padTop}
       $padBottom={padBottom}
+      style={style}
     >
       <Section>
         <S.Content>
