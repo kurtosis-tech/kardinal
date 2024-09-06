@@ -30,8 +30,8 @@ const (
 	service             = "istio-ingressgateway"
 	localPortForIstio   = 9080
 	istioGatewayPodPort = 8080
-	proxyPortRangeStart = 5900 // Start of the proxy port range
-	proxyPortRangeEnd   = 6000 // End of the proxy port range
+	proxyPortRangeStart = 59000
+	proxyPortRangeEnd   = 60000
 	maxRetries          = 10
 	retryInterval       = 10 * time.Second
 	prodNamespace       = "prod"
