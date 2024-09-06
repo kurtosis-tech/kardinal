@@ -107,7 +107,11 @@ jobs:
           apps=$(kubectl get pods -n prod -o custom-columns=:metadata.labels.app | tr " " "\n" | sort -g | tr "\n" " " | xargs)
           echo ${apps}
           if [ "${apps}" != "cartservice frontend postgres productcatalogservice" ]; then exit 1; fi
-          kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager
+          if kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep "ERRO"
+          then
+            echo "Errors found in the kardinal manager"
+            kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep "ERRO"
+          fi
 
       - name: Create, validate and delete flow
         run: |
@@ -130,6 +134,11 @@ jobs:
           #echo "${flow_url} returned status code ${status_code}"
           #if [ "${status_code}" != "200" ]; then exit 1; fi
           KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow delete ${flow_id}
+          if kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep "ERRO"
+          then
+            echo "Errors found in the kardinal manager"
+            kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep "ERRO"
+          fi
 
       - name: Create template
         run: |
