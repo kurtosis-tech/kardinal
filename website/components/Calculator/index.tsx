@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import styled from "styled-components";
 
 import Section from "@/components/Section";
 import { ResourceRequirement } from "@/constants/calculator";
@@ -65,6 +66,9 @@ const Calculator = () => {
 
   return (
     <Section>
+      <S.Title>
+        {"put in your organization numbers to see cost savings 👇🏻"}
+      </S.Title>
       <CalculatorInputs onCalculate={handleCalculate} />
       <CardGroup>
         <Card
@@ -121,5 +125,18 @@ const Calculator = () => {
     </Section>
   );
 };
+
+namespace S {
+  export const Title = styled.h2`
+    color: var(--foreground);
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: normal;
+    letter-spacing: 0.96px;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  `;
+}
 
 export default Calculator;
