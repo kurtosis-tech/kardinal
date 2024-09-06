@@ -370,8 +370,8 @@ var dashboardCmd = &cobra.Command{
 }
 
 var gatewayCmd = &cobra.Command{
-	Use:   "gateway [flow-id]",
-	Short: "Opens a gateway to the given flow",
+	Use:   "gateway [flow-id] ...",
+	Short: "Opens a gateway to the given list of flows",
 	Args:  cobra.MatchAll(cobra.MinimumNArgs(1)),
 	Run: func(cmr *cobra.Command, args []string) {
 		flowIds := args
