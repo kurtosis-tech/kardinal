@@ -98,7 +98,7 @@ jobs:
           while [ $(kubectl get pods -n prod -o custom-columns=NAMESPACE:metadata.namespace,POD:metadata.name,PodIP:status.podIP,READY-true:status.containerStatuses[*].ready | grep true | wc -l) -ne 4 ]
           do
               echo "Waiting for prod pods to run..."
-              kubectl get pods -n prod
+              kubectl get pods -n prod -o custom-columns=NAMESPACE:metadata.namespace,POD:metadata.name,PodIP:status.podIP,READY-true:status.containerStatuses[*].ready
               ((c++)) && ((c==12)) && exit 1
               sleep 10
           done
