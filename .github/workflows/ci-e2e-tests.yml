@@ -79,15 +79,15 @@ jobs:
           ln -s $path $binout
           if /tmp/kardinal-cli | grep -q "Kardinal CLI"; then exit 0; else exit 1; fi
 
-      - name: Deploy Kardinal manager
-        run: |
-          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli manager deploy local-minikube
-
       - name: Retrieve the tenant UUID
         id: tenant
         run: |
           tenant_id=$(/tmp/kardinal-cli tenant show)
           echo "id=${tenant_id}" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy Kardinal manager
+        run: |
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli manager deploy local-minikube
 
       - name: Deploy boutique demo manifest
         run: |
@@ -107,15 +107,6 @@ jobs:
           echo ${apps}
           if [ "${apps}" != "cartservice frontend postgres productcatalogservice" ]; then exit 1; fi
 
-      - name: Start Minikube tunnel
-        run: |
-          minikube tunnel &
-          sleep 5
-
-      - name: Validate app access
-        run: |
-          curl -s -o /dev/null -w "%{http_code}" http://prod.app.localhost
-
       - name: Create, validate and delete flow
         run: |
           KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow create frontend kurtosistech/frontend:demo-frontend > kardinal.out
@@ -130,6 +121,11 @@ jobs:
               sleep 10
           done
           kubectl get pods -n prod
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli gateway ${flow_id} > kardinal.out
+          cat kardinal.out
+          flow_url=$(grep "http" kardinal.out | awk '{print $NF}'
+          status_code=$(curl -s -o /dev/null -w "%{http_code}" http://${flow_url})
+          if [ "${status_code}" != "200" ]; then exit 1; fi
           KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow delete ${flow_id}
 
       - name: Create template
