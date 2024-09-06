@@ -1,7 +1,3 @@
-declare module "*.mp4" {
-  export default string;
-}
-
 export enum ResourceRequirement {
   MICRO = "1 vCPU, 1 GB RAM",
   SMALL = "1 vCPU, 2 GB RAM",

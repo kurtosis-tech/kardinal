@@ -3,12 +3,11 @@
 import { useState } from "react";
 
 import Section from "@/components/Section";
-import Text from "@/components/Text";
+import { ResourceRequirement } from "@/constants/calculator";
 import {
   CostInterval,
   useCalculatorContext,
 } from "@/context/CalcualtorContext";
-import { ResourceRequirement } from "@/types";
 
 import Spacer from "../Spacer";
 

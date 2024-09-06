@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 
-import { ResourceRequirement } from "@/types";
+import { ResourceRequirement } from "@/constants/calculator";
 
 export type CostInterval = "Year" | "Month";
 

@@ -4,11 +4,11 @@ import { FiArrowRight, FiChevronDown } from "react-icons/fi";
 import styled from "styled-components";
 
 import { ButtonPrimary } from "@/components/Button";
+import { ResourceRequirement } from "@/constants/calculator";
 import {
   CostInterval,
   useCalculatorContext,
 } from "@/context/CalcualtorContext";
-import { ResourceRequirement } from "@/types";
 
 interface Props {
   onCalculate: () => void;
