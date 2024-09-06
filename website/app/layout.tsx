@@ -8,6 +8,7 @@ import Main from "@/components/Main";
 import Modal from "@/components/Modal";
 import Nav from "@/components/Nav";
 import SegmentAnalytics from "@/components/SegmentAnalytics";
+import { CalculatorProvider } from "@/context/CalcualtorContext";
 import { ModalProvider } from "@/context/ModalContext";
 import { VotingProvider } from "@/context/VotingContext";
 
@@ -54,12 +55,14 @@ export default function RootLayout({
       <body className={inter.className}>
         <ModalProvider>
           <VotingProvider>
-            <StyledComponentsRegistry>
-              <Nav />
-              <Main>{children}</Main>
-              <Footer />
-              <Modal />
-            </StyledComponentsRegistry>
+            <CalculatorProvider>
+              <StyledComponentsRegistry>
+                <Nav />
+                <Main>{children}</Main>
+                <Footer />
+                <Modal />
+              </StyledComponentsRegistry>
+            </CalculatorProvider>
           </VotingProvider>
         </ModalProvider>
       </body>

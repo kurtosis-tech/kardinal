@@ -4,7 +4,6 @@ import { ButtonPrimary } from "@/components/Button";
 import Calculator from "@/components/Calculator";
 import CTA from "@/components/CTA";
 import CTASmall from "@/components/CTASmall";
-import Section from "@/components/Section";
 import Spacer from "@/components/Spacer";
 import { TextBase } from "@/components/Text";
 
@@ -27,9 +26,9 @@ const Page = () => {
           how much money you could save.
         </TextBase>
       </CTA>
-      <Section>
-        <Calculator />
-      </Section>
+
+      <Calculator />
+
       <Spacer height={48} />
 
       <CTASmall heading={"Want a demo?"}>

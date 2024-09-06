@@ -1,23 +1,38 @@
 "use client";
 
-import { useState } from "react";
 import { FiArrowRight, FiChevronDown } from "react-icons/fi";
 import styled from "styled-components";
 
 import { ButtonPrimary } from "@/components/Button";
+import {
+  CostInterval,
+  ResourceRequirement,
+  useCalculatorContext,
+} from "@/context/CalcualtorContext";
 
-type CostInterval = "Yearly" | "Monthly" | "Weekly";
-type ResourceRequirement =
-  | "1vCPU, 2GB RAM (t2 small)"
-  | "2vCPU, 4GB RAM (t2 medium)"
-  | "4vCPU, 8GB RAM (t2 large)";
+interface Props {
+  onCalculate: () => void;
+}
 
-const CostSavingsCalculator = () => {
-  const [engineers, setEngineers] = useState<number>(35);
-  const [microservices, setMicroservices] = useState<number>(20);
-  const [resourceRequirement, setResourceRequirement] =
-    useState<ResourceRequirement>("1vCPU, 2GB RAM (t2 small)");
-  const [costType, setCostType] = useState<CostInterval>("Yearly");
+const CostSavingsCalculator = ({ onCalculate }: Props) => {
+  const {
+    engineers,
+    setEngineers,
+    microservices,
+    setMicroservices,
+    resourceRequirement,
+    setResourceRequirement,
+    costInterval,
+    setCostInterval,
+  } = useCalculatorContext();
+
+  const resourceRequirementsOptions: ResourceRequirement[] = [
+    "1vCPU, 2GB RAM (t2 small)",
+    "2vCPU, 4GB RAM (t2 medium)",
+    "4vCPU, 8GB RAM (t2 large)",
+  ];
+
+  const costIntervalOptions: CostInterval[] = ["Yearly", "Monthly", "Weekly"];
 
   return (
     <S.Wrapper>
@@ -55,14 +70,14 @@ const CostSavingsCalculator = () => {
           <S.Select
             value={resourceRequirement}
             onChange={(e) =>
-              setResourceRequirement(
-                e.target.value as unknown as ResourceRequirement,
-              )
+              setResourceRequirement(e.target.value as ResourceRequirement)
             }
           >
-            <option>1vCPU, 2GB RAM (t2 small)</option>
-            <option>2vCPU, 4GB RAM (t2 medium)</option>
-            <option>4vCPU, 8GB RAM (t2 large)</option>
+            {resourceRequirementsOptions.map((o) => (
+              <option key={o} value={o}>
+                {o}
+              </option>
+            ))}
           </S.Select>
           <S.Chevron size={20} role="presentation" />
         </S.SelectContainer>
@@ -70,14 +85,14 @@ const CostSavingsCalculator = () => {
         <S.SelectContainer>
           <S.SliderLabel>Show costs:</S.SliderLabel>
           <S.Select
-            value={costType}
-            onChange={(e) =>
-              setCostType(e.target.value as unknown as CostInterval)
-            }
+            value={costInterval}
+            onChange={(e) => setCostInterval(e.target.value as CostInterval)}
           >
-            <option>Yearly</option>
-            <option>Monthly</option>
-            <option>Weekly</option>
+            {costIntervalOptions.map((o) => (
+              <option key={o} value={o}>
+                {o}
+              </option>
+            ))}
           </S.Select>
           <S.Chevron size={20} role="presentation" />
         </S.SelectContainer>
@@ -87,6 +102,7 @@ const CostSavingsCalculator = () => {
         <ButtonPrimary
           analyticsId={"calculator_calculate"}
           iconRight={<FiArrowRight />}
+          onClick={onCalculate}
         >
           Calculate!
         </ButtonPrimary>
@@ -157,7 +173,12 @@ namespace S {
     align-items: center;
     justify-content: center;
     position: absolute;
-    left: calc(${(props) => props.$value}% - 14px);
+    /* This math strange but exists to approximately map the percentage width
+     * of the slider to the position of the slider control, which otherwise
+     * over-extends the ends of the slider (so its total range is over 100% of
+     * the width).
+     */
+    left: calc(${(props) => props.$value * 0.962}% - 5px);
     bottom: -44px;
     width: 32px;
     height: 32px;

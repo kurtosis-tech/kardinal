@@ -1,11 +1,19 @@
+"use client";
+
+import Section from "@/components/Section";
+
 import CalculatorInputs from "./CalculatorInputs";
 import Card from "./Card";
 import CardGroup from "./CardGroup";
 
 const Calculator = () => {
+  const handleCalculate = () => {
+    console.log("calculate!");
+  };
+
   return (
-    <>
-      <CalculatorInputs />
+    <Section>
+      <CalculatorInputs onCalculate={handleCalculate} />
       <CardGroup>
         <Card
           title="Your stateless costs before"
@@ -30,7 +38,7 @@ const Calculator = () => {
           ]}
         />
       </CardGroup>
-    </>
+    </Section>
   );
 };
 
