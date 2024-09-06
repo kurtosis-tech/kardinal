@@ -15,6 +15,10 @@ on:
     paths-ignore:
       - "website/**"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 env:
   MAIN_BRANCH: ${{ 'refs/heads/main' }}
 
