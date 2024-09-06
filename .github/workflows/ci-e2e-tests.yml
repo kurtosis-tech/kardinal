@@ -124,7 +124,8 @@ jobs:
           KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli gateway ${flow_id} > kardinal.out
           cat kardinal.out
           flow_url=$(grep "http" kardinal.out | awk '{print $NF}'
-          status_code=$(curl -s -o /dev/null -w "%{http_code}" http://${flow_url})
+          status_code=$(curl -s -o /dev/null -w "%{http_code}" ${flow_url})
+          echo "${flow_url} returned status code ${status_code}"
           if [ "${status_code}" != "200" ]; then exit 1; fi
           KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow delete ${flow_id}
 
