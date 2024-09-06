@@ -2,11 +2,14 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
 	"os"
 	"path"
+	"slices"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -367,11 +370,11 @@ var dashboardCmd = &cobra.Command{
 }
 
 var gatewayCmd = &cobra.Command{
-	Use:   "gateway [flow-id]",
-	Short: "Opens a gateway to the given flow",
-	Args:  cobra.MatchAll(cobra.ExactArgs(1)),
+	Use:   "gateway [flow-id] ...",
+	Short: "Opens a gateway to the given list of flows",
+	Args:  cobra.MatchAll(cobra.MinimumNArgs(1)),
 	Run: func(cmr *cobra.Command, args []string) {
-		flowId := args[0]
+		flowIds := args
 
 		tenantUuid, err := tenant.GetOrCreateUserTenantUUID()
 		if err != nil {
@@ -392,21 +395,24 @@ var gatewayCmd = &cobra.Command{
 
 		var host string
 
+		hostFlowIdMap := make(map[string]string)
+
 		for _, flow := range *resp.JSON200 {
-			if flow.FlowId == flowId {
+			if slices.Contains(flowIds, flow.FlowId) {
+				flowId := flow.FlowId
 				if len(flow.FlowUrls) > 0 {
 					host = flow.FlowUrls[0]
+					if host == "" {
+						log.Fatalf("Couldn't find flow with id '%s'", flowId)
+					}
+					hostFlowIdMap[host] = flowId
 				} else {
 					log.Fatalf("Flow '%s' has no hosts", flowId)
 				}
 			}
 		}
 
-		if host == "" {
-			log.Fatalf("Couldn't find flow with id '%s'", flowId)
-		}
-
-		if err := deployment.StartGateway(host, flowId); err != nil {
+		if err := deployment.StartGateway(hostFlowIdMap); err != nil {
 			log.Fatal("An error occurred while creating a gateway", err)
 		}
 	},
@@ -477,7 +483,7 @@ func init() {
 
 	createCmd.Flags().StringSliceVarP(&serviceImagePairs, "service-image", "s", []string{}, "Extra service and respective image to include in the same flow (can be used multiple times)")
 	createCmd.Flags().StringVarP(&templateName, "template", "t", "", "Template name to use for the flow creation")
-	createCmd.Flags().StringVarP(&templateArgsFile, "template-args", "a", "", "Path to YAML file containing template arguments")
+	createCmd.Flags().StringVarP(&templateArgsFile, "template-args", "a", "", "JSON with the template arguments or path to YAML file containing template arguments")
 
 	deployCmd.PersistentFlags().StringVarP(&kubernetesManifestFile, "k8s-manifest", "k", "", "Path to the K8S manifest file")
 	deployCmd.MarkPersistentFlagRequired("k8s-manifest")
@@ -485,6 +491,7 @@ func init() {
 	templateCreateCmd.Flags().StringVarP(&templateYamlFile, "template-yaml", "t", "", "Path to the YAML file containing the template")
 	templateCreateCmd.Flags().StringVarP(&templateDescription, "description", "d", "", "Description of the template")
 	templateCreateCmd.MarkFlagRequired("template-yaml")
+
 	deleteCmd.Flags().BoolP(deleteAllDevFlowsFlagName, "", false, "Delete all the current dev flows")
 }
 
@@ -581,23 +588,34 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.Ser
 	return finalServiceConfigs, finalIngressConfigs, namespace, nil
 }
 
-func parseTemplateArgs(filename string) (map[string]interface{}, error) {
-	if filename == "" {
+func parseTemplateArgs(filepathOrJson string) (map[string]interface{}, error) {
+	if filepathOrJson == "" {
 		return nil, nil
 	}
 
-	data, err := os.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-
 	var args map[string]interface{}
-	err = yaml.Unmarshal(data, &args)
-	if err != nil {
-		return nil, err
-	}
 
-	return args, nil
+	if _, err := os.Stat(filepathOrJson); errors.Is(err, os.ErrNotExist) {
+		err = json.Unmarshal([]byte(filepathOrJson), &args)
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "Template arguments must be a valid JSON object or a path to a JSON file")
+		}
+
+		return args, nil
+	} else {
+		data, err := os.ReadFile(filepathOrJson)
+		if err != nil {
+			return nil, err
+		}
+
+		err = yaml.Unmarshal(data, &args)
+		if err != nil {
+			return nil, err
+		}
+
+		return args, nil
+
+	}
 }
 
 // Use in priority the label app value

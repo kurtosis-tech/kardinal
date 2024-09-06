@@ -4,17 +4,19 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"hash/fnv"
 	"io"
-	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"os"
 	"os/signal"
+	"slices"
 	"strings"
 	"syscall"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -28,36 +30,68 @@ const (
 	service             = "istio-ingressgateway"
 	localPortForIstio   = 9080
 	istioGatewayPodPort = 8080
-	proxyServerPort     = 9060
+	proxyPortRangeStart = 59000
+	proxyPortRangeEnd   = 60000
 	maxRetries          = 10
 	retryInterval       = 10 * time.Second
 	prodNamespace       = "prod"
 )
 
-func StartGateway(host, flowId string) error {
-	log.Printf("Starting gateway for host: %s", host)
+func hashStringToRange(s string, maxRange int) int {
+	h := fnv.New32a()
+	h.Write([]byte(s))
+	hashedValue := h.Sum32()
+	return int(hashedValue % uint32(maxRange))
+}
 
+func findAvailablePortInRange(host string, portsInUse *[]int) (int, error) {
+	portRange := proxyPortRangeEnd - proxyPortRangeStart
+	if portRange <= 0 {
+		logrus.Fatalf("Invalid port range: %d-%d", proxyPortRangeStart, proxyPortRangeEnd)
+	}
+
+	portShift := hashStringToRange(host, portRange)
+	port := proxyPortRangeStart + portShift
+	if slices.Contains(*portsInUse, port) {
+		logrus.Warnf("Attention! Port %d is already in use and cannot be uniquely mapped to the host %s. Changing the order of the arguments may result in different port-to-flow associations.\n", port, host)
+		for i := 0; i < portRange; i++ {
+			port = proxyPortRangeStart + i
+			if !slices.Contains(*portsInUse, port) {
+				return port, nil
+			}
+			logrus.Infof("Port %d is already in use. Trying next port...\n", port)
+		}
+		return -1, fmt.Errorf("no available ports in the range %d-%d", proxyPortRangeStart, proxyPortRangeEnd)
+	}
+	return port, nil
+}
+
+func StartGateway(hostFlowIdMap map[string]string) error {
 	client, err := createKubernetesClient()
 	if err != nil {
 		return fmt.Errorf("an error occurred while creating a kubernetes client:\n %v", err)
 	}
 
-	// Check for pods in the prod namespace
-	err = assertProdNamespaceReady(client.clientSet, flowId)
-	if err != nil {
-		return fmt.Errorf("failed to assert that prod namespace is ready: %v", err)
+	for host, flowId := range hostFlowIdMap {
+		logrus.Printf("Starting gateway for host: %s", host)
+
+		// Check for pods in the prod namespace
+		err = assertProdNamespaceReady(client.clientSet, flowId)
+		if err != nil {
+			return fmt.Errorf("failed to assert that prod namespace is ready: %v", err)
+		}
+
+		// Check for the Envoy filter before proceeding
+		err = checkGatewayEnvoyFilter(client.clientSet, host)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Find a pod for the service
 	pod, err := findPodForService(client.clientSet)
 	if err != nil {
 		return fmt.Errorf("failed to find pod for service: %v", err)
-	}
-
-	// Check for the Envoy filter before proceeding
-	err = checkGatewayEnvoyFilter(client.clientSet, host)
-	if err != nil {
-		return err
 	}
 
 	// Start port forwarding
@@ -67,7 +101,7 @@ func StartGateway(host, flowId string) error {
 		for {
 			err := portForwardPod(client.config, pod, stopChan, readyChan)
 			if err != nil {
-				log.Printf("Port forwarding failed: %v. Retrying in 5 seconds...", err)
+				logrus.Printf("Port forwarding failed: %v. Retrying in 5 seconds...", err)
 				time.Sleep(5 * time.Second)
 				continue
 			}
@@ -78,31 +112,42 @@ func StartGateway(host, flowId string) error {
 	// Wait for port forwarding to be ready
 	<-readyChan
 
-	// Start proxy server
-	proxy := createProxy(host)
-	server := &http.Server{
-		Addr:    fmt.Sprintf(":%d", proxyServerPort),
-		Handler: proxy,
-	}
-
-	go func() {
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Failed to start proxy server: %v", err)
+	servers := make([]*http.Server, 0)
+	ports := make([]int, 0)
+	for host := range hostFlowIdMap {
+		availablePort, err := findAvailablePortInRange(host, &ports)
+		if err != nil {
+			return fmt.Errorf("failed to find an available port: %v", err)
 		}
-	}()
+		// Start proxy server on the available port
+		proxy := createProxy(host)
+		server := &http.Server{
+			Addr:    fmt.Sprintf(":%d", availablePort),
+			Handler: proxy,
+		}
+		servers = append(servers, server)
 
-	log.Printf("Proxy server for host %s started on http://localhost:%d", host, proxyServerPort)
+		go func() {
+			if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				logrus.Fatalf("Failed to start proxy server: %v", err)
+			}
+		}()
+
+		fmt.Printf("\n🔗 Proxy server for host %s started on: http://localhost:%d\n", host, availablePort)
+	}
 
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 	<-sigChan
 
-	log.Println("Shutting down...")
+	logrus.Println("Shutting down...")
 	close(stopChan)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	if err := server.Shutdown(ctx); err != nil {
-		log.Printf("Server shutdown error: %v", err)
+	for _, server := range servers {
+		if err := server.Shutdown(ctx); err != nil {
+			logrus.Printf("Server shutdown error: %v", err)
+		}
 	}
 
 	return nil
@@ -112,13 +157,13 @@ func assertProdNamespaceReady(client *kubernetes.Clientset, flowId string) error
 	for retry := 0; retry < maxRetries; retry++ {
 		pods, err := client.CoreV1().Pods(prodNamespace).List(context.Background(), metav1.ListOptions{})
 		if err != nil {
-			log.Printf("Error listing pods in prod namespace (attempt %d/%d): %v", retry+1, maxRetries, err)
+			logrus.Printf("Error listing pods in prod namespace (attempt %d/%d): %v", retry+1, maxRetries, err)
 			time.Sleep(retryInterval)
 			continue
 		}
 
 		if len(pods.Items) == 0 {
-			log.Printf("No pods found in namespace %s (attempt %d/%d)", prodNamespace, retry+1, maxRetries)
+			logrus.Printf("No pods found in namespace %s (attempt %d/%d)", prodNamespace, retry+1, maxRetries)
 			time.Sleep(retryInterval)
 			continue
 		}
@@ -131,23 +176,23 @@ func assertProdNamespaceReady(client *kubernetes.Clientset, flowId string) error
 			}
 			if !isPodReady(&pod) {
 				allReady = false
-				log.Printf("Pod %s is not ready", pod.Name)
+				logrus.Printf("Pod %s is not ready", pod.Name)
 				break
 			}
 		}
 
 		if !flowIdFound {
-			log.Printf("FlowId %s not found in any pod name (attempt %d/%d)", flowId, retry+1, maxRetries)
+			logrus.Printf("FlowId %s not found in any pod name (attempt %d/%d)", flowId, retry+1, maxRetries)
 			time.Sleep(retryInterval)
 			continue
 		}
 
 		if allReady && flowIdFound {
-			log.Printf("All pods in namespace %s are ready and flowId %s found", prodNamespace, flowId)
+			logrus.Printf("All pods in namespace %s are ready and flowId %s found", prodNamespace, flowId)
 			return nil
 		}
 
-		log.Printf("Waiting for all pods to be ready and flowId to be found (attempt %d/%d)", retry+1, maxRetries)
+		logrus.Printf("Waiting for all pods to be ready and flowId to be found (attempt %d/%d)", retry+1, maxRetries)
 		time.Sleep(retryInterval)
 	}
 
@@ -205,7 +250,7 @@ func checkGatewayEnvoyFilter(client *kubernetes.Clientset, host string) error {
 			Do(context.Background()).
 			Raw()
 		if err != nil {
-			log.Printf("Error getting Envoy filter (attempt %d/%d): %v", retry+1, maxRetries, err)
+			logrus.Printf("Error getting Envoy filter (attempt %d/%d): %v", retry+1, maxRetries, err)
 			time.Sleep(retryInterval)
 			continue
 		}
@@ -213,25 +258,25 @@ func checkGatewayEnvoyFilter(client *kubernetes.Clientset, host string) error {
 		var envoyFilter map[string]interface{}
 		err = json.Unmarshal(envoyFilterRaw, &envoyFilter)
 		if err != nil {
-			log.Printf("Error unmarshaling Envoy filter (attempt %d/%d): %v", retry+1, maxRetries, err)
+			logrus.Printf("Error unmarshaling Envoy filter (attempt %d/%d): %v", retry+1, maxRetries, err)
 			time.Sleep(retryInterval)
 			continue
 		}
 
 		luaCode, ok := envoyFilter["spec"].(map[string]interface{})["configPatches"].([]interface{})[0].(map[string]interface{})["patch"].(map[string]interface{})["value"].(map[string]interface{})["typed_config"].(map[string]interface{})["inlineCode"].(string)
 		if !ok {
-			log.Printf("Error getting Lua code from Envoy filter (attempt %d/%d)", retry+1, maxRetries)
+			logrus.Printf("Error getting Lua code from Envoy filter (attempt %d/%d)", retry+1, maxRetries)
 			time.Sleep(retryInterval)
 			continue
 		}
 
 		if !strings.Contains(luaCode, host) {
-			log.Printf("Envoy filter 'kardinal-gateway-tracing' does not contain the expected host string: %s (attempt %d/%d)", host, retry+1, maxRetries)
+			logrus.Printf("Envoy filter 'kardinal-gateway-tracing' does not contain the expected host string: %s (attempt %d/%d)", host, retry+1, maxRetries)
 			time.Sleep(retryInterval)
 			continue
 		}
 
-		log.Printf("Envoy filter 'kardinal-gateway-tracing' found and contains the expected host string: %s", host)
+		logrus.Printf("Envoy filter 'kardinal-gateway-tracing' found and contains the expected host string: %s", host)
 		return nil
 	}
 
