@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.4](https://github.com/kurtosis-tech/kardinal/compare/0.2.3...0.2.4) (2024-09-06)
+
+
+### Features
+
+* allow concurrent proxies ([#193](https://github.com/kurtosis-tech/kardinal/issues/193)) ([1e9e8ad](https://github.com/kurtosis-tech/kardinal/commit/1e9e8ad61469e7d979aa81484007e512ab5c0c01))
+
 ## [0.2.3](https://github.com/kurtosis-tech/kardinal/compare/0.2.2...0.2.3) (2024-09-05)
 
 
