@@ -2,6 +2,7 @@ import { GoogleTagManager } from "@next/third-parties/google";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ReactNode } from "react";
+import { Suspense } from "react";
 
 import Footer from "@/components/Footer";
 import Main from "@/components/Main";
@@ -57,14 +58,16 @@ export default function RootLayout({
       <body className={inter.className}>
         <ModalProvider>
           <VotingProvider>
-            <CalculatorProvider>
-              <StyledComponentsRegistry>
-                <Nav />
-                <Main>{children}</Main>
-                <Footer />
-                <Modal />
-              </StyledComponentsRegistry>
-            </CalculatorProvider>
+            <Suspense>
+              <CalculatorProvider>
+                <StyledComponentsRegistry>
+                  <Nav />
+                  <Main>{children}</Main>
+                  <Footer />
+                  <Modal />
+                </StyledComponentsRegistry>
+              </CalculatorProvider>
+            </Suspense>
           </VotingProvider>
         </ModalProvider>
       </body>
