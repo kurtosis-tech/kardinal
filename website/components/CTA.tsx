@@ -108,7 +108,6 @@ namespace S {
     padding-bottom: ${(props) => (props.$padBottom ? "128px" : "0px")};
 
     @media ${mobile} {
-      max-height: unset;
       margin-top: 0;
       background-size: cover;
     }

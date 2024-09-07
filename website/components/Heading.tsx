@@ -30,7 +30,7 @@ const H2 = styled.h2`
   line-height: normal;
 
   @media ${mobile} {
-    font-size: 20px;
+    font-size: 24px;
     line-height: normal;
   }
 `;
