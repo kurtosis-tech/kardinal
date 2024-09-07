@@ -19,6 +19,7 @@ const SavingsSection = () => {
       <S.SavingsSection>
         <Heading.H2>
           See how much <em>you can save</em> <br data-desktop /> with Kardinal
+          💸
         </Heading.H2>
         <Text.Base>
           Replace your dev sandboxes with Kardinal,

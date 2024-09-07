@@ -52,7 +52,6 @@ namespace S {
 
     @media ${mobile} {
       padding: 16px;
-      margin-top: 48px;
     }
   `;
   export const Content = styled.div`
