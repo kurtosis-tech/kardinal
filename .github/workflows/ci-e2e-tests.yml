@@ -1,4 +1,3 @@
-# Our desired pipeline using only a Nix shell environment
 name: E2E tests
 
 permissions:
@@ -95,7 +94,6 @@ jobs:
       
       - name: Validate that Kardinal manager applied the changes
         run: |
-          set -x
           while [ $(kubectl get pods -n prod -o custom-columns=NAMESPACE:metadata.namespace,POD:metadata.name,PodIP:status.podIP,READY-true:status.containerStatuses[*].ready | grep "true,true" | wc -l) -ne 4 ]
           do
               echo "Waiting for prod pods to run..."
