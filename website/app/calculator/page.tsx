@@ -1,4 +1,4 @@
-import { FiArrowRight } from "react-icons/fi";
+import { Metadata } from "next";
 
 import { ButtonPrimary } from "@/components/Button";
 import Calculator from "@/components/Calculator";
@@ -7,6 +7,11 @@ import CTASmall from "@/components/CTASmall";
 import SavingsGraph from "@/components/SavingsGraph";
 import Spacer from "@/components/Spacer";
 import { TextBase } from "@/components/Text";
+
+export const metadata: Metadata = {
+  title: "Kardinal | Calculator",
+  description: "Calculate exactly how much your team could save with Kardinal",
+};
 
 const Page = () => {
   return (

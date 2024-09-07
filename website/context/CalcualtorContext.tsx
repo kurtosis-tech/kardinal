@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import {
   createContext,
   Dispatch,
@@ -29,8 +30,24 @@ const CalculatorContext = createContext<CalculatorContextProps | undefined>(
 );
 
 export const CalculatorProvider = ({ children }: PropsWithChildren) => {
-  const [engineers, setEngineers] = useState<number>(60);
-  const [microservices, setMicroservices] = useState<number>(20);
+  const searchParams = useSearchParams();
+
+  const initialEngineers: number =
+    searchParams.get("engineers") != null
+      ? parseInt(searchParams.get("engineers") || "20")
+      : 20;
+
+  const initialMicroservices: number =
+    searchParams.get("services") != null
+      ? parseInt(searchParams.get("services") || "60")
+      : 60;
+
+  const [engineers, setEngineers] = useState<number>(
+    Math.min(initialEngineers, 100),
+  ); // max value 100
+  const [microservices, setMicroservices] = useState<number>(
+    Math.min(initialMicroservices, 100),
+  ); // max value 100
   const [resourceRequirement, setResourceRequirement] =
     useState<ResourceRequirement>(ResourceRequirement.MICRO);
   const [costInterval, setCostInterval] = useState<CostInterval>("Year");

@@ -101,7 +101,7 @@ const CostSavingsCalculator = ({ onCalculate }: Props) => {
 
       <S.ButtonWrapper>
         <ButtonPrimary
-          analyticsId={"calculator_calculate"}
+          analyticsId={"button_calculator_page_calculate"}
           iconRight={<FiArrowRight />}
           onClick={onCalculate}
         >

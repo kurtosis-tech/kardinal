@@ -9,6 +9,7 @@ import {
   CostInterval,
   useCalculatorContext,
 } from "@/context/CalcualtorContext";
+import analytics from "@/lib/analytics";
 
 import Spacer from "../Spacer";
 
@@ -62,6 +63,11 @@ const Calculator = () => {
     setCostAfter(calculateCostAfter());
     setSavings(calculateSavings());
     setInterval(costInterval);
+
+    analytics.track("CALCULATE", {
+      numEngineers: engineers,
+      numServices: microservices,
+    });
   };
 
   return (

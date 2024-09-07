@@ -1,16 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { FiArrowRight } from "react-icons/fi";
+import { FiArrowDown, FiArrowRight } from "react-icons/fi";
 import styled from "styled-components";
 
 import Heading from "@/components/Heading";
 import Section from "@/components/Section";
 import Text from "@/components/Text";
+import { tablet } from "@/constants/breakpoints";
+import analytics from "@/lib/analytics";
 
 const SavingsSection = () => {
   const [engineers, setEngineers] = useState(20);
-  const [microservices, setMicroservices] = useState(20);
+  const [microservices, setMicroservices] = useState(60);
+
   return (
     <Section>
       <S.SavingsSection>
@@ -18,7 +21,7 @@ const SavingsSection = () => {
           See how much <em>you can save</em> <br data-desktop /> with Kardinal
         </Heading.H2>
         <Text.Base>
-          Replace your dev sandboxes with Kardinal, 
+          Replace your dev sandboxes with Kardinal,
           <br data-desktop /> and see how much money you could save.
         </Text.Base>
         <S.CalculatorPlaceholder>
@@ -43,6 +46,15 @@ const SavingsSection = () => {
             <S.ButtonWrapper>
               <S.CalculateButton
                 href={`/calculator?engineers=${engineers}&services=${microservices}`}
+                onClick={() => {
+                  analytics.track("BUTTON_CLICK", {
+                    analyticsId: "button_landingpage_calculate",
+                  });
+                  analytics.track("CALCULATE", {
+                    numEngineers: engineers,
+                    numServices: microservices,
+                  });
+                }}
               >
                 Calculate!
                 <S.CalculateButtonIcon role="presentation">
@@ -51,7 +63,14 @@ const SavingsSection = () => {
               </S.CalculateButton>
             </S.ButtonWrapper>
           </S.Columns>
-          <S.PlaceholderFooter>Potential savings:</S.PlaceholderFooter>
+          <S.PlaceholderFooter>
+            Potential savings:
+            <S.SavingsAmount>{"$26,726.40"}</S.SavingsAmount>
+            <S.SavingsPercentage>
+              <FiArrowDown size={16} />
+              ~93%
+            </S.SavingsPercentage>
+          </S.PlaceholderFooter>
         </S.CalculatorPlaceholder>
       </S.SavingsSection>
     </Section>
@@ -85,6 +104,33 @@ namespace S {
     width: 100%;
     border-radius: 0px 0px 21px 21px;
     padding: 8px 32px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: normal;
+    letter-spacing: 0.96px;
+    text-transform: uppercase;
+    @media ${tablet} {
+      flex-direction: column;
+    }
+  `;
+
+  export const SavingsAmount = styled.span`
+    color: var(--white);
+    font-size: 32px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: normal;
+  `;
+
+  export const SavingsPercentage = styled.span`
+    display: flex;
+    align-items: center;
+    gap: 4px;
   `;
 
   export const Columns = styled.div`
@@ -94,6 +140,9 @@ namespace S {
     grid-row-gap: 16px;
     text-align: left;
     padding: 32px;
+    @media ${tablet} {
+      grid-template-columns: 1fr;
+    }
   `;
 
   export const InputWrapper = styled.div`
@@ -109,7 +158,7 @@ namespace S {
     align-items: flex-start;
     align-self: stretch;
     border-radius: 8px;
-    background: rgba(168, 50, 5, 0.14);
+    background: rgba(168, 50, 5, 0.3);
     border: none;
     -moz-appearance: textfield;
     outline: 2px solid transparent;

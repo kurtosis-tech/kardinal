@@ -63,6 +63,7 @@ type EventName =
   | "MODAL_OPENED"
   | "MODAL_CLOSED"
   | "BUTTON_CLICK"
+  | "CALCULATE"
   | "NAVIGATE_TO_DOCS"
   | "FORM_SUBMIT"
   | "SCROLLED_1VH"
@@ -74,6 +75,10 @@ interface Payload {
 
   // BUTTON_CLICK payload
   analyticsId?: string; // identifier of the element the user clicked
+
+  // CALCULATE payload
+  numEngineers?: number;
+  numServices?: number;
 
   // FORM_SUBMIT payload
   formType?: string; // which form is the user submitting
