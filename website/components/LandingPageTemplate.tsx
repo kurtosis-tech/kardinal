@@ -6,6 +6,7 @@ import Content from "@/components/Content";
 import CTA from "@/components/CTA";
 import CTAButtons from "@/components/CTAButtons";
 import CTASmall from "@/components/CTASmall";
+import SavingsSection from "@/components/SavingsSection";
 import { TextBase } from "@/components/Text";
 import VideoStepper from "@/components/VideoStepper";
 // assets
@@ -24,7 +25,6 @@ const LandingPageTemplate = ({
   trafficFlowContent,
   videoStepperHeading,
   videoStepperContent,
-  iAmTheLordOfTheRings,
 }: {
   heading: ReactNode;
   children?: ReactNode;
@@ -35,7 +35,6 @@ const LandingPageTemplate = ({
   trafficFlowContent?: ReactNode;
   videoStepperHeading?: ReactNode;
   videoStepperContent?: ReactNode;
-  iAmTheLordOfTheRings?: boolean;
 }) => {
   return (
     <>
@@ -97,7 +96,9 @@ const LandingPageTemplate = ({
         routing for you.
       </Content>
 
-      <CTASmall heading={"Want a demo?"} myPrecious={iAmTheLordOfTheRings}>
+      <SavingsSection />
+
+      <CTASmall heading={"Want a demo?"} hasBackground>
         <TextBase>
           Use the link below to book <br data-desktop /> a personalized demo of
           Kardinal.

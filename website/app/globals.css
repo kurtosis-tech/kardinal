@@ -19,11 +19,6 @@
   --gradient-brand-reverse: linear-gradient(to right, var(--brand-secondary), var(--brand-primary));
 
   --gradient-brand-dark: linear-gradient(90deg, #fCA061, rgba(168, 50, 5, 0.4));
-  --gray-bg: #1f232a;
-  --gray-bg-light: #212121;
-  --gray-dark: #21262d;
-  --gray-diagramlines: #666a6f;
-  --gray-icon: #8b949e;
   --white-10: rgba(255, 255, 255, 0.1);
   --white-20: rgba(255, 255, 255, 0.2);
   --white-40: rgba(255, 255, 255, 0.4);
@@ -32,12 +27,23 @@
   --white-90: rgba(255, 255, 255, 0.9);
   --white-100: #ffffff;
 
+  /* TODO: too many grays... consolidate */
+  --gray-100: #F3F4F6;
+  --gray-200: #E5E7EB;
+  --gray-400: #9CA3AF;
+  --gray-600: #4b5563;
+  --gray-bg-light: #212121;
+  --gray-bg: #1f232a;
+  --gray-dark: #21262d;
+  --gray-diagramlines: #666a6f;
+  --gray-icon: #8b949e;
+  --gray-light: #aaa;
+  --gray-lighter: #f2f2f2;
+  --gray-lightest: #fafafa;
+  --gray: #525157;
+
   --blue: #1F56A5;
   --blue-light: #58A6FF;
-
-  --gray: #525157;
-  --gray-light: #aaa;
-  --gray-lightest: #f2f2f2;
 
   --black: #000330;
   --white: #ffffff;
@@ -48,7 +54,7 @@
   --foreground-light: var(--gray-light);
 
   --foreground-inverted: var(--gray-light);
-  --foreground-dark-inverted: var(--gray-lightest);
+  --foreground-dark-inverted: var(--gray-lighter);
 
   --background: var(--white);
   --background-light: var(--gray-bg-light, #212121);

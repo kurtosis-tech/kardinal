@@ -2,12 +2,14 @@ import { GoogleTagManager } from "@next/third-parties/google";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ReactNode } from "react";
+import { Suspense } from "react";
 
 import Footer from "@/components/Footer";
 import Main from "@/components/Main";
 import Modal from "@/components/Modal";
 import Nav from "@/components/Nav";
 import SegmentAnalytics from "@/components/SegmentAnalytics";
+import { CalculatorProvider } from "@/context/CalcualtorContext";
 import { ModalProvider } from "@/context/ModalContext";
 import { VotingProvider } from "@/context/VotingContext";
 
@@ -20,6 +22,8 @@ const inter = Inter({
   subsets: ["latin"],
   display: "block",
   variable: "--font-sans",
+  weight: ["300", "400", "500", "600", "700"],
+  preload: true,
 });
 
 export const metadata: Metadata = {
@@ -54,12 +58,16 @@ export default function RootLayout({
       <body className={inter.className}>
         <ModalProvider>
           <VotingProvider>
-            <StyledComponentsRegistry>
-              <Nav />
-              <Main>{children}</Main>
-              <Footer />
-              <Modal />
-            </StyledComponentsRegistry>
+            <Suspense>
+              <CalculatorProvider>
+                <StyledComponentsRegistry>
+                  <Nav />
+                  <Main>{children}</Main>
+                  <Footer />
+                  <Modal />
+                </StyledComponentsRegistry>
+              </CalculatorProvider>
+            </Suspense>
           </VotingProvider>
         </ModalProvider>
       </body>
