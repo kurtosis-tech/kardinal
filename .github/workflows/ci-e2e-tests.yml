@@ -76,6 +76,7 @@ jobs:
           echo "cli_bin=${cli_bin}" >> "$GITHUB_ENV"
           echo "KARDINAL_CLI_DEV_MODE=TRUE" >> "$GITHUB_ENV"
 
+      - name: Retrieve tenant ID
         id: tenant
         run: |
           tenant_id=$(${cli_bin} tenant show)
