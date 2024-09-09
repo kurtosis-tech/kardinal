@@ -285,7 +285,9 @@ func (manager *ClusterManager) CleanUpClusterResources(ctx context.Context, clus
 		return item.Namespace
 	})
 	if len(servicesByNS) == 0 {
-		// There are no resources to apply so we attempt to clear resources in the namespace set in the dummy gateway sent by the kontrol service
+		// There are no resources to apply so we attempt to clear resources in the namespace set in the dummy gateway
+		// sent by the kontrol service.  This happens when the tenant has no base cluster topology; no initial deploy
+		// or the topologies have been deleted.
 		servicesByNS[clusterResources.Gateway.GetNamespace()] = []corev1.Service{}
 	}
 	for namespace, services := range servicesByNS {
