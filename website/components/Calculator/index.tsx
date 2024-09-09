@@ -45,45 +45,24 @@ const Calculator = () => {
   const costPerServiceHour =
     HOURLY_COST_PER_RESOURCE_REQUIREMENT[resourceRequirement];
 
-  const calculateCostBefore = () =>
-    microservices * engineers * costPerServiceHour;
-  const calculateCostAfter = () =>
-    (microservices + engineers) * costPerServiceHour;
-  const calculateSavings = () => calculateCostBefore() - calculateCostAfter();
-
-  // Use copies of state values so numbers only change when calculate button is clicked
-  const [costBefore, setCostBefore] = useState<number>(calculateCostBefore());
-  const [costAfter, setCostAfter] = useState<number>(calculateCostAfter());
-  const [savings, setSavings] = useState<number>(calculateSavings());
-  const [interval, setInterval] = useState<CostInterval>(costInterval);
-
-  // only update values when user clicks calculate
-  const handleCalculate = () => {
-    setCostBefore(calculateCostBefore());
-    setCostAfter(calculateCostAfter());
-    setSavings(calculateSavings());
-    setInterval(costInterval);
-
-    analytics.track("CALCULATE", {
-      numEngineers: engineers,
-      numServices: microservices,
-    });
-  };
+  const costBefore = microservices * engineers * costPerServiceHour;
+  const costAfter = (microservices + engineers) * costPerServiceHour;
+  const savings = costBefore - costAfter;
 
   return (
     <Section>
       <S.Title>
         {"put in your organization numbers to see cost savings 👇🏻"}
       </S.Title>
-      <CalculatorInputs onCalculate={handleCalculate} />
+      <CalculatorInputs />
       <CardGroup>
         <Card
           title="Your costs before"
           values={[
             {
-              label: `Services cost before (per ${interval.toLowerCase()})`,
+              label: `Services cost before (per ${costInterval.toLowerCase()})`,
               value: currencyFormatter.format(
-                costBefore * WORKING_HOURS_PER_COST_INTERVAL[interval],
+                costBefore * WORKING_HOURS_PER_COST_INTERVAL[costInterval],
               ),
             },
             {
@@ -96,9 +75,9 @@ const Calculator = () => {
           title="Your costs after"
           values={[
             {
-              label: `Services cost after (per ${interval.toLowerCase()})`,
+              label: `Services cost after (per ${costInterval.toLowerCase()})`,
               value: currencyFormatter.format(
-                costAfter * WORKING_HOURS_PER_COST_INTERVAL[interval],
+                costAfter * WORKING_HOURS_PER_COST_INTERVAL[costInterval],
               ),
             },
             {
@@ -116,9 +95,9 @@ const Calculator = () => {
               value: 100 - Math.round((costAfter / costBefore) * 100) + "%",
             },
             {
-              label: `Cost savings per ${interval.toLowerCase()}*`,
+              label: `Cost savings per ${costInterval.toLowerCase()}*`,
               value: currencyFormatter.format(
-                savings * WORKING_HOURS_PER_COST_INTERVAL[interval],
+                savings * WORKING_HOURS_PER_COST_INTERVAL[costInterval],
               ),
             },
           ]}
