@@ -43,10 +43,10 @@ export const CalculatorProvider = ({ children }: PropsWithChildren) => {
       : 60;
 
   const [engineers, setEngineers] = useState<number>(
-    Math.min(initialEngineers, 100),
-  ); // max value 100
+    Math.min(Math.max(initialEngineers, 2), 100),
+  ); // value from 2 to 100
   const [microservices, setMicroservices] = useState<number>(
-    Math.min(initialMicroservices, 100),
+    Math.min(Math.max(initialMicroservices, 2), 100),
   ); // max value 100
   const [resourceRequirement, setResourceRequirement] =
     useState<ResourceRequirement>(ResourceRequirement.MICRO);
