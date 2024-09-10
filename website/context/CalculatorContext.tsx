@@ -23,11 +23,24 @@ interface CalculatorContextProps {
   setResourceRequirement: Dispatch<SetStateAction<ResourceRequirement>>;
   costInterval: CostInterval;
   setCostInterval: Dispatch<SetStateAction<CostInterval>>;
+  costBefore: number;
+  costAfter: number;
+  savings: number;
+  savingsPercent: number;
 }
 
 const CalculatorContext = createContext<CalculatorContextProps | undefined>(
   undefined,
 );
+
+const HOURLY_COST_PER_RESOURCE_REQUIREMENT: Record<
+  ResourceRequirement,
+  number
+> = {
+  [ResourceRequirement.MICRO]: 0.0116,
+  [ResourceRequirement.SMALL]: 0.023,
+  [ResourceRequirement.MEDIUM]: 0.0464,
+};
 
 export const CalculatorProvider = ({ children }: PropsWithChildren) => {
   const searchParams = useSearchParams();
@@ -52,6 +65,14 @@ export const CalculatorProvider = ({ children }: PropsWithChildren) => {
     useState<ResourceRequirement>(ResourceRequirement.MICRO);
   const [costInterval, setCostInterval] = useState<CostInterval>("Year");
 
+  const costPerServiceHour =
+    HOURLY_COST_PER_RESOURCE_REQUIREMENT[resourceRequirement];
+
+  const costBefore = microservices * engineers * costPerServiceHour;
+  const costAfter = (microservices + engineers) * costPerServiceHour;
+  const savings = costBefore - costAfter;
+  const savingsPercent = 100 - Math.round((costAfter / costBefore) * 100);
+
   return (
     <CalculatorContext.Provider
       value={{
@@ -63,6 +84,10 @@ export const CalculatorProvider = ({ children }: PropsWithChildren) => {
         setResourceRequirement,
         costInterval,
         setCostInterval,
+        costBefore,
+        costAfter,
+        savings,
+        savingsPercent,
       }}
     >
       {children}

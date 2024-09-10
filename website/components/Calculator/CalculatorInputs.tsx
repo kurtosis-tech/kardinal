@@ -9,7 +9,7 @@ import { ResourceRequirement } from "@/constants/calculator";
 import {
   CostInterval,
   useCalculatorContext,
-} from "@/context/CalcualtorContext";
+} from "@/context/CalculatorContext";
 
 const resourceRequirementsOptions: ResourceRequirement[] = [
   ResourceRequirement.MICRO,
