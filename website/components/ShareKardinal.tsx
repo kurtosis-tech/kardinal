@@ -9,6 +9,7 @@ import Button from "@/components/Button";
 import Heading from "@/components/Heading";
 import Section from "@/components/Section";
 import Text from "@/components/Text";
+import { mobile, tablet } from "@/constants/breakpoints";
 import { useCalculatorContext } from "@/context/CalculatorContext";
 
 const ShareKardinal = () => {
@@ -140,6 +141,11 @@ const S = {
     margin: 0 auto;
     padding-top: 64px;
     position: relative;
+
+    @media ${tablet} {
+      grid-template-columns: 1fr;
+      grid-row-gap: 24px;
+    }
   `,
 
   Content: styled.div`
@@ -216,6 +222,10 @@ const S = {
     position: absolute;
     top: -132px;
     left: -208px;
+
+    @media ${mobile} {
+      display: none;
+    }
   `,
 
   ButtonWrapper: styled.div`
