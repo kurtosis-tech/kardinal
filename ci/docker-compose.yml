@@ -1,0 +1,38 @@
+networks:
+    kardinal:
+        driver: bridge
+        enable_ipv6: false
+
+services:
+  kontrol-service:
+    image: kurtosistech/kontrol-service:latest-amd64
+    restart: always
+    environment:
+      - DB_HOSTNAME=postgres
+      - DB_PORT=5432
+      - DB_NAME=kardinal
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=kurtosis
+      - DEV_MODE=true
+    ports:
+      - '8080:8080'
+    networks:
+      - kardinal
+    depends_on:
+      - postgres
+  postgres:
+    image: postgres:13-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=kurtosis
+      - POSTGRES_DB=kardinal
+    ports:
+      - '5432:5432'
+    networks:
+      - kardinal
+    volumes: 
+      - postgres:/var/lib/postgresql/data
+volumes:
+  postgres:
+    driver: local
