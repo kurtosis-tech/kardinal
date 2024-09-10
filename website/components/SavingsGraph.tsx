@@ -26,7 +26,7 @@ const SavingsGraph = () => {
             clusters.
           </Heading.H2>
           <Text.Base>
-            Replace your dev sandboxes with Kardinal and get easier DX and lower
+            Replace your dev sandboxes with Kardinal and get easier DX and lower
             costs.
           </Text.Base>
           <div>
