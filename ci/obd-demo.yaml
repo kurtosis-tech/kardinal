@@ -1,0 +1,330 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cartservice-v1
+  labels:
+    app: cartservice
+    version: v1
+spec:
+  selector:
+    matchLabels:
+      app: cartservice
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: cartservice
+        version: v1
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+        - name: server
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - all
+            privileged: false
+            readOnlyRootFilesystem: true
+          image: kurtosistech/cartservice:main
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8090
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8090
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8090
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          env:
+            - name: PORT
+              value: "8090"
+            - name: DB_USERNAME
+              value: "postgresuser"
+            - name: DB_PASSWORD
+              value: "postgrespass"
+            - name: DB_HOST
+              value: "postgres"
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: "cart"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cartservice
+  labels:
+    app: cartservice
+    version: v1
+  annotations:
+    kardinal.dev.service/dependencies: "postgres:tcp"
+spec:
+  type: ClusterIP
+  selector:
+    app: cartservice
+  ports:
+    - name: http
+      port: 8090
+      targetPort: 8090
+      protocol: TCP
+      appProtocol: HTTP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-v1
+  labels:
+    app: frontend
+    version: v1
+spec:
+  selector:
+    matchLabels:
+      app: frontend
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: frontend
+        version: v1
+      annotations:
+        sidecar.istio.io/rewriteAppHTTPProbers: "true"
+    spec:
+      containers:
+        - name: server
+          image: kurtosistech/frontend:main
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            initialDelaySeconds: 10
+            httpGet:
+              path: "/_healthz"
+              port: 8080
+              httpHeaders:
+                - name: "Cookie"
+                  value: "shop_session-id=x-readiness-probe"
+          livenessProbe:
+            initialDelaySeconds: 10
+            httpGet:
+              path: "/_healthz"
+              port: 8080
+              httpHeaders:
+                - name: "Cookie"
+                  value: "shop_session-id=x-liveness-probe"
+          env:
+            - name: ADDRESS
+              value: ":8080"
+            - name: FREECURRENCYAPIKEY
+              value: "fca_live_nFVVF8CvfxqJhzMHB4N2x1NH7ffVVPwZr9hg3iNl"
+            - name: CARTSERVICEHOST
+              value: cartservice
+            - name: PRODUCTCATALOGSERVICEHOST
+              value: productcatalogservice
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  labels:
+    app: frontend
+    version: v1
+  annotations:
+    kardinal.dev.service/dependencies: "productcatalogservice:http,cartservice:http"
+    kardinal.dev.service/plugins: |
+      - name: https://github.com/kurtosis-tech/free-currency-api-plugin.git
+        type: external
+        servicename: free-currency-api
+        args:
+          api_key: fca_live_VKZlykCWEiFcpBHnw74pzd4vLi04q1h9JySbVHDF
+spec:
+  type: ClusterIP
+  selector:
+    app: frontend
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      appProtocol: HTTP
+      targetPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-external
+  annotations:
+    kardinal.dev.service/ingress: "true"
+    kardinal.dev.service/host: "prod.app.localhost"
+spec:
+  type: LoadBalancer
+  selector:
+    app: frontend
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      protocol: TCP
+      appProtocol: HTTP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-v1
+  labels:
+    app: postgres
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: postgres
+        version: v1
+    spec:
+      containers:
+        - name: postgres
+          image: "postgres:14"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: "cart"
+            - name: POSTGRES_USER
+              value: "postgresuser"
+            - name: POSTGRES_PASSWORD
+              value: "postgrespass"
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgres-data
+      volumes:
+        - name: postgres-data
+          emptyDir: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  labels:
+    app: postgres
+    version: v1
+  annotations:
+    kardinal.dev.service/stateful: "true"
+    kardinal.dev.service/plugins: |
+      - name: github.com/kurtosis-tech/postgres-seed-plugin
+        args:
+          seed_script: |
+            --  create the table
+            CREATE TABLE IF NOT EXISTS public.items(
+                id bigserial PRIMARY KEY,
+                created_at TIMESTAMP WITH TIME ZONE,
+                updated_at TIMESTAMP WITH TIME ZONE,
+                deleted_at TIMESTAMP WITH TIME ZONE,
+                user_id TEXT,
+                product_id TEXT,
+                quantity INTEGER
+            );
+
+            INSERT INTO public.items (id, created_at, updated_at, deleted_at, user_id, product_id, quantity) 
+            VALUES (1, '2024-08-02 13:02:07.656104 +00:00', '2024-08-02 13:02:07.656104 +00:00', null, '0494c5e0-dde0-48fa-a6d8-f7962f5476bf', '66VCHSJNUP', 1);
+
+            INSERT INTO public.items (id, created_at, updated_at, deleted_at, user_id, product_id, quantity) 
+            VALUES (2, '2024-08-02 13:02:10.891407 +00:00', '2024-08-02 13:02:10.891407 +00:00', null, '0494c5e0-dde0-48fa-a6d8-f7962f5476bf', '2ZYFJ3GM2N', 1);
+
+            -- Set the sequence to the correct value after inserting records
+            SELECT setval('public.items_id_seq', (SELECT MAX(id) FROM public.items));
+          db_name: "cart"
+          db_user: "postgresuser"
+          db_password: "postgrespass"
+
+spec:
+  type: ClusterIP
+  ports:
+    - name: tcp
+      port: 5432
+      targetPort: 5432
+      protocol: TCP
+  selector:
+    app: postgres
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: productcatalogservice-v1
+  labels:
+    app: productcatalogservice
+    version: v1
+spec:
+  selector:
+    matchLabels:
+      app: productcatalogservice
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: productcatalogservice
+        version: v1
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+        - name: server
+          image: kurtosistech/productcatalogservice:main
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8070
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8070
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8070
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          env:
+            - name: PORT
+              value: "8070"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: productcatalogservice
+  labels:
+    app: productcatalogservice
+    version: v1
+spec:
+  type: ClusterIP
+  selector:
+    app: productcatalogservice
+  ports:
+    - name: http
+      port: 8070
+      targetPort: 8070
+      protocol: TCP
+      appProtocol: HTTP
