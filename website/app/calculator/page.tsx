@@ -1,9 +1,8 @@
 import { Metadata } from "next";
 
-import { ButtonPrimary } from "@/components/Button";
 import Calculator from "@/components/Calculator";
 import CTA from "@/components/CTA";
-import CTASmall from "@/components/CTASmall";
+import CTADemo from "@/components/CTADemo";
 import SavingsGraph from "@/components/SavingsGraph";
 import Spacer from "@/components/Spacer";
 import { TextBase } from "@/components/Text";
@@ -17,7 +16,7 @@ const Page = () => {
   return (
     <>
       <CTA
-        style={{ maxHeight: 640 }}
+        style={{ maxHeight: 540, minHeight: 540 }}
         imageUrl={null}
         buttonText={null}
         fullHeight
@@ -39,21 +38,7 @@ const Page = () => {
 
       <SavingsGraph />
 
-      <CTASmall heading={"Want a demo?"} hasBackground>
-        <TextBase>
-          Use the link below to book <br data-desktop /> a personalized demo of
-          Kardinal.
-        </TextBase>
-        <ButtonPrimary
-          analyticsId="button_calculator_cta_get_demo"
-          href="https://calendly.com/d/cqhd-tgj-vmc/45-minute-meeting"
-          rel="noopener noreferrer"
-          target="_blank"
-          size="lg"
-        >
-          Get a Demo
-        </ButtonPrimary>
-      </CTASmall>
+      <CTADemo />
     </>
   );
 };

@@ -10,9 +10,15 @@ import Text from "@/components/Text";
 import { tablet } from "@/constants/breakpoints";
 import analytics from "@/lib/analytics";
 
+const INITIAL_ENGINEERS = 20;
+const INITIAL_MICROSERVICES = 60;
+
 const SavingsSection = () => {
-  const [engineers, setEngineers] = useState(20);
-  const [microservices, setMicroservices] = useState(60);
+  const [engineers, setEngineers] = useState(INITIAL_ENGINEERS);
+  const [microservices, setMicroservices] = useState(INITIAL_MICROSERVICES);
+
+  const inputsAreInitialValues =
+    engineers === INITIAL_ENGINEERS && microservices === INITIAL_MICROSERVICES;
 
   return (
     <Section>
@@ -66,11 +72,15 @@ const SavingsSection = () => {
           </S.Columns>
           <S.PlaceholderFooter>
             Potential savings:
-            <S.SavingsAmount>{"$26,726.40"}</S.SavingsAmount>
-            <S.SavingsPercentage>
-              <FiArrowDown size={16} />
-              ~93%
-            </S.SavingsPercentage>
+            <S.SavingsAmount>
+              {inputsAreInitialValues ? "$24,944.64" : "$--,---.--"}
+            </S.SavingsAmount>
+            {inputsAreInitialValues && (
+              <S.SavingsPercentage>
+                <FiArrowDown size={16} />
+                ~93%
+              </S.SavingsPercentage>
+            )}
           </S.PlaceholderFooter>
         </S.CalculatorPlaceholder>
       </S.SavingsSection>

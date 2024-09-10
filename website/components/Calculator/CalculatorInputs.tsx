@@ -11,10 +11,6 @@ import {
   useCalculatorContext,
 } from "@/context/CalcualtorContext";
 
-interface Props {
-  onCalculate: () => void;
-}
-
 const resourceRequirementsOptions: ResourceRequirement[] = [
   ResourceRequirement.MICRO,
   ResourceRequirement.SMALL,
@@ -23,7 +19,7 @@ const resourceRequirementsOptions: ResourceRequirement[] = [
 
 const costIntervalOptions: CostInterval[] = ["Year", "Month"];
 
-const CostSavingsCalculator = ({ onCalculate }: Props) => {
+const CostSavingsCalculator = () => {
   const {
     engineers,
     setEngineers,
@@ -98,16 +94,6 @@ const CostSavingsCalculator = ({ onCalculate }: Props) => {
           <S.Chevron size={20} role="presentation" />
         </S.SelectContainer>
       </S.Columns>
-
-      <S.ButtonWrapper>
-        <ButtonPrimary
-          analyticsId={"button_calculator_page_calculate"}
-          iconRight={<FiArrowRight />}
-          onClick={onCalculate}
-        >
-          Calculate!
-        </ButtonPrimary>
-      </S.ButtonWrapper>
     </S.Wrapper>
   );
 };
@@ -241,12 +227,6 @@ namespace S {
     right: 16px;
     top: calc(50% + 4px);
     color: var(--gray-400);
-  `;
-
-  export const ButtonWrapper = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
   `;
 }
 

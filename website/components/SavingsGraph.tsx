@@ -13,7 +13,7 @@ import savingsGraphImg from "@/public/illustrations/savings-graph.svg";
 
 const SavingsGraph = () => {
   return (
-    <Section padTop padBottom>
+    <Section>
       <S.SavingsGraph>
         <Image
           src={savingsGraphImg}
@@ -39,10 +39,11 @@ const SavingsGraph = () => {
             </ButtonPrimary>
           </div>
         </S.Content>
+        <small>
+          * Graph values are approximate. Based on use case with 20
+          microservices.
+        </small>
       </S.SavingsGraph>
-      <small>
-        * Graph values are approximate. Based on use case with 20 microservices.
-      </small>
     </Section>
   );
 };
@@ -52,9 +53,11 @@ namespace S {
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-gap: 64px;
-    margin-bottom: 24px;
+    padding: 100px 0;
+
     @media ${tablet} {
       grid-template-columns: 1fr;
+      padding: 64px 0;
     }
   `;
 
