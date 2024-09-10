@@ -10,9 +10,15 @@ on:
       - main
     tags:
       - "v*.*.*"
+    paths-ignore:
+      - "website/**"
+      - "**/README.md"
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - "website/**"
+      - "**/README.md"
 
 jobs:
   e2e_tests:
