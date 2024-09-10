@@ -4,21 +4,22 @@ export const metadata = {
 
 # Introduction
 
-Kardinal is a framework for creating extremely lightweight development environments within a shared Kubernetes cluster. In Kardinal, an environment is called a "[flow](https://kardinal.dev/docs/concepts/flows)" because it represents a path that a request takes through the cluster. Versions of services that are under development are deployed on-demand, and then shared across all development work that depends on that version.
+Kardinal is an open-source framework for creating extremely lightweight ephemeral development environments within a shared Kubernetes cluster. Between dev environments, Kardinal shares every microservice or database that can be feasibly be shared, optimizing for cloud costs and fast spin-up/tear-down.
+
+To see how much you would save using Kardinal for your particular architecture, check out the [cost saving calculator](https://kardinal.dev/calculator).
 
 **Why choose Kardinal?**
 
 - **Ephemeral Environments**: Spin up a new environment exactly when you need it, and just as quickly spin it down when you’re done.
 - **Minimal Resource Usage**: Only deploy the services you’re actively working on. Kardinal takes care of the rest, so you don’t waste resources.
-- **Stateless & Stateful**: Works for services backed up by persistant storage so you can connect to all of your favorite databases.
-- **Flexible Flow Types**: Whether you need to test a single service or an entire application, Kardinal has you covered:
+- **Flexible Environment Types**: Whether you need to test a single service or an entire application, Kardinal has you covered:
     - Single-Service Flows: Perfect for when you’re tweaking just one service.
     - Multi-Service Flows: Ideal for when your feature involves multiple services.
-    - State-Isolated Flows: Great for features that need their own databases or caches.
+    - State-Isolated Flows: Great for features that need their own isolated databases or caches.
     - Full Application Flows: For those times when you need end-to-end testing with full isolation.
-- **Cost Savings**: Kardinal can help you save big by avoiding unnecessary resource duplication. It’s a game-changer for teams looking to cut costs.
-- **Open source**: Kardinal is open source, so use it however fits best within your workflows
+- **Cost Savings**: Kardinal can help you save big by avoiding unnecessary resource duplication. It’s a game-changer for teams looking to cut costs. Check out [this calculator](https://kardinal.dev/calculator) to run your own calculations.
+- **Open Source**: Kardinal is open source, so use it however fits best within your workflows
 
-**To get started** 
+**Get started** 
 - Check out our [installation guide](getting-started/install) to install Kardinal and get running. 
 - If you're not ready to install anything yet, but want to test Kardinal, head over to our [playground](https://github.com/kurtosis-tech/kardinal-playground) for a demo.
