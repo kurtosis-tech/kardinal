@@ -180,7 +180,7 @@ jobs:
           if KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow ls | grep prod; then echo "Topologies not deleted"; exit 1; fi
           
           # Check that the services have been terminated
-          while [ "$(kubectl get pods -n prod)" != "No resources found in prod namespace" ]
+          while [ "$(kubectl get pods -n prod)" != "No resources found in prod namespace." ]
           do
               echo "Waiting for the services to terminate..."
               kubectl get pods -n prod
