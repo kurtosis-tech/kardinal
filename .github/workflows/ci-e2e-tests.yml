@@ -177,7 +177,7 @@ jobs:
         run: |
           KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow delete prod > kardinal.out
           cat kardinal.out
-          if KARDINAL_CLI_DEV_MODE=TRUE kardinal flow ls | grep prod; then echo "Topologies not deleted"; exit 1; fi
+          if KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow ls | grep prod; then echo "Topologies not deleted"; exit 1; fi
           
           # Check that the services have been terminated
           while [ "$(kubectl get pods -n prod) != "No resources found in prod namespace" ]
