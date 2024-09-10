@@ -16,7 +16,7 @@ https://github.com/user-attachments/assets/3b4316f7-9f08-4dfa-8ea5-f66e76e01012
     - Multi-Service Flows: Ideal for when your feature involves multiple services.
     - State-Isolated Flows: Great for features that need their own databases or caches.
     - Full Application Flows: For those times when you need end-to-end testing with full isolation.
-- **Cost Savings**: Kardinal can help you save big by avoiding unnecessary resource duplication. It’s a game-changer for teams looking to cut costs. Check out [this calculator](https://kardinal.streamlit.app) to run your own calculations.
+- **Cost Savings**: Kardinal can help you save big by avoiding unnecessary resource duplication. It’s a game-changer for teams looking to cut costs. Check out [this calculator](https://kardinal.dev/calculator) to run your own calculations.
 
 ### Want a demo?
 Sign-up for a free demo of Kardinal below 👇
