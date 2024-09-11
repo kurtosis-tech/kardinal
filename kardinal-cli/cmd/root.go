@@ -320,10 +320,23 @@ var telepresenceInterceptCmd = &cobra.Command{
 			log.Fatalf("The 'traffic-manager' deployment was not foun in '%s' namespace", ambassadorNamespaceName)
 		}
 
-		//TODO get the namespace from KontrolService, it's pending to implement https://kurtosistech.slack.com/archives/C072NDPBQQL/p1726000426067729
-		namespace := "prod"
+		tenantUuid, err := tenant.GetOrCreateUserTenantUUID()
+		if err != nil {
+			log.Fatal("Error getting or creating user tenant UUID", err)
+		}
 
-		serviceObj, err := kubernetesClt.GetService(ctx, namespace, serviceName)
+		var namespaceName string
+		currentFlows, err := getTenantUuidFlows(tenantUuid.String())
+		if err != nil {
+			log.Fatalf("Failed to get the current dev flows: %v", err)
+		}
+		for _, currentFlow := range currentFlows {
+			if *currentFlow.IsBaseline {
+				namespaceName = currentFlow.FlowId
+			}
+		}
+
+		serviceObj, err := kubernetesClt.GetService(ctx, namespaceName, serviceName)
 		if err != nil {
 			log.Fatalf("An error occurred getting service '%s': %s", serviceName, err)
 		}
@@ -344,29 +357,29 @@ var telepresenceInterceptCmd = &cobra.Command{
 			versionLabelKey: flowId,
 		}
 
-		deployments, err := kubernetesClt.GetDeploymentsByLabels(ctx, namespace, deploymentLabels)
+		deployments, err := kubernetesClt.GetDeploymentsByLabels(ctx, namespaceName, deploymentLabels)
 		if err != nil {
-			log.Fatalf("An error occurred getting deployments with labels '%+v' in namespace '%s': %s", deploymentLabels, namespace, err)
+			log.Fatalf("An error occurred getting deployments with labels '%+v' in namespace '%s': %s", deploymentLabels, namespaceName, err)
 		}
 		if len(deployments.Items) > 1 {
-			log.Fatalf("Found more than one deployment with labels '%+v' in namespace '%s'", deploymentLabels, namespace)
+			log.Fatalf("Found more than one deployment with labels '%+v' in namespace '%s'", deploymentLabels, namespaceName)
 		}
 
 		interceptBaseName := deployments.Items[0].GetName()
 
 		logrus.Info("Executing Telepresence intercept...")
 
-		telepresenceConnectCmdArgs := []string{"connect", "-n", namespace}
-		logrus.Infof("Executing Telepresence connect to namespace '%s'...", namespace)
+		telepresenceConnectCmdArgs := []string{"connect", "-n", namespaceName}
+		logrus.Infof("Executing Telepresence connect to namespace '%s'...", namespaceName)
 		telepresenceConnectCmd := exec.Command(telepresenceCmdName, telepresenceConnectCmdArgs...)
 		telepresenceConnectOutput, err := telepresenceConnectCmd.CombinedOutput()
 		logrus.Infof("Telepresence connect command output: %s", string(telepresenceConnectOutput))
 		if err != nil {
 			log.Fatalf("An error occurred connecting Telepresence: %v", err)
 		}
-		logrus.Infof("Telepresence has been successfully connected to namespace '%s'...", namespace)
+		logrus.Infof("Telepresence has been successfully connected to namespace '%s'...", namespaceName)
 
-		logrus.Infof("Executing Telepresence intercept to flow id '%s'...", namespace)
+		logrus.Infof("Executing Telepresence intercept to flow id '%s'...", namespaceName)
 
 		telepresenceInterceptCmdArgs := []string{"intercept", interceptBaseName, "--port", fmt.Sprintf("%s:http", localPort)}
 		telepresenceInterceptCmd := exec.Command(telepresenceCmdName, telepresenceInterceptCmdArgs...)
