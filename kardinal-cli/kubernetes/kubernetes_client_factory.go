@@ -1,4 +1,4 @@
-package deployment
+package kubernetes
 
 import (
 	"github.com/kurtosis-tech/stacktrace"
@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 )
 
-func createKubernetesClient() (*kubernetesClient, error) {
+func CreateKubernetesClient() (*kubernetesClient, error) {
 	var config *rest.Config
 
 	// Load in-cluster configuration
