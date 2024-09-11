@@ -67,5 +67,11 @@ To try out a demo application, you can use the following command:
 
 ```bash
 curl -O https://raw.githubusercontent.com/kurtosis-tech/kardinal-playground/main/obd-demo.yaml
-kardinal deploy obd-demo.yaml
+kardinal deploy -k obd-demo.yaml
+```
+
+Then, run `kardinal dashboard` to see the dashboard for your demo application. To create a demo flow, run:
+
+```bash
+kardinal flow create frontend kurtosistech/frontend:demo-on-sale -s productcatalogservice=kurtosistech/productcatalogservice:demo-on-sale
 ```
