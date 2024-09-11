@@ -16,9 +16,10 @@ const CTADemo = () => {
       <S.CTADemo>
         <S.Content>
           <S.TextWrapper>
-            <Heading.H2>Fancy a demo?</Heading.H2>
+            <Heading.H2>Want to see Kardinal in action?</Heading.H2>
             <Text.Base>
-              Schedule some time for a personalized demo of Kardinal.
+              Use the link on the right to see how you can save your team on
+              both cost and maintenance overhead:
             </Text.Base>
           </S.TextWrapper>
           <Button.Primary
@@ -40,20 +41,20 @@ const S = {
   CTADemo: styled.div`
     display: flex;
     width: 100%;
-    padding: 64px 0;
+    padding: 92px 0;
     align-items: center;
     justify-content: center;
+    background: url(/bg-static.svg);
+    background-position-y: -64px;
   `,
 
   Content: styled.div`
-    max-width: 1038px;
     border-radius: 12px;
-    background-color: rgba(252, 160, 97, 0.08);
     width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 48px;
+    padding: 48px 0;
     gap: 4px;
 
     @media ${mobile} {
@@ -67,6 +68,7 @@ const S = {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    max-width: 675px;
     @media ${mobile} {
       gap: 8px;
     }

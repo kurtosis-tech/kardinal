@@ -22,12 +22,11 @@ const SavingsGraph = () => {
         />
         <S.Content>
           <Heading.H2>
-            Don&apos;t duplicate - <em>consolidate</em> your pre-production
-            clusters.
+            Savings that <em>scale up</em> alongside your team.
           </Heading.H2>
           <Text.Base>
-            Replace your dev sandboxes with Kardinal and get easier DX and lower
-            costs.
+            Kardinal dev sandboxes improve both your <br data-desktop />
+            team’s DX and your infra savings as you grow.
           </Text.Base>
           <div>
             <ButtonPrimary
