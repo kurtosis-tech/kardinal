@@ -37,8 +37,9 @@ type Edge struct {
 
 // Flow defines model for Flow.
 type Flow struct {
-	FlowId   string   `json:"flow-id"`
-	FlowUrls []string `json:"flow-urls"`
+	FlowId     string   `json:"flow-id"`
+	FlowUrls   []string `json:"flow-urls"`
+	IsBaseline *bool    `json:"is-baseline,omitempty"`
 }
 
 // FlowSpec defines model for FlowSpec.
