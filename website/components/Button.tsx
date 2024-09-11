@@ -64,6 +64,7 @@ const primaryButtonStyles = css<StyledProps>`
   transform: translateY(0);
   background-size: 100%;
   transition: all 0.2s ease-in-out;
+  flex-shrink: 0;
 
   &:hover:not(:disabled) {
     transform: translateY(-2px);

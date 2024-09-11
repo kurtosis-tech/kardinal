@@ -9,7 +9,7 @@ import Main from "@/components/Main";
 import Modal from "@/components/Modal";
 import Nav from "@/components/Nav";
 import SegmentAnalytics from "@/components/SegmentAnalytics";
-import { CalculatorProvider } from "@/context/CalcualtorContext";
+import { CalculatorProvider } from "@/context/CalculatorContext";
 import { ModalProvider } from "@/context/ModalContext";
 import { VotingProvider } from "@/context/VotingContext";
 
