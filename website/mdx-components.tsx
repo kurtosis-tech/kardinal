@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import CodeBlock from "@/components/CodeBlock";
+import DocsHeading from "@/components/DocsHeading";
 
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
@@ -39,6 +40,12 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
         />
       );
     },
+    h1: (props) => <DocsHeading as="h1" {...props} />,
+    h2: (props) => <DocsHeading as="h2" {...props} />,
+    h3: (props) => <DocsHeading as="h3" {...props} />,
+    h4: (props) => <DocsHeading as="h4" {...props} />,
+    h5: (props) => <DocsHeading as="h5" {...props} />,
+    h6: (props) => <DocsHeading as="h6" {...props} />,
     // @ts-expect-error children will not be undefined
     pre: CodeBlock,
     Vimeo: ({ id }: { id: string }) => {
