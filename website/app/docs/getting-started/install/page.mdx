@@ -50,3 +50,22 @@ Make sure that `kubectl` is pointing to your cluster, and then run the following
 ```bash
 kardinal manager deploy kloud-kontrol
 ```
+
+Now the Kardinal Manager is deployed in your cluster, you're ready to set up your baseline application and start creating flows.
+
+### Step 4: Deploy the baseline version of your application
+
+To deploy your baseline application, run the following command:
+
+```bash
+kardinal deploy -k <path-to-k8s-manifest-annotated-for-Kardinal>
+```
+
+where `<path-to-k8s-manifest-annotated-for-Kardinal>` is the path to the Kubernetes manifest file for your application, annotated according to our [getting started guide](/docs/getting-started/own-guide).
+
+To try out a demo application, you can use the following command:
+
+```bash
+curl -O https://raw.githubusercontent.com/kurtosis-tech/kardinal-playground/main/obd-demo.yaml
+kardinal deploy obd-demo.yaml
+```
