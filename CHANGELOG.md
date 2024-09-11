@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.2.5](https://github.com/kurtosis-tech/kardinal/compare/0.2.4...0.2.5) (2024-09-11)
+
+
+### Features
+
+* calculator fixups and polish ([#200](https://github.com/kurtosis-tech/kardinal/issues/200)) ([a773cd9](https://github.com/kurtosis-tech/kardinal/commit/a773cd98c214d029ec0dbe06893de88451c5c881))
+* cost calculator ([#191](https://github.com/kurtosis-tech/kardinal/issues/191)) ([45807a3](https://github.com/kurtosis-tech/kardinal/commit/45807a3431a27d64ebb5b1a4990c57dc66a36aff))
+* E2E tests - iteration [#1](https://github.com/kurtosis-tech/kardinal/issues/1) ([#180](https://github.com/kurtosis-tech/kardinal/issues/180)) ([b65a916](https://github.com/kurtosis-tech/kardinal/commit/b65a916a3cac41737f8ceb78ef98f6616564c1fe))
+* Support for tenant with no base cluster topology ([#199](https://github.com/kurtosis-tech/kardinal/issues/199)) ([9c91a82](https://github.com/kurtosis-tech/kardinal/commit/9c91a824fd534e4cc9d2f87fc95f9c59f450a23d))
+
+
+### Bug Fixes
+
+* typo in calculator ([#201](https://github.com/kurtosis-tech/kardinal/issues/201)) ([0f0cf9b](https://github.com/kurtosis-tech/kardinal/commit/0f0cf9b943d7ec29995d381d08019720a1d8726b))
+
 ## [0.2.4](https://github.com/kurtosis-tech/kardinal/compare/0.2.3...0.2.4) (2024-09-06)
 
 
