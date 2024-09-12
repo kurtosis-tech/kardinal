@@ -1,15 +1,16 @@
 "use client";
 
-import { FiArrowRight, FiChevronDown } from "react-icons/fi";
+import { useEffect } from "react";
+import { FiChevronDown } from "react-icons/fi";
 import styled from "styled-components";
 
-import { ButtonPrimary } from "@/components/Button";
 import { tablet } from "@/constants/breakpoints";
 import { ResourceRequirement } from "@/constants/calculator";
 import {
   CostInterval,
   useCalculatorContext,
 } from "@/context/CalculatorContext";
+import analytics from "@/lib/analytics";
 
 const resourceRequirementsOptions: ResourceRequirement[] = [
   ResourceRequirement.MICRO,
@@ -31,6 +32,20 @@ const CostSavingsCalculator = () => {
     setCostInterval,
   } = useCalculatorContext();
 
+  const trackCalculate = () => {
+    analytics.track("CALCULATE", {
+      numEngineers: engineers,
+      numServices: microservices,
+      costInterval,
+      resourceRequirement,
+    });
+  };
+
+  useEffect(() => {
+    trackCalculate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [costInterval, resourceRequirement]);
+
   return (
     <S.Wrapper>
       <S.Columns>
@@ -41,6 +56,8 @@ const CostSavingsCalculator = () => {
           <S.Slider
             value={engineers}
             onChange={(e) => setEngineers(parseInt(e.target.value))}
+            onMouseUp={trackCalculate}
+            onTouchEnd={trackCalculate}
           />
           <S.SliderValue $value={engineers}>{engineers}</S.SliderValue>
         </S.SliderContainer>
@@ -52,6 +69,8 @@ const CostSavingsCalculator = () => {
           <S.Slider
             value={microservices}
             onChange={(e) => setMicroservices(parseInt(e.target.value))}
+            onMouseUp={trackCalculate}
+            onTouchEnd={trackCalculate}
           />
           <S.SliderValue role="presentation" $value={microservices}>
             {microservices}
