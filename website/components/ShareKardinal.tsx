@@ -54,82 +54,85 @@ Might be worth checking out to see if it aligns with our needs: https://github.c
   const mailtoLink = `mailto:?subject=Check out Kardinal&body=${encodeURI(plainTextBody)}`;
 
   return (
-    <Section>
-      <S.ShareKardinal>
-        <S.Content>
-          <Heading.H2>
-            Want to share <em>Kardinal</em>
-            <br data-desktop /> with your team?
-          </Heading.H2>
-          <Text.Base>
-            Copy the following message to send it on slack,
-            <br data-desktop /> teams, or paste it into an email!
-          </Text.Base>
-          <S.ButtonWrapper>
-            <Button.Primary
-              analyticsId="button_calculator_share_email"
-              iconLeft={<FiSend />}
-              size="lg"
-              href={mailtoLink}
-            >
-              Send via email
-            </Button.Primary>
-            <Button.Tertiary
-              analyticsId="button_calculator_share_copy"
-              iconRight={
-                isCopied ? undefined : (
-                  <FiCopy color="var(--brand-secondary)" size={18} />
-                )
-              }
-              onClick={handleCopy}
-            >
-              {isCopied ? "Copied!" : "Copy message content"}
-            </Button.Tertiary>
-          </S.ButtonWrapper>
-        </S.Content>
-        <S.MessageWrapper>
-          <S.Message>
-            <S.MessageContent ref={messageRef}>
-              Hey, <br />I came across a dev tool called Kardinal that could
-              help reduce maintenance overhead and cost with our current dev and
-              test environment setup. Their savings calculator shows{" "}
-              <em>{savingsPercent}% savings</em> with{" "}
-              <b>{engineers} engineers</b> and{" "}
-              <b>{microservices} microservices</b>
-              .
-              <br />A few interesting callouts:
-              <ul>
-                <li>
-                  You can spin up multiple ephemeral environments within a
-                  single cluster.
-                </li>
-                <li>
-                  It only deploys services you’re working on, and reuses the
-                  rest.
-                </li>
-                <li>Works with stateless and stateful services.</li>
-              </ul>
-              Might be worth checking out to see if it aligns with our needs:{" "}
-              <a href="https://github.com/kurtosis-tech/kardinal">
-                https://github.com/kurtosis-tech/kardinal
-              </a>
-            </S.MessageContent>
-            <S.BottomGradient />
-            <S.WindowButtons>
-              <S.WindowButton />
-              <S.WindowButton />
-              <S.WindowButton />
-            </S.WindowButtons>
-            <S.ShareArrowImage
-              src="/illustrations/share-arrow.svg"
-              alt="Arrow pointing to the message with a slack and microsoft teams logo"
-              width={235}
-              height={228}
-            />
-          </S.Message>
-        </S.MessageWrapper>
-      </S.ShareKardinal>
-    </Section>
+    <>
+      <Section noPadBottomMobile>
+        <S.ShareKardinal>
+          <S.Content>
+            <Heading.H2>
+              Want to share <em>Kardinal</em>
+              <br data-desktop /> with your team?
+            </Heading.H2>
+            <Text.Base>
+              Copy the following message to send it on slack,
+              <br data-desktop /> teams, or paste it into an email!
+            </Text.Base>
+            <S.ButtonWrapper>
+              <Button.Primary
+                analyticsId="button_calculator_share_email"
+                iconLeft={<FiSend />}
+                size="lg"
+                href={mailtoLink}
+              >
+                Send via email
+              </Button.Primary>
+              <Button.Tertiary
+                analyticsId="button_calculator_share_copy"
+                iconRight={
+                  isCopied ? undefined : (
+                    <FiCopy color="var(--brand-secondary)" size={18} />
+                  )
+                }
+                onClick={handleCopy}
+              >
+                {isCopied ? "Copied!" : "Copy message content"}
+              </Button.Tertiary>
+            </S.ButtonWrapper>
+          </S.Content>
+          <S.MessageWrapper>
+            <S.Message>
+              <S.MessageContent ref={messageRef}>
+                Hey, <br />I came across a dev tool called Kardinal that could
+                help reduce maintenance overhead and cost with our current dev
+                and test environment setup. Their savings calculator shows{" "}
+                <em>{savingsPercent}% savings</em> with{" "}
+                <b>{engineers} engineers</b> and{" "}
+                <b>{microservices} microservices</b>
+                .
+                <br />A few interesting callouts:
+                <ul>
+                  <li>
+                    You can spin up multiple ephemeral environments within a
+                    single cluster.
+                  </li>
+                  <li>
+                    It only deploys services you’re working on, and reuses the
+                    rest.
+                  </li>
+                  <li>Works with stateless and stateful services.</li>
+                </ul>
+                Might be worth checking out to see if it aligns with our needs:{" "}
+                <a href="https://github.com/kurtosis-tech/kardinal">
+                  https://github.com/kurtosis-tech/kardinal
+                </a>
+              </S.MessageContent>
+              <S.BottomGradient />
+              <S.WindowButtons>
+                <S.WindowButton />
+                <S.WindowButton />
+                <S.WindowButton />
+              </S.WindowButtons>
+              <S.ShareArrowImage
+                src="/illustrations/share-arrow.svg"
+                alt="Arrow pointing to the message with a slack and microsoft teams logo"
+                width={235}
+                height={228}
+              />
+            </S.Message>
+          </S.MessageWrapper>
+        </S.ShareKardinal>
+      </Section>
+      <S.SectionDivider />
+    </>
   );
 };
 
@@ -162,6 +165,11 @@ const S = {
     padding: 24px 24px 0 24px;
     margin-right: -72px;
     width: 688px;
+
+    @media ${mobile} {
+      width: 100%;
+      padding: 16px 16px 0 16px;
+    }
   `,
 
   Message: styled.div`
@@ -175,6 +183,10 @@ const S = {
     line-height: 26px; /* 162.5% */
     width: 100%;
     position: relative;
+
+    @media ${mobile} {
+      line-height: 20px;
+    }
 
     ul {
       margin-left: 24px;
@@ -223,7 +235,7 @@ const S = {
     top: -132px;
     left: -208px;
 
-    @media ${mobile} {
+    @media ${tablet} {
       display: none;
     }
   `,
@@ -231,10 +243,33 @@ const S = {
   ButtonWrapper: styled.div`
     display: flex;
     gap: 24px;
+    @media ${mobile} {
+      flex-direction: column;
+      align-items: flex-start;
+    }
   `,
 
   // dummy wrapper for copying content
-  MessageContent: styled.div``,
+  MessageContent: styled.div`
+    @media ${mobile} {
+      font-size: 14px;
+    }
+  `,
+
+  SectionDivider: styled.div`
+    height: 1px;
+    width: 100%;
+    max-width: 1440px;
+    margin: 0 auto;
+    background: linear-gradient(
+      90deg,
+      rgba(254, 189, 58, 0) 0.88%,
+      rgba(254, 189, 58, 0) 6.77%,
+      #febd3a 42.33%,
+      #fca061 65.81%,
+      rgba(252, 160, 97, 0) 100%
+    );
+  `,
 };
 
 export default ShareKardinal;
