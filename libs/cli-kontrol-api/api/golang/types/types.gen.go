@@ -7,6 +7,7 @@ import (
 	appv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
+	gateway "sigs.k8s.io/gateway-api/apis/v1"
 )
 
 // Defines values for NodeType.
@@ -47,6 +48,11 @@ type FlowSpec = []struct {
 	ServiceName  string `json:"service-name"`
 }
 
+// GatewayConfig defines model for GatewayConfig.
+type GatewayConfig struct {
+	Gateway gateway.Gateway `json:"gateway"`
+}
+
 // IngressConfig defines model for IngressConfig.
 type IngressConfig struct {
 	Ingress networkingv1.Ingress `json:"ingress"`
@@ -54,8 +60,10 @@ type IngressConfig struct {
 
 // MainClusterConfig defines model for MainClusterConfig.
 type MainClusterConfig struct {
+	GatewayConfigs *[]GatewayConfig `json:"gateway-configs,omitempty"`
 	IngressConfigs *[]IngressConfig `json:"ingress-configs,omitempty"`
 	Namespace      *string          `json:"namespace,omitempty"`
+	RouteConfigs   *[]RouteConfig   `json:"route-configs,omitempty"`
 	ServiceConfigs *[]ServiceConfig `json:"service-configs,omitempty"`
 }
 
@@ -79,6 +87,11 @@ type Node struct {
 
 // NodeType Type of the node
 type NodeType string
+
+// RouteConfig defines model for RouteConfig.
+type RouteConfig struct {
+	HttpRoute gateway.HTTPRoute `json:"httpRoute"`
+}
 
 // ServiceConfig defines model for ServiceConfig.
 type ServiceConfig struct {

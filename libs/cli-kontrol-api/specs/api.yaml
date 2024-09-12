@@ -180,11 +180,11 @@ paths:
       parameters:
         - $ref: "#/components/parameters/uuid"
       responses:
-        '500':
+        "500":
           $ref: "#/components/responses/Error"
-        '404':
+        "404":
           $ref: "#/components/responses/NotFound"
-        '200':
+        "200":
           description: Successful response
           content:
             application/x-yaml:
@@ -242,7 +242,6 @@ components:
       schema:
         type: string
 
-
     template-name:
       name: template-name
       in: path
@@ -263,6 +262,14 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/IngressConfig"
+        gateway-configs:
+          type: array
+          items:
+            $ref: "#/components/schemas/GatewayConfig"
+        route-configs:
+          type: array
+          items:
+            $ref: "#/components/schemas/RouteConfig"
         namespace:
           type: string
 
@@ -423,3 +430,25 @@ components:
             name: networkingv1
       required:
         - ingress
+
+    GatewayConfig:
+      type: object
+      properties:
+        gateway:
+          x-go-type: gateway.Gateway
+          x-go-type-import:
+            path: sigs.k8s.io/gateway-api/apis/v1
+            name: gateway
+      required:
+        - gateway
+
+    RouteConfig:
+      type: object
+      properties:
+        httpRoute:
+          x-go-type: gateway.HTTPRoute
+          x-go-type-import:
+            path: sigs.k8s.io/gateway-api/apis/v1
+            name: gateway
+      required:
+        - httpRoute

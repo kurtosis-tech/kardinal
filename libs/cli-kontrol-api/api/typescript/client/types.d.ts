@@ -220,6 +220,8 @@ export interface components {
     MainClusterConfig: {
       "service-configs"?: components["schemas"]["ServiceConfig"][];
       "ingress-configs"?: components["schemas"]["IngressConfig"][];
+      "gateway-configs"?: components["schemas"]["GatewayConfig"][];
+      "route-configs"?: components["schemas"]["RouteConfig"][];
       namespace?: string;
     };
     Flow: {
@@ -284,6 +286,12 @@ export interface components {
     };
     IngressConfig: {
       ingress: unknown;
+    };
+    GatewayConfig: {
+      gateway: unknown;
+    };
+    RouteConfig: {
+      httpRoute: unknown;
     };
   };
   responses: {
