@@ -1,6 +1,6 @@
 import Collapsible from '@/components/Collapsible';
 
-# Create your first flow
+# Use Kardinal with your own application
 
 Getting started takes just a few minutes, assuming you have [installed Kardinal](./getting-started/install) already. This guide will walk you through the steps to get started:
 
@@ -10,7 +10,11 @@ Getting started takes just a few minutes, assuming you have [installed Kardinal]
 
 ### Prerequisites
 
-To use Kardinal with your application, you'll first need to [install Kardinal](./getting-started/install).
+To use Kardinal with your application, you will need a development Kubernetes cluster with Istio installed.
+
+It's not important that your production cluster use Istio - Kardinal will manage everything related to Istio on this development cluster, and your application should work just fine.
+
+Then, you'll need to install the Kardinal CLI and deploy the Kardinal Manager on your application, as described in the [install Kardinal guide](./getting-started/install) 
 
 Then, make sure your application is using distributed tracing. Kardinal uses your trace IDs to route requests between different development versions of services to implement logical environment isolation.
 
