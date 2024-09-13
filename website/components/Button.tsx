@@ -4,6 +4,7 @@ import { ButtonHTMLAttributes, ReactElement, useEffect, useState } from "react";
 import { BiCheck, BiLogoGithub } from "react-icons/bi";
 import styled, { css, keyframes } from "styled-components";
 
+import { mobile } from "@/constants/breakpoints";
 import analytics from "@/lib/analytics";
 
 interface StyledProps {
@@ -67,6 +68,7 @@ const primaryButtonStyles = css<StyledProps>`
   flex-shrink: 0;
 
   &:hover:not(:disabled) {
+    opacity: 0.8;
     transform: translateY(-2px);
     border: none;
     color: var(--white-100);
@@ -95,24 +97,33 @@ const secondaryButtonStyles = css<StyledProps>`
   align-items: center;
   justify-content: center;
   gap: 4px;
-  font-size: 16px;
+  font-size: 21px;
   font-style: normal;
-  font-weight: 500;
-  line-height: 28px; /* 175% */
+  font-weight: 400;
+  line-height: 28px;
   transform: translateY(0);
   transition: all 0.2s ease-in-out;
   font-family: inherit;
 
   &:hover:not(:disabled) {
-    opacity: 0.8;
     transform: translateY(-2px);
     cursor: pointer;
+    color: var(--brand-secondary);
+  }
+
+  @media ${mobile} {
+    font-size: 16px;
+    line-height: 24px;
   }
 `;
 
 const tertiaryButtonStyles = css<StyledProps>`
   ${secondaryButtonStyles}
   color: var(--gray-dark);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 28px;
+  font-style: normal;
 
   &:hover {
     color: var(--brand-primary);
@@ -240,7 +251,7 @@ const ButtonImpl = ({
       }}
     >
       {variant === "codespaces" && <BiLogoGithub size={24} />}
-      {iconLeft == null && <TextSpacer />}
+      {iconLeft == null && variant === "primary" && <TextSpacer />}
       {iconLeft != null && (
         <ButtonIconImpl
           size={size}
@@ -260,7 +271,7 @@ const ButtonImpl = ({
           variant={variant}
         />
       )}
-      {iconRight == null && <TextSpacer />}
+      {iconRight == null && variant === "primary" && <TextSpacer />}
     </Component>
   );
 };

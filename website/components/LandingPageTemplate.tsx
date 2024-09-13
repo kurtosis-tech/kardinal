@@ -2,16 +2,17 @@ import { ReactNode } from "react";
 import { FiCalendar } from "react-icons/fi";
 
 import { ButtonPrimary } from "@/components/Button";
+import CodeBlock from "@/components/CodeBlock";
 import Content from "@/components/Content";
 import CTA from "@/components/CTA";
 import CTAButtons from "@/components/CTAButtons";
 import CTASmall from "@/components/CTASmall";
+import GetStarted from "@/components/GetStarted";
 import SavingsSection from "@/components/SavingsSection";
+import Spacer from "@/components/Spacer";
 import { TextBase } from "@/components/Text";
 import VideoStepper from "@/components/VideoStepper";
 // assets
-import architectureDiagram from "@/public/illustrations/architecture-diagram.svg";
-import architectureDiagramMobile from "@/public/illustrations/architecture-diagram-mobile.svg";
 import trafficFlow from "@/public/illustrations/traffic-flow.svg";
 import trafficFlowMobile from "@/public/illustrations/traffic-flow-mobile.svg";
 
@@ -72,28 +73,19 @@ const LandingPageTemplate = ({
           "Kardinal uses traffic flow controls and a data isolation layer to protect production while you're developing:"}
       </VideoStepper>
 
+      <div id="get-started" />
       <Content
         contrast
         column
         padTop
         padBottom
         fullWidth
-        heading={
-          <>
-            Easy to install,{" "}
-            <em>
-              easy to uninstall <br data-desktop />
-            </em>
-          </>
-        }
+        heading={null}
         buttonText={null}
         buttonAnalyticsId={null}
-        fullWidthImageUrl={architectureDiagram}
-        mobileFullWidthImageUrl={architectureDiagramMobile}
+        childrenWrapper="div"
       >
-        Kardinal integrates with your existing distributed tracing, and will
-        handle the heavy lifting of configuring a service mesh for traffic
-        routing for you.
+        <GetStarted />
       </Content>
 
       <SavingsSection />

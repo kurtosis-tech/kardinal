@@ -7,7 +7,7 @@ import styled from "styled-components";
 import Heading from "@/components/Heading";
 import Section from "@/components/Section";
 import Text from "@/components/Text";
-import { tablet } from "@/constants/breakpoints";
+import { mobile, tablet } from "@/constants/breakpoints";
 import analytics from "@/lib/analytics";
 
 const INITIAL_ENGINEERS = 20;
@@ -99,6 +99,10 @@ namespace S {
     text-align: center;
     max-width: 827px;
     margin: 0 auto;
+
+    @media ${mobile} {
+      padding-top: 48px;
+    }
   `;
 
   export const CalculatorPlaceholder = styled.div`
