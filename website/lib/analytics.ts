@@ -79,6 +79,8 @@ interface Payload {
   // CALCULATE payload
   numEngineers?: number;
   numServices?: number;
+  costInterval?: string;
+  resourceRequirement?: string;
 
   // FORM_SUBMIT payload
   formType?: string; // which form is the user submitting

@@ -4,13 +4,14 @@ import styled from "styled-components";
 
 import { ButtonPrimary, ButtonTertiary } from "@/components/Button";
 import { mobile } from "@/constants/breakpoints";
+import { calendlyDemoUrl } from "@/constants/urls";
 
 const CTAButtons = () => {
   return (
     <S.CTAButtons>
       <ButtonPrimary
         analyticsId="button_hero_get_demo"
-        href="https://calendly.com/d/cqhd-tgj-vmc/45-minute-meeting"
+        href={calendlyDemoUrl}
         rel="noopener noreferrer"
         target="_blank"
         iconLeft={<FiCalendar size={18} />}

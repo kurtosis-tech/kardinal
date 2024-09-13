@@ -10,9 +10,15 @@ on:
       - main
     tags:
       - "v*.*.*"
+    paths-ignore:
+      - "website/**"
+      - "**/README.md"
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - "website/**"
+      - "**/README.md"
 
 jobs:
   e2e_tests:
@@ -172,3 +178,26 @@ jobs:
       - name: Delete template
         run: |
           KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli template delete extra-item-shared
+
+      - name: Delete base topology and dev flows
+        run: |
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow delete prod > kardinal.out
+          cat kardinal.out
+          if KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow ls | grep prod; then echo "Topologies not deleted"; exit 1; fi
+          
+          # Check that the services have been terminated
+          while [ "$(kubectl get pods -n prod 2>&1 >/dev/null)" != "No resources found in prod namespace." ]
+          do
+              echo "Waiting for the services to terminate..."
+              kubectl get pods -n prod
+              ((c++)) && ((c==12)) && exit 1
+              sleep 10
+          done
+          kubectl get pods -n prod
+          
+          # Check for errors in the kardinal manager logs
+          if kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep "ERRO"
+          then
+            echo "Errors found in the kardinal manager"
+            kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep "ERRO"
+          fi

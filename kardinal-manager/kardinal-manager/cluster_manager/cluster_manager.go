@@ -285,6 +285,12 @@ func (manager *ClusterManager) CleanUpClusterResources(ctx context.Context, clus
 	servicesByNS := lo.GroupBy(*clusterResources.Services, func(item corev1.Service) string {
 		return item.Namespace
 	})
+	if len(servicesByNS) == 0 {
+		// There are no resources to apply so we attempt to clear resources in the namespace set in the dummy gateway
+		// sent by the kontrol service.  This happens when the tenant has no base cluster topology; no initial deploy
+		// or the topologies have been deleted.
+		servicesByNS[clusterResources.Gateway.GetNamespace()] = []corev1.Service{}
+	}
 	for namespace, services := range servicesByNS {
 		if err := manager.cleanUpServicesInNamespace(ctx, namespace, services); err != nil {
 			return stacktrace.Propagate(err, "An error occurred cleaning up services '%+v' in namespace '%s'", services, namespace)
@@ -293,6 +299,9 @@ func (manager *ClusterManager) CleanUpClusterResources(ctx context.Context, clus
 
 	// Clean up deployments
 	deploymentsByNS := lo.GroupBy(*clusterResources.Deployments, func(item appsv1.Deployment) string { return item.Namespace })
+	if len(deploymentsByNS) == 0 {
+		deploymentsByNS[clusterResources.Gateway.GetNamespace()] = []appsv1.Deployment{}
+	}
 	for namespace, deployments := range deploymentsByNS {
 		if err := manager.cleanUpDeploymentsInNamespace(ctx, namespace, deployments); err != nil {
 			return stacktrace.Propagate(err, "An error occurred cleaning up deployments '%+v' in namespace '%s'", deployments, namespace)
@@ -301,6 +310,9 @@ func (manager *ClusterManager) CleanUpClusterResources(ctx context.Context, clus
 
 	// Clean up virtual services
 	virtualServicesByNS := lo.GroupBy(*clusterResources.VirtualServices, func(item v1alpha3.VirtualService) string { return item.Namespace })
+	if len(virtualServicesByNS) == 0 {
+		virtualServicesByNS[clusterResources.Gateway.GetNamespace()] = []v1alpha3.VirtualService{}
+	}
 	for namespace, virtualServices := range virtualServicesByNS {
 		if err := manager.cleanUpVirtualServicesInNamespace(ctx, namespace, virtualServices); err != nil {
 			return stacktrace.Propagate(err, "An error occurred cleaning up virtual services '%+v' in namespace '%s'", virtualServices, namespace)
@@ -311,6 +323,9 @@ func (manager *ClusterManager) CleanUpClusterResources(ctx context.Context, clus
 	destinationRulesByNS := lo.GroupBy(*clusterResources.DestinationRules, func(item v1alpha3.DestinationRule) string {
 		return item.Namespace
 	})
+	if len(destinationRulesByNS) == 0 {
+		destinationRulesByNS[clusterResources.Gateway.GetNamespace()] = []v1alpha3.DestinationRule{}
+	}
 	for namespace, destinationRules := range destinationRulesByNS {
 		if err := manager.cleanUpDestinationRulesInNamespace(ctx, namespace, destinationRules); err != nil {
 			return stacktrace.Propagate(err, "An error occurred cleaning up destination rules '%+v' in namespace '%s'", destinationRules, namespace)
@@ -332,6 +347,9 @@ func (manager *ClusterManager) CleanUpClusterResources(ctx context.Context, clus
 		envoyFiltersByNS := lo.GroupBy(*clusterResources.EnvoyFilters, func(item v1alpha3.EnvoyFilter) string {
 			return item.Namespace
 		})
+		if len(envoyFiltersByNS) == 0 {
+			envoyFiltersByNS[clusterResources.Gateway.GetNamespace()] = []v1alpha3.EnvoyFilter{}
+		}
 		for namespace, envoyFilters := range envoyFiltersByNS {
 			if err := manager.cleanupEnvoyFiltersInNamespace(ctx, namespace, envoyFilters); err != nil {
 				return stacktrace.Propagate(err, "An error occurred cleaning up envoy filters '%+v' in namespace '%s'", envoyFilters, namespace)
@@ -344,6 +362,9 @@ func (manager *ClusterManager) CleanUpClusterResources(ctx context.Context, clus
 		authorizationPoliciesByNS := lo.GroupBy(*clusterResources.AuthorizationPolicies, func(item securityv1beta1.AuthorizationPolicy) string {
 			return item.Namespace
 		})
+		if len(authorizationPoliciesByNS) == 0 {
+			authorizationPoliciesByNS[clusterResources.Gateway.GetNamespace()] = []securityv1beta1.AuthorizationPolicy{}
+		}
 		for namespace, authorizationPolicies := range authorizationPoliciesByNS {
 			if err := manager.cleanupAuthorizationPoliciesInNamespace(ctx, namespace, authorizationPolicies); err != nil {
 				return stacktrace.Propagate(err, "An error occurred cleaning up authorization policies '%+v' in namespace '%s'", authorizationPolicies, namespace)

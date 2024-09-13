@@ -4,11 +4,12 @@ import Calculator from "@/components/Calculator";
 import CTA from "@/components/CTA";
 import CTADemo from "@/components/CTADemo";
 import SavingsGraph from "@/components/SavingsGraph";
+import ShareKardinal from "@/components/ShareKardinal";
 import Spacer from "@/components/Spacer";
 import { TextBase } from "@/components/Text";
 
 export const metadata: Metadata = {
-  title: "Kardinal | Calculator",
+  title: "Kardinal | Savings Calculator",
   description: "Calculate exactly how much your team could save with Kardinal",
 };
 
@@ -37,6 +38,8 @@ const Page = () => {
       <Spacer height={48} />
 
       <SavingsGraph />
+
+      <ShareKardinal />
 
       <CTADemo />
     </>

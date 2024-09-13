@@ -29,7 +29,7 @@ import (
 const (
 	namespace           = "istio-system"
 	service             = "istio-ingressgateway"
-	localPortForIstio   = 9080
+	localPortForIstio   = 61000
 	istioGatewayPodPort = 8080
 	proxyPortRangeStart = 59000
 	proxyPortRangeEnd   = 60000

@@ -3,20 +3,22 @@
 
 ## What is Kardinal?
 
-Kardinal is a framework for creating extremely lightweight ephemeral development environments within a shared Kubernetes cluster. In Kardinal, an environment is called a "[flow](https://kardinal.dev/docs/concepts/flows)" because it represents a path that a request takes through the cluster. Versions of services that are under development are deployed on-demand, and then shared across all development work that depends on that version. Read more about Kardinal in our [docs](https://kardinal.dev/docs).
+Kardinal is an open-source framework for creating extremely lightweight ephemeral development environments within a shared Kubernetes cluster. Between dev environments, Kardinal shares every microservice or database that can be feasibly be shared, optimizing for cloud costs and fast spin-up/tear-down. To see how much you would save using Kardinal for your particular architecture, check out the [cost saving calculator](https://kardinal.dev/calculator).
+
+In Kardinal, an environment is called a "[flow](https://kardinal.dev/docs/concepts/flows)" because it represents a path that a request takes through the cluster. Versions of services that are under development are deployed on-demand, and then shared across all development work that depends on that version. Read more about Kardinal in our [docs](https://kardinal.dev/docs).
 
 https://github.com/user-attachments/assets/3b4316f7-9f08-4dfa-8ea5-f66e76e01012
 
 ### Why choose Kardinal?
 - **Ephemeral Environments**: Spin up a new environment exactly when you need it, and just as quickly spin it down when you’re done.
 - **Minimal Resource Usage**: Only deploy the services you’re actively working on. Kardinal takes care of the rest, so you don’t waste resources.
-- **Stateless & Stateful**: Works for services backed up by persistant storage so you can connect to all of your favorite databases.
-- **Flexible Flow Types**: Whether you need to test a single service or an entire application, Kardinal has you covered:
+- **Flexible Environment Types**: Whether you need to test a single service or an entire application, Kardinal has you covered:
     - Single-Service Flows: Perfect for when you’re tweaking just one service.
     - Multi-Service Flows: Ideal for when your feature involves multiple services.
-    - State-Isolated Flows: Great for features that need their own databases or caches.
+    - State-Isolated Flows: Great for features that need their own isolated databases or caches.
     - Full Application Flows: For those times when you need end-to-end testing with full isolation.
-- **Cost Savings**: Kardinal can help you save big by avoiding unnecessary resource duplication. It’s a game-changer for teams looking to cut costs. Check out [this calculator](https://kardinal.streamlit.app) to run your own calculations.
+- **Cost Savings**: Kardinal can help you save big by avoiding unnecessary resource duplication. It’s a game-changer for teams looking to cut costs. Check out [this calculator](https://kardinal.dev/calculator) to run your own calculations.
+- **Open Source**: Kardinal is open source, so use it however fits best within your workflows
 
 ### Want a demo?
 Sign-up for a free demo of Kardinal below 👇
@@ -40,6 +42,7 @@ Make sure that kubectl is pointing to your cluster, and then run the following c
 kardinal manager deploy kloud-kontrol
 ```
 Once installed check out our docs on [creating your first flow](https://kardinal.dev/docs/getting-started/own-app).
+
 ## Try it out in a Playground
 
 We have a playground that runs in Github Codespaces so you can try Kardinal right now without installing anything. Click below to open a Codespace with the playground. The default settings for the Codespace will work just fine.

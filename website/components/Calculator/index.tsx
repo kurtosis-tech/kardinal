@@ -1,15 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import styled from "styled-components";
 
 import Section from "@/components/Section";
-import { ResourceRequirement } from "@/constants/calculator";
 import {
   CostInterval,
   useCalculatorContext,
-} from "@/context/CalcualtorContext";
-import analytics from "@/lib/analytics";
+} from "@/context/CalculatorContext";
 
 import Spacer from "../Spacer";
 
@@ -22,15 +19,6 @@ const WORKING_HOURS_PER_COST_INTERVAL: Record<CostInterval, number> = {
   Year: 1920, // 48 working weeks per year
 };
 
-const HOURLY_COST_PER_RESOURCE_REQUIREMENT: Record<
-  ResourceRequirement,
-  number
-> = {
-  [ResourceRequirement.MICRO]: 0.0116,
-  [ResourceRequirement.SMALL]: 0.023,
-  [ResourceRequirement.MEDIUM]: 0.0464,
-};
-
 const currencyFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
@@ -39,51 +27,23 @@ const currencyFormatter = new Intl.NumberFormat("en-US", {
 });
 
 const Calculator = () => {
-  const { engineers, microservices, resourceRequirement, costInterval } =
+  const { costInterval, costBefore, costAfter, savings, savingsPercent } =
     useCalculatorContext();
-
-  const costPerServiceHour =
-    HOURLY_COST_PER_RESOURCE_REQUIREMENT[resourceRequirement];
-
-  const calculateCostBefore = () =>
-    microservices * engineers * costPerServiceHour;
-  const calculateCostAfter = () =>
-    (microservices + engineers) * costPerServiceHour;
-  const calculateSavings = () => calculateCostBefore() - calculateCostAfter();
-
-  // Use copies of state values so numbers only change when calculate button is clicked
-  const [costBefore, setCostBefore] = useState<number>(calculateCostBefore());
-  const [costAfter, setCostAfter] = useState<number>(calculateCostAfter());
-  const [savings, setSavings] = useState<number>(calculateSavings());
-  const [interval, setInterval] = useState<CostInterval>(costInterval);
-
-  // only update values when user clicks calculate
-  const handleCalculate = () => {
-    setCostBefore(calculateCostBefore());
-    setCostAfter(calculateCostAfter());
-    setSavings(calculateSavings());
-    setInterval(costInterval);
-
-    analytics.track("CALCULATE", {
-      numEngineers: engineers,
-      numServices: microservices,
-    });
-  };
 
   return (
     <Section>
       <S.Title>
         {"put in your organization numbers to see cost savings 👇🏻"}
       </S.Title>
-      <CalculatorInputs onCalculate={handleCalculate} />
+      <CalculatorInputs />
       <CardGroup>
         <Card
           title="Your costs before"
           values={[
             {
-              label: `Services cost before (per ${interval.toLowerCase()})`,
+              label: `Services cost before (per ${costInterval.toLowerCase()})`,
               value: currencyFormatter.format(
-                costBefore * WORKING_HOURS_PER_COST_INTERVAL[interval],
+                costBefore * WORKING_HOURS_PER_COST_INTERVAL[costInterval],
               ),
             },
             {
@@ -96,9 +56,9 @@ const Calculator = () => {
           title="Your costs after"
           values={[
             {
-              label: `Services cost after (per ${interval.toLowerCase()})`,
+              label: `Services cost after (per ${costInterval.toLowerCase()})`,
               value: currencyFormatter.format(
-                costAfter * WORKING_HOURS_PER_COST_INTERVAL[interval],
+                costAfter * WORKING_HOURS_PER_COST_INTERVAL[costInterval],
               ),
             },
             {
@@ -113,12 +73,12 @@ const Calculator = () => {
           values={[
             {
               label: "Percentage of previous cloud costs saved",
-              value: 100 - Math.round((costAfter / costBefore) * 100) + "%",
+              value: `${savingsPercent}%`,
             },
             {
-              label: `Cost savings per ${interval.toLowerCase()}*`,
+              label: `Cost savings per ${costInterval.toLowerCase()}*`,
               value: currencyFormatter.format(
-                savings * WORKING_HOURS_PER_COST_INTERVAL[interval],
+                savings * WORKING_HOURS_PER_COST_INTERVAL[costInterval],
               ),
             },
           ]}

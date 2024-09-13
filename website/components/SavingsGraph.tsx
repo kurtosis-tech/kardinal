@@ -13,7 +13,7 @@ import savingsGraphImg from "@/public/illustrations/savings-graph.svg";
 
 const SavingsGraph = () => {
   return (
-    <Section padTop padBottom>
+    <Section>
       <S.SavingsGraph>
         <Image
           src={savingsGraphImg}
@@ -22,12 +22,11 @@ const SavingsGraph = () => {
         />
         <S.Content>
           <Heading.H2>
-            Don&apos;t duplicate - <em>consolidate</em> your pre-production
-            clusters.
+            Savings that <em>scale up</em> alongside your team.
           </Heading.H2>
           <Text.Base>
-            Replace your dev sandboxes with Kardinal and get easier DX and lower
-            costs.
+            Kardinal dev sandboxes improve both your <br data-desktop />
+            team’s DX and your infra savings as you grow.
           </Text.Base>
           <div>
             <ButtonPrimary
@@ -39,10 +38,11 @@ const SavingsGraph = () => {
             </ButtonPrimary>
           </div>
         </S.Content>
+        <small>
+          * Graph values are approximate. Based on use case with 20
+          microservices.
+        </small>
       </S.SavingsGraph>
-      <small>
-        * Graph values are approximate. Based on use case with 20 microservices.
-      </small>
     </Section>
   );
 };
@@ -52,9 +52,11 @@ namespace S {
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-gap: 64px;
-    margin-bottom: 24px;
+    padding: 100px 0;
+
     @media ${tablet} {
       grid-template-columns: 1fr;
+      padding: 64px 0;
     }
   `;
 
