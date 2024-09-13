@@ -13,7 +13,7 @@ paths:
       responses:
         default:
           $ref: "#/components/responses/NotOk"
-        '200':
+        "200":
           description: Successful response
           content:
             application/json:
@@ -92,11 +92,20 @@ components:
             x-go-type-import:
               path: istio.io/client-go/pkg/apis/networking/v1alpha3
               name: v1alpha3
-        gateway:
-          x-go-type: v1alpha3.Gateway
-          x-go-type-import:
-            path: istio.io/client-go/pkg/apis/networking/v1alpha3
-            name: v1alpha3
+        gateways:
+          type: array
+          items:
+            x-go-type: gateway.Gateway
+            x-go-type-import:
+              path: sigs.k8s.io/gateway-api/apis/v1
+              name: gateway
+        http_routes:
+          type: array
+          items:
+            x-go-type: gateway.HTTPRoute
+            x-go-type-import:
+              path: sigs.k8s.io/gateway-api/apis/v1
+              name: gateway
         envoy_filters:
           type: array
           items:

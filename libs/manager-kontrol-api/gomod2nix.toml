@@ -500,8 +500,8 @@ schema = 3
     version = "v0.126.0"
     hash = "sha256-G/J0Aba+S35gE7VevU2WrrbwQRsJCSj14DVSLTqz0vE="
   [mod."google.golang.org/appengine"]
-    version = "v1.6.8"
-    hash = "sha256-decMa0MiWfW/Bzr8QPPzzpeya0YWGHhZAt4Cr/bD1wQ="
+    version = "v1.6.7"
+    hash = "sha256-zIxGRHiq4QBvRqkrhMGMGCaVL4iM4TtlYpAi/hrivS4="
   [mod."google.golang.org/genproto"]
     version = "v0.0.0-20230530153820-e85fd2cbaebc"
     hash = "sha256-xuUQD0+WiF+LGKhQCCwaA5WKlZz6EG9WhClfEonHedk="
