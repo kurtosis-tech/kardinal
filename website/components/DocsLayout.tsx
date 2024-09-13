@@ -139,21 +139,6 @@ namespace S {
       color: var(--brand-primary);
     }
 
-    pre {
-      background-color: var(--gray-bg) !important;
-    }
-
-    code {
-      line-height: 1.6;
-      font-size: 14px;
-      font-style: normal;
-      font-weight: 400;
-
-      @media ${mobile} {
-        font-size: 14px;
-      }
-    }
-
     video {
       max-width: 100%;
       height: auto;

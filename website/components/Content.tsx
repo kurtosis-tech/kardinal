@@ -27,6 +27,7 @@ interface BaseProps {
   reverse?: boolean;
   style?: CSSProperties;
   negativeTopOffset?: boolean;
+  childrenWrapper?: "div";
 }
 
 type Props = PropsWithChildren<
@@ -38,7 +39,7 @@ type PropsWithButton = PropsWithChildren<
 
 const Content = ({
   buttonAnalyticsId,
-  buttonText = "See how",
+  buttonText = "Read the docs",
   centered,
   children,
   column,
@@ -54,7 +55,10 @@ const Content = ({
   reverse,
   style,
   negativeTopOffset,
+  childrenWrapper,
 }: Props | PropsWithButton) => {
+  const ChildrenWrapper = childrenWrapper ?? Text.Base;
+
   return (
     <Section
       contrast={contrast}
@@ -96,17 +100,17 @@ const Content = ({
           />
         )}
         <S.Container $fullWidth={fullWidth} $centered={centered}>
-          <Heading.H2>{heading}</Heading.H2>
-          <Text.Base>{children}</Text.Base>
+          {heading != null && <Heading.H2>{heading}</Heading.H2>}
+          <ChildrenWrapper>{children}</ChildrenWrapper>
           {buttonText && (
             <S.ButtonWrapper>
-              <Button.Tertiary
+              <Button.Secondary
                 analyticsId={buttonAnalyticsId || "button_see_how"}
                 href="/docs"
                 iconRight={<BiRightArrowAlt size={20} />}
               >
                 {buttonText}
-              </Button.Tertiary>
+              </Button.Secondary>
             </S.ButtonWrapper>
           )}
         </S.Container>
@@ -196,7 +200,7 @@ namespace S {
     justify-content: flex-end;
     padding-bottom: 48px;
     gap: 24px;
-    max-width: ${(props) => (props.$fullWidth ? "843px" : "617px")};
+    max-width: ${(props) => (props.$fullWidth ? "100%" : "617px")};
     text-align: ${(props) => (props.$centered ? "center" : "left")};
     padding-left: ${(props) => (props.$fullWidth ? "104px" : "0px")};
 
@@ -205,7 +209,7 @@ namespace S {
       padding-left: 0px;
       text-align: center;
       width: 100%;
-      max-width: 420px;
+      max-width: ${(props) => (props.$fullWidth ? "100%" : "420px")};
       justify-content: center;
     }
 
