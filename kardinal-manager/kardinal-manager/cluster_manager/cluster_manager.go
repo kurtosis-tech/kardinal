@@ -92,6 +92,7 @@ type ClusterManager struct {
 	istioClient      *istioClient
 }
 
+// TODO could we explore merging this package with the kardinal-cli.kubernetes into a new library?
 func NewClusterManager(kubernetesClient *kubernetesClient, istioClient *istioClient) *ClusterManager {
 	return &ClusterManager{kubernetesClient: kubernetesClient, istioClient: istioClient}
 }

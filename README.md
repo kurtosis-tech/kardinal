@@ -266,20 +266,16 @@ Example:
 ```shell
 telepresence helm install --set trafficManager.serviceMesh.type=istio 
 ```
-2- Connect Telepresence to the namespace where Kardinal deployed the application
-```shell
-telepresence connect -n prod 
-```
-3- Create a dev flow with `Kardinal`.
+2- Create a dev flow with `Kardinal`.
 ```shell
 kardinal flow create frontend kurtosistech/frontend:demo-on-sale
 ```
-4- Take note of the flow ID created
-5- Start the `frontend` app locally in a local port either with the terminal or your IDE, you can even start it in debug mode.
-6- Take note the `port` where it's running because it will be used later
-7- Run the telepresence intercept command to intercept the traffic (replace the values between the brackets)
+3- Take note of the flow ID created
+4- Start the `frontend` app locally in a local port either with the terminal or your IDE, you can even start it in debug mode.
+5- Take note the `port` where it's running because it will be used later
+7- Run the Kardinal flow `telepresence-intercept` command to intercept the traffic (replace the values between the brackets)
 ```shell
-telepresence intercept $(kubectl get deployments -l app=frontend,version={{flow-id}} -o jsonpath='{.items[*].metadata.name}' -n prod) --port {{local-port}}:http
+kardinal flow telepresence-intercept {{flow-id}} {{service-name}} {{local-port}}
 ```
 8- Navigate the website in the browser to receive the request in the app running locally outside the cluster
 

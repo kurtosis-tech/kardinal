@@ -225,6 +225,7 @@ export interface components {
     Flow: {
       "flow-id": string;
       "flow-urls": string[];
+      "is-baseline"?: boolean;
     };
     FlowSpec: {
         /** @example backend-a:latest */

@@ -4,6 +4,8 @@ go 1.22.0
 
 toolchain go1.22.3
 
+replace github.com/kurtosis-tech/kardinal/libs/cli-kontrol-api => ../libs/cli-kontrol-api
+
 require (
 	github.com/adrg/xdg v0.4.0
 	github.com/google/uuid v1.5.0
@@ -56,8 +58,6 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.4.1 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
-
-replace github.com/kurtosis-tech/kardinal/libs/cli-kontrol-api => ../libs/cli-kontrol-api
 
 require (
 	github.com/imdario/mergo v0.3.16 // indirect

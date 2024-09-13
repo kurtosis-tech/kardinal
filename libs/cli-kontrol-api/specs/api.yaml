@@ -275,6 +275,8 @@ components:
           type: array
           items:
             type: string
+        is-baseline:
+          type: boolean
       required:
         - flow-id
         - flow-urls

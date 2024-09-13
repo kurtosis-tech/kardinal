@@ -3,6 +3,7 @@ package deployment
 import (
 	"bytes"
 	"context"
+	"kardinal.cli/kubernetes"
 	"text/template"
 
 	"kardinal.cli/kontrol"
@@ -193,7 +194,7 @@ type templateData struct {
 }
 
 func DeployKardinalManagerInCluster(ctx context.Context, clusterResourcesURL string, kontrolLocation string) error {
-	kubernetesClientObj, err := createKubernetesClient()
+	kubernetesClientObj, err := kubernetes.CreateKubernetesClient()
 	if err != nil {
 		return stacktrace.Propagate(err, "An error occurred while creating the Kubernetes client")
 	}
@@ -237,7 +238,7 @@ func DeployKardinalManagerInCluster(ctx context.Context, clusterResourcesURL str
 }
 
 func RemoveKardinalManagerFromCluster(ctx context.Context) error {
-	kubernetesClientObj, err := createKubernetesClient()
+	kubernetesClientObj, err := kubernetes.CreateKubernetesClient()
 	if err != nil {
 		return stacktrace.Propagate(err, "An error occurred while creating the Kubernetes client")
 	}

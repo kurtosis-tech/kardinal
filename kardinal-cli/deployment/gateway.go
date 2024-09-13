@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"hash/fnv"
 	"io"
+	kubernetes_pack "kardinal.cli/kubernetes"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -67,7 +68,7 @@ func findAvailablePortInRange(host string, portsInUse *[]int) (int, error) {
 }
 
 func StartGateway(hostFlowIdMap map[string]string) error {
-	client, err := createKubernetesClient()
+	client, err := kubernetes_pack.CreateKubernetesClient()
 	if err != nil {
 		return fmt.Errorf("an error occurred while creating a kubernetes client:\n %v", err)
 	}
@@ -76,20 +77,20 @@ func StartGateway(hostFlowIdMap map[string]string) error {
 		logrus.Printf("Starting gateway for host: %s", host)
 
 		// Check for pods in the prod namespace
-		err = assertProdNamespaceReady(client.clientSet, flowId)
+		err = assertProdNamespaceReady(client.GetClientSet(), flowId)
 		if err != nil {
 			return fmt.Errorf("failed to assert that prod namespace is ready: %v", err)
 		}
 
 		// Check for the Envoy filter before proceeding
-		err = checkGatewayEnvoyFilter(client.clientSet, host)
+		err = checkGatewayEnvoyFilter(client.GetClientSet(), host)
 		if err != nil {
 			return err
 		}
 	}
 
 	// Find a pod for the service
-	pod, err := findPodForService(client.clientSet)
+	pod, err := findPodForService(client.GetClientSet())
 	if err != nil {
 		return fmt.Errorf("failed to find pod for service: %v", err)
 	}
@@ -99,7 +100,7 @@ func StartGateway(hostFlowIdMap map[string]string) error {
 	readyChan := make(chan struct{})
 	go func() {
 		for {
-			err := portForwardPod(client.config, pod, stopChan, readyChan)
+			err := portForwardPod(client.GetConfig(), pod, stopChan, readyChan)
 			if err != nil {
 				logrus.Printf("Port forwarding failed: %v. Retrying in 5 seconds...", err)
 				time.Sleep(5 * time.Second)
@@ -153,6 +154,7 @@ func StartGateway(hostFlowIdMap map[string]string) error {
 	return nil
 }
 
+// TODO move to the kubernetes package
 func assertProdNamespaceReady(client *kubernetes.Clientset, flowId string) error {
 	for retry := 0; retry < maxRetries; retry++ {
 		pods, err := client.CoreV1().Pods(prodNamespace).List(context.Background(), metav1.ListOptions{})
@@ -217,6 +219,7 @@ func isPodReady(pod *corev1.Pod) bool {
 	return true
 }
 
+// TODO move to the kubernetes package
 func findPodForService(client *kubernetes.Clientset) (string, error) {
 	svc, err := client.CoreV1().Services(namespace).Get(context.Background(), service, metav1.GetOptions{})
 	if err != nil {
@@ -242,6 +245,7 @@ func findPodForService(client *kubernetes.Clientset) (string, error) {
 	return podName, nil
 }
 
+// TODO move to the kubernetes package
 func checkGatewayEnvoyFilter(client *kubernetes.Clientset, host string) error {
 	for retry := 0; retry < maxRetries; retry++ {
 		envoyFilterRaw, err := client.RESTClient().
@@ -283,6 +287,7 @@ func checkGatewayEnvoyFilter(client *kubernetes.Clientset, host string) error {
 	return fmt.Errorf("failed to find Envoy filter 'kardinal-gateway-tracing' containing the expected host string after %d attempts", maxRetries)
 }
 
+// TODO move to the kubernetes package
 func portForwardPod(config *rest.Config, podName string, stopChan <-chan struct{}, readyChan chan struct{}) error {
 	roundTripper, upgrader, err := spdy.RoundTripperFor(config)
 	if err != nil {
