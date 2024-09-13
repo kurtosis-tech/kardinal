@@ -19,8 +19,8 @@ const GetStarted = ({ children }: PropsWithChildren) => {
           Get started <em>now</em>
         </Heading.H2>
         <Text.Base>
-          Kardinal is easy to install, and easy to uninstall: Copy the commands
-          on the right to get it working on your local environment!
+          Kardinal is easy to install, and easy to uninstall: Copy and paste
+          these commands to get it working on your local environment!
         </Text.Base>
         <S.ButtonWrapper>
           <Button.Secondary
