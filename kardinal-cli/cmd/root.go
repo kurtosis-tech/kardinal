@@ -31,6 +31,8 @@ import (
 	net "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
+	gateway "sigs.k8s.io/gateway-api/apis/v1"
+	gatewayscheme "sigs.k8s.io/gateway-api/pkg/client/clientset/versioned/scheme"
 )
 
 const (
@@ -100,7 +102,7 @@ var deployCmd = &cobra.Command{
 	Short: "Deploy services",
 	Args:  cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
-		serviceConfigs, ingressConfigs, namespace, err := parseKubernetesManifestFile(kubernetesManifestFile)
+		serviceConfigs, ingressConfigs, gatewayConfigs, routeConfigs, namespace, err := parseKubernetesManifestFile(kubernetesManifestFile)
 		if err != nil {
 			log.Fatalf("Error loading k8s manifest file: %v", err)
 		}
@@ -109,7 +111,7 @@ var deployCmd = &cobra.Command{
 			log.Fatal("Error getting or creating user tenant UUID", err)
 		}
 
-		deploy(tenantUuid.String(), serviceConfigs, ingressConfigs, namespace)
+		deploy(tenantUuid.String(), serviceConfigs, ingressConfigs, gatewayConfigs, routeConfigs, namespace)
 	},
 }
 
@@ -125,7 +127,7 @@ var templateCreateCmd = &cobra.Command{
 		// A valid template only modifies services
 		// A valid template has metadata.name
 		// A valid template modifies at least one service
-		serviceConfigs, _, _, err := parseKubernetesManifestFile(templateYamlFile)
+		serviceConfigs, _, _, _, _, err := parseKubernetesManifestFile(templateYamlFile)
 		if err != nil {
 			log.Fatalf("Error loading template file: %v", err)
 		}
@@ -519,17 +521,22 @@ func parsePairs(pairs []string) map[string]string {
 	return pairsMap
 }
 
-func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.ServiceConfig, []api_types.IngressConfig, string, error) {
+func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.ServiceConfig, []api_types.IngressConfig, []api_types.GatewayConfig, []api_types.RouteConfig, string, error) {
 	fileBytes, err := loadKubernetesManifestFile(kubernetesManifestFile)
 	if err != nil {
 		log.Fatalf("Error loading kubernetest manifest file: %v", err)
-		return nil, nil, "", err
+		return nil, nil, nil, nil, "", err
 	}
 
 	manifest := string(fileBytes)
 	var namespace string
 	serviceConfigs := map[string]*api_types.ServiceConfig{}
 	ingressConfigs := map[string]*api_types.IngressConfig{}
+	gatewayConfigs := map[string]*api_types.GatewayConfig{}
+	routeConfigs := map[string]*api_types.RouteConfig{}
+
+	// Register the gateway scheme to parse the Gateway CRD
+	gatewayscheme.AddToScheme(scheme.Scheme)
 	decode := scheme.Codecs.UniversalDeserializer().Decode
 	for _, spec := range strings.Split(manifest, "---") {
 		if len(spec) == 0 {
@@ -537,7 +544,7 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.Ser
 		}
 		obj, _, err := decode([]byte(spec), nil, nil)
 		if err != nil {
-			return nil, nil, "", stacktrace.Propagate(err, "An error occurred parsing the spec: %s", spec)
+			return nil, nil, nil, nil, "", stacktrace.Propagate(err, "An error occurred parsing the spec: %s", spec)
 		}
 		switch obj := obj.(type) {
 		case *corev1.Service:
@@ -570,8 +577,16 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.Ser
 			namespaceObj := obj
 			namespaceName := getObjectName(namespaceObj.GetObjectMeta().(*metav1.ObjectMeta))
 			namespace = namespaceName
+		case *gateway.Gateway:
+			gatewayObj := obj
+			gatewayName := getObjectName(gatewayObj.GetObjectMeta().(*metav1.ObjectMeta))
+			gatewayConfigs[gatewayName] = &api_types.GatewayConfig{Gateway: *gatewayObj}
+		case *gateway.HTTPRoute:
+			routeObj := obj
+			routeName := getObjectName(routeObj.GetObjectMeta().(*metav1.ObjectMeta))
+			routeConfigs[routeName] = &api_types.RouteConfig{HttpRoute: *routeObj}
 		default:
-			return nil, nil, "", stacktrace.NewError("An error occurred parsing the manifest because of an unsupported kubernetes type")
+			return nil, nil, nil, nil, "", stacktrace.NewError("An error occurred parsing the manifest because of an unsupported kubernetes type")
 		}
 	}
 
@@ -585,7 +600,17 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.Ser
 		finalIngressConfigs = append(finalIngressConfigs, *ingressConfig)
 	}
 
-	return finalServiceConfigs, finalIngressConfigs, namespace, nil
+	finalGatewayConfigs := []api_types.GatewayConfig{}
+	for _, gatewayConfig := range gatewayConfigs {
+		finalGatewayConfigs = append(finalGatewayConfigs, *gatewayConfig)
+	}
+
+	finalRouteConfigs := []api_types.RouteConfig{}
+	for _, routeConfig := range routeConfigs {
+		finalRouteConfigs = append(finalRouteConfigs, *routeConfig)
+	}
+
+	return finalServiceConfigs, finalIngressConfigs, finalGatewayConfigs, finalRouteConfigs, namespace, nil
 }
 
 func parseTemplateArgs(filepathOrJson string) (map[string]interface{}, error) {
@@ -704,12 +729,21 @@ func createDevFlow(tenantUuid api_types.Uuid, pairsMap map[string]string, templa
 	os.Exit(1)
 }
 
-func deploy(tenantUuid api_types.Uuid, serviceConfigs []api_types.ServiceConfig, ingressConfigs []api_types.IngressConfig, namespace string) {
+func deploy(
+	tenantUuid api_types.Uuid,
+	serviceConfigs []api_types.ServiceConfig,
+	ingressConfigs []api_types.IngressConfig,
+	gatewayConfigs []api_types.GatewayConfig,
+	routeConfigs []api_types.RouteConfig,
+	namespace string,
+) {
 	ctx := context.Background()
 
 	body := api_types.PostTenantUuidDeployJSONRequestBody{
 		ServiceConfigs: &serviceConfigs,
 		IngressConfigs: &ingressConfigs,
+		GatewayConfigs: &gatewayConfigs,
+		RouteConfigs:   &routeConfigs,
 		Namespace:      &namespace,
 	}
 	client := getKontrolServiceClient()
