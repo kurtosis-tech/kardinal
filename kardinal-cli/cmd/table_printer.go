@@ -34,7 +34,7 @@ func printTemplateTable(templates []api_types.Template) {
 func printFlowTable(flows []api_types.Flow) {
 	data := lo.Map(flows, func(flow api_types.Flow, _ int) []string {
 		var baselineStr string
-		if *flow.IsBaseline {
+		if flow.IsBaseline != nil && *flow.IsBaseline {
 			baselineStr = "✅"
 		}
 		return []string{
