@@ -9,6 +9,8 @@ paths:
     description: For health check control
     get:
       responses:
+        "500":
+          $ref: "#/components/responses/Error"
         "200":
           description: Successful response
           content:
