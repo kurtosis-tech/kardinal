@@ -7,8 +7,6 @@ Kardinal is an open-source framework for creating extremely lightweight ephemera
 
 In Kardinal, an environment is called a "[flow](https://kardinal.dev/docs/concepts/flows)" because it represents a path that a request takes through the cluster. Versions of services that are under development are deployed on-demand, and then shared across all development work that depends on that version. Read more about Kardinal in our [docs](https://kardinal.dev/docs).
 
-https://github.com/user-attachments/assets/3b4316f7-9f08-4dfa-8ea5-f66e76e01012
-
 ### Why choose Kardinal?
 - **Ephemeral Environments**: Spin up a new environment exactly when you need it, and just as quickly spin it down when you’re done.
 - **Minimal Resource Usage**: Only deploy the services you’re actively working on. Kardinal takes care of the rest, so you don’t waste resources.
