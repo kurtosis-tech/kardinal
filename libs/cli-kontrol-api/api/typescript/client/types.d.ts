@@ -14,6 +14,7 @@ export interface paths {
             "application/json": string;
           };
         };
+        500: components["responses"]["Error"];
       };
     };
   };
