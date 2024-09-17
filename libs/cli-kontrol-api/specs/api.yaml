@@ -321,19 +321,31 @@ components:
           description: Label for the node.
         type:
           type: string
-          enum: [gateway, service, service-version, redis]
+          enum: [gateway, service, external]
           description: Type of the node
-        parent:
-          type: string
-          description: Parent node
         versions:
           type: array
           description: Node versions
           items:
-            type: string
+            $ref: "#/components/schemas/NodeVersion"
       required:
         - id
         - type
+        - label
+
+    NodeVersion:
+      type: object
+      properties:
+        flow-id:
+          type: string
+        image-tag:
+          type: string
+        is-baseline:
+          type: boolean
+      required:
+        - flow-id
+        - image-tag
+        - is-baseline
 
     Edge:
       type: object

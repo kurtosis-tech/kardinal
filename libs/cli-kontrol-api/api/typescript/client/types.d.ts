@@ -245,16 +245,19 @@ export interface components {
       /** @description Unique identifier for the node. */
       id: string;
       /** @description Label for the node. */
-      label?: string;
+      label: string;
       /**
        * @description Type of the node
        * @enum {string}
        */
-      type: "gateway" | "service" | "service-version" | "redis";
-      /** @description Parent node */
-      parent?: string;
+      type: "gateway" | "service" | "external";
       /** @description Node versions */
-      versions?: string[];
+      versions?: components["schemas"]["NodeVersion"][];
+    };
+    NodeVersion: {
+      "flow-id": string;
+      "image-tag": string;
+      "is-baseline": boolean;
     };
     Edge: {
       /** @description The identifier of the source node of the edge. */

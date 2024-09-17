@@ -11,10 +11,9 @@ import (
 
 // Defines values for NodeType.
 const (
-	Gateway        NodeType = "gateway"
-	Redis          NodeType = "redis"
-	Service        NodeType = "service"
-	ServiceVersion NodeType = "service-version"
+	External NodeType = "external"
+	Gateway  NodeType = "gateway"
+	Service  NodeType = "service"
 )
 
 // ClusterTopology defines model for ClusterTopology.
@@ -66,20 +65,24 @@ type Node struct {
 	Id string `json:"id"`
 
 	// Label Label for the node.
-	Label *string `json:"label,omitempty"`
-
-	// Parent Parent node
-	Parent *string `json:"parent,omitempty"`
+	Label string `json:"label"`
 
 	// Type Type of the node
 	Type NodeType `json:"type"`
 
 	// Versions Node versions
-	Versions *[]string `json:"versions,omitempty"`
+	Versions *[]NodeVersion `json:"versions,omitempty"`
 }
 
 // NodeType Type of the node
 type NodeType string
+
+// NodeVersion defines model for NodeVersion.
+type NodeVersion struct {
+	FlowId     string `json:"flow-id"`
+	ImageTag   string `json:"image-tag"`
+	IsBaseline bool   `json:"is-baseline"`
+}
 
 // ServiceConfig defines model for ServiceConfig.
 type ServiceConfig struct {
