@@ -344,7 +344,6 @@ components:
           type: boolean
       required:
         - flow-id
-        - image-tag
         - is-baseline
 
     Edge:

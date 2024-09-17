@@ -256,7 +256,7 @@ export interface components {
     };
     NodeVersion: {
       "flow-id": string;
-      "image-tag": string;
+      "image-tag"?: string;
       "is-baseline": boolean;
     };
     Edge: {
