@@ -96,18 +96,18 @@ jobs:
       
       - name: Validate that Kardinal manager applied the changes
         run: |
-          # Check that the four prod service pods are running and ready
-          while [ $(kubectl get pods -n prod -o custom-columns=NAMESPACE:metadata.namespace,POD:metadata.name,PodIP:status.podIP,READY-true:status.containerStatuses[*].ready | grep "true,true" | wc -l) -ne 4 ]
+          # Check that the four baseline service pods are running and ready
+          while [ $(kubectl get pods -n baseline -o custom-columns=NAMESPACE:metadata.namespace,POD:metadata.name,PodIP:status.podIP,READY-true:status.containerStatuses[*].ready | grep "true,true" | wc -l) -ne 4 ]
           do
-              echo "Waiting for prod pods to run..."
-              kubectl get pods -n prod -o custom-columns=NAMESPACE:metadata.namespace,POD:metadata.name,PodIP:status.podIP,READY-true:status.containerStatuses[*].ready
+              echo "Waiting for baseline pods to run..."
+              kubectl get pods -n baseline -o custom-columns=NAMESPACE:metadata.namespace,POD:metadata.name,PodIP:status.podIP,READY-true:status.containerStatuses[*].ready
               ((c++)) && ((c==12)) && exit 1
               sleep 10
           done
-          kubectl get pods -n prod
+          kubectl get pods -n baseline
 
           # Check the right services are running.
-          apps=$(kubectl get pods -n prod -o custom-columns=:metadata.labels.app | tr " " "\n" | sort -g | tr "\n" " " | xargs)
+          apps=$(kubectl get pods -n baseline -o custom-columns=:metadata.labels.app | tr " " "\n" | sort -g | tr "\n" " " | xargs)
           echo ${apps}
           if [ "${apps}" != "cartservice frontend postgres productcatalogservice" ]; then exit 1; fi
         
@@ -126,14 +126,14 @@ jobs:
           KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow ls | grep ${flow_id}
           
           # Check that the dev service pod is running and ready
-          while ! kubectl get pods -n prod -o custom-columns=NAMESPACE:metadata.namespace,POD:metadata.name,PodIP:status.podIP,READY-true:status.containerStatuses[*].ready | grep true | grep "frontend-${flow_id}"
+          while ! kubectl get pods -n baseline -o custom-columns=NAMESPACE:metadata.namespace,POD:metadata.name,PodIP:status.podIP,READY-true:status.containerStatuses[*].ready | grep true | grep "frontend-${flow_id}"
           do
               echo "Waiting for dev frontend pod to run..."
-              kubectl get pods -n prod -o custom-columns=NAMESPACE:metadata.namespace,POD:metadata.name,PodIP:status.podIP,READY-true:status.containerStatuses[*].ready
+              kubectl get pods -n baseline -o custom-columns=NAMESPACE:metadata.namespace,POD:metadata.name,PodIP:status.podIP,READY-true:status.containerStatuses[*].ready
               ((c++)) && ((c==12)) && exit 1
               sleep 10
           done
-          kubectl get pods -n prod
+          kubectl get pods -n baseline
           
           KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow delete ${flow_id}
         
@@ -157,14 +157,14 @@ jobs:
           KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow ls | grep ${flow_id}
           
           # Check that the dev service pod is running and ready
-          while ! kubectl get pods -n prod -o custom-columns=NAMESPACE:metadata.namespace,POD:metadata.name,PodIP:status.podIP,READY-true:status.containerStatuses[*].ready | grep true | grep "frontend-${flow_id}"
+          while ! kubectl get pods -n baseline -o custom-columns=NAMESPACE:metadata.namespace,POD:metadata.name,PodIP:status.podIP,READY-true:status.containerStatuses[*].ready | grep true | grep "frontend-${flow_id}"
           do
               echo "Waiting for dev frontend pod to run..."
-              kubectl get pods -n prod -o custom-columns=NAMESPACE:metadata.namespace,POD:metadata.name,PodIP:status.podIP,READY-true:status.containerStatuses[*].ready
+              kubectl get pods -n baseline -o custom-columns=NAMESPACE:metadata.namespace,POD:metadata.name,PodIP:status.podIP,READY-true:status.containerStatuses[*].ready
               ((c++)) && ((c==12)) && exit 1
               sleep 10
           done
-          kubectl get pods -n prod
+          kubectl get pods -n baseline
 
           KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow delete ${flow_id}
 
@@ -181,19 +181,19 @@ jobs:
 
       - name: Delete base topology and dev flows
         run: |
-          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow delete prod > kardinal.out
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow delete baseline > kardinal.out
           cat kardinal.out
-          if KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow ls | grep prod; then echo "Topologies not deleted"; exit 1; fi
+          if KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow ls | grep baseline; then echo "Topologies not deleted"; exit 1; fi
           
           # Check that the services have been terminated
-          while [ "$(kubectl get pods -n prod 2>&1 >/dev/null)" != "No resources found in prod namespace." ]
+          while [ "$(kubectl get pods -n baseline 2>&1 >/dev/null)" != "No resources found in baseline namespace." ]
           do
               echo "Waiting for the services to terminate..."
-              kubectl get pods -n prod
+              kubectl get pods -n baseline
               ((c++)) && ((c==12)) && exit 1
               sleep 10
           done
-          kubectl get pods -n prod
+          kubectl get pods -n baseline
           
           # Check for errors in the kardinal manager logs
           if kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep "ERRO"
