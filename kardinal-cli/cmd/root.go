@@ -816,8 +816,8 @@ func createDevFlow(tenantUuid api_types.Uuid, pairsMap map[string]string, templa
 	devSpec := api_types.FlowSpec{}
 	for serviceName, imageLocator := range pairsMap {
 		devSpec = append(devSpec, struct {
-			ImageLocator string `json:"image-locator"`
-			ServiceName  string `json:"service-name"`
+			ImageLocator string `json:"imageLocator"`
+			ServiceName  string `json:"serviceName"`
 		}{
 			ImageLocator: imageLocator,
 			ServiceName:  serviceName,

@@ -36,15 +36,15 @@ type Edge struct {
 
 // Flow defines model for Flow.
 type Flow struct {
-	FlowId     string   `json:"flow-id"`
-	FlowUrls   []string `json:"flow-urls"`
-	IsBaseline *bool    `json:"is-baseline,omitempty"`
+	FlowId     string   `json:"flowId"`
+	FlowUrls   []string `json:"flowUrls"`
+	IsBaseline *bool    `json:"isBaseline,omitempty"`
 }
 
 // FlowSpec defines model for FlowSpec.
 type FlowSpec = []struct {
-	ImageLocator string `json:"image-locator"`
-	ServiceName  string `json:"service-name"`
+	ImageLocator string `json:"imageLocator"`
+	ServiceName  string `json:"serviceName"`
 }
 
 // IngressConfig defines model for IngressConfig.
@@ -54,9 +54,9 @@ type IngressConfig struct {
 
 // MainClusterConfig defines model for MainClusterConfig.
 type MainClusterConfig struct {
-	IngressConfigs *[]IngressConfig `json:"ingress-configs,omitempty"`
+	IngressConfigs *[]IngressConfig `json:"ingressConfigs,omitempty"`
 	Namespace      *string          `json:"namespace,omitempty"`
-	ServiceConfigs *[]ServiceConfig `json:"service-configs,omitempty"`
+	ServiceConfigs *[]ServiceConfig `json:"serviceConfigs,omitempty"`
 }
 
 // Node defines model for Node.
@@ -94,7 +94,7 @@ type ServiceConfig struct {
 type Template struct {
 	Description *string `json:"description,omitempty"`
 	Name        string  `json:"name"`
-	TemplateId  string  `json:"template-id"`
+	TemplateId  string  `json:"templateId"`
 }
 
 // TemplateConfig defines model for TemplateConfig.
@@ -112,13 +112,13 @@ type TemplateSpec struct {
 	Arguments *map[string]interface{} `json:"arguments,omitempty"`
 
 	// TemplateName name of the template
-	TemplateName string `json:"template_name"`
+	TemplateName string `json:"templateName"`
 }
 
-// FlowId defines model for flow-id.
+// FlowId defines model for flowId.
 type FlowId = string
 
-// TemplateName defines model for template-name.
+// TemplateName defines model for templateName.
 type TemplateName = string
 
 // Uuid defines model for uuid.
@@ -139,13 +139,13 @@ type NotFound struct {
 	Id string `json:"id"`
 
 	// ResourceType Resource type
-	ResourceType string `json:"resource-type"`
+	ResourceType string `json:"resourceType"`
 }
 
 // PostTenantUuidFlowCreateJSONBody defines parameters for PostTenantUuidFlowCreate.
 type PostTenantUuidFlowCreateJSONBody struct {
-	FlowSpec     FlowSpec      `json:"flow_spec"`
-	TemplateSpec *TemplateSpec `json:"template_spec,omitempty"`
+	FlowSpec     FlowSpec      `json:"flowSpec"`
+	TemplateSpec *TemplateSpec `json:"templateSpec,omitempty"`
 }
 
 // PostTenantUuidDeployJSONRequestBody defines body for PostTenantUuidDeploy for application/json ContentType.

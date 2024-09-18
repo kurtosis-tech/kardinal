@@ -29,8 +29,8 @@ export interface paths {
       requestBody: {
         content: {
           "application/json": {
-            flow_spec: components["schemas"]["FlowSpec"];
-            template_spec?: components["schemas"]["TemplateSpec"];
+            flowSpec: components["schemas"]["FlowSpec"];
+            templateSpec?: components["schemas"]["TemplateSpec"];
           };
         };
       };
@@ -65,12 +65,12 @@ export interface paths {
       };
     };
   };
-  "/tenant/{uuid}/flow/{flow-id}": {
+  "/tenant/{uuid}/flow/{flowId}": {
     delete: {
       parameters: {
         path: {
           uuid: components["parameters"]["uuid"];
-          "flow-id": components["parameters"]["flow-id"];
+          flowId: components["parameters"]["flowId"];
         };
       };
       responses: {
@@ -171,12 +171,12 @@ export interface paths {
       };
     };
   };
-  "/tenant/{uuid}/templates/{template-name}": {
+  "/tenant/{uuid}/templates/{templateName}": {
     delete: {
       parameters: {
         path: {
           uuid: components["parameters"]["uuid"];
-          "template-name": components["parameters"]["template-name"];
+          templateName: components["parameters"]["templateName"];
         };
       };
       responses: {
@@ -219,24 +219,24 @@ export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
     MainClusterConfig: {
-      "service-configs"?: components["schemas"]["ServiceConfig"][];
-      "ingress-configs"?: components["schemas"]["IngressConfig"][];
+      serviceConfigs?: components["schemas"]["ServiceConfig"][];
+      ingressConfigs?: components["schemas"]["IngressConfig"][];
       namespace?: string;
     };
     Flow: {
-      "flow-id": string;
-      "flow-urls": string[];
-      "is-baseline"?: boolean;
+      flowId: string;
+      flowUrls: string[];
+      isBaseline?: boolean;
     };
     FlowSpec: {
         /** @example backend-a:latest */
-        "image-locator": string;
+        imageLocator: string;
         /** @example backend-service-a */
-        "service-name": string;
+        serviceName: string;
       }[];
     TemplateSpec: {
       /** @description name of the template */
-      template_name: string;
+      templateName: string;
       arguments?: {
         [key: string]: unknown;
       };
@@ -283,7 +283,7 @@ export interface components {
       description?: string;
     };
     Template: {
-      "template-id": string;
+      templateId: string;
       name: string;
       description?: string;
     };
@@ -308,7 +308,7 @@ export interface components {
       content: {
         "application/json": {
           /** @description Resource type */
-          "resource-type": string;
+          resourceType: string;
           /** @description Resource ID */
           id: string;
         };
@@ -319,9 +319,9 @@ export interface components {
     /** @description UUID of the resource */
     uuid: string;
     /** @description Flow identifier */
-    "flow-id": string;
+    flowId: string;
     /** @description name of the template */
-    "template-name": string;
+    templateName: string;
   };
   requestBodies: never;
   headers: never;

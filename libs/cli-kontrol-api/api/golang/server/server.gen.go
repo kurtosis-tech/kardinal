@@ -35,7 +35,7 @@ type ServerInterface interface {
 	// (POST /tenant/{uuid}/flow/create)
 	PostTenantUuidFlowCreate(ctx echo.Context, uuid Uuid) error
 
-	// (DELETE /tenant/{uuid}/flow/{flow-id})
+	// (DELETE /tenant/{uuid}/flow/{flowId})
 	DeleteTenantUuidFlowFlowId(ctx echo.Context, uuid Uuid, flowId FlowId) error
 
 	// (GET /tenant/{uuid}/flows)
@@ -50,7 +50,7 @@ type ServerInterface interface {
 	// (POST /tenant/{uuid}/templates/create)
 	PostTenantUuidTemplatesCreate(ctx echo.Context, uuid Uuid) error
 
-	// (DELETE /tenant/{uuid}/templates/{template-name})
+	// (DELETE /tenant/{uuid}/templates/{templateName})
 	DeleteTenantUuidTemplatesTemplateName(ctx echo.Context, uuid Uuid, templateName TemplateName) error
 
 	// (GET /tenant/{uuid}/topology)
@@ -114,12 +114,12 @@ func (w *ServerInterfaceWrapper) DeleteTenantUuidFlowFlowId(ctx echo.Context) er
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter uuid: %s", err))
 	}
 
-	// ------------- Path parameter "flow-id" -------------
+	// ------------- Path parameter "flowId" -------------
 	var flowId FlowId
 
-	err = runtime.BindStyledParameterWithOptions("simple", "flow-id", ctx.Param("flow-id"), &flowId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "flowId", ctx.Param("flowId"), &flowId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter flow-id: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter flowId: %s", err))
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
@@ -202,12 +202,12 @@ func (w *ServerInterfaceWrapper) DeleteTenantUuidTemplatesTemplateName(ctx echo.
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter uuid: %s", err))
 	}
 
-	// ------------- Path parameter "template-name" -------------
+	// ------------- Path parameter "templateName" -------------
 	var templateName TemplateName
 
-	err = runtime.BindStyledParameterWithOptions("simple", "template-name", ctx.Param("template-name"), &templateName, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "templateName", ctx.Param("templateName"), &templateName, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter template-name: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter templateName: %s", err))
 	}
 
 	// Invoke the callback with all the unmarshaled arguments
@@ -262,12 +262,12 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/health", wrapper.GetHealth)
 	router.POST(baseURL+"/tenant/:uuid/deploy", wrapper.PostTenantUuidDeploy)
 	router.POST(baseURL+"/tenant/:uuid/flow/create", wrapper.PostTenantUuidFlowCreate)
-	router.DELETE(baseURL+"/tenant/:uuid/flow/:flow-id", wrapper.DeleteTenantUuidFlowFlowId)
+	router.DELETE(baseURL+"/tenant/:uuid/flow/:flowId", wrapper.DeleteTenantUuidFlowFlowId)
 	router.GET(baseURL+"/tenant/:uuid/flows", wrapper.GetTenantUuidFlows)
 	router.GET(baseURL+"/tenant/:uuid/manifest", wrapper.GetTenantUuidManifest)
 	router.GET(baseURL+"/tenant/:uuid/templates", wrapper.GetTenantUuidTemplates)
 	router.POST(baseURL+"/tenant/:uuid/templates/create", wrapper.PostTenantUuidTemplatesCreate)
-	router.DELETE(baseURL+"/tenant/:uuid/templates/:template-name", wrapper.DeleteTenantUuidTemplatesTemplateName)
+	router.DELETE(baseURL+"/tenant/:uuid/templates/:templateName", wrapper.DeleteTenantUuidTemplatesTemplateName)
 	router.GET(baseURL+"/tenant/:uuid/topology", wrapper.GetTenantUuidTopology)
 
 }
@@ -285,7 +285,7 @@ type NotFoundJSONResponse struct {
 	Id string `json:"id"`
 
 	// ResourceType Resource type
-	ResourceType string `json:"resource-type"`
+	ResourceType string `json:"resourceType"`
 }
 
 type GetHealthRequestObject struct {
@@ -387,7 +387,7 @@ func (response PostTenantUuidFlowCreate500JSONResponse) VisitPostTenantUuidFlowC
 
 type DeleteTenantUuidFlowFlowIdRequestObject struct {
 	Uuid   Uuid   `json:"uuid"`
-	FlowId FlowId `json:"flow-id"`
+	FlowId FlowId `json:"flowId"`
 }
 
 type DeleteTenantUuidFlowFlowIdResponseObject interface {
@@ -574,7 +574,7 @@ func (response PostTenantUuidTemplatesCreate500JSONResponse) VisitPostTenantUuid
 
 type DeleteTenantUuidTemplatesTemplateNameRequestObject struct {
 	Uuid         Uuid         `json:"uuid"`
-	TemplateName TemplateName `json:"template-name"`
+	TemplateName TemplateName `json:"templateName"`
 }
 
 type DeleteTenantUuidTemplatesTemplateNameResponseObject interface {
@@ -655,7 +655,7 @@ type StrictServerInterface interface {
 	// (POST /tenant/{uuid}/flow/create)
 	PostTenantUuidFlowCreate(ctx context.Context, request PostTenantUuidFlowCreateRequestObject) (PostTenantUuidFlowCreateResponseObject, error)
 
-	// (DELETE /tenant/{uuid}/flow/{flow-id})
+	// (DELETE /tenant/{uuid}/flow/{flowId})
 	DeleteTenantUuidFlowFlowId(ctx context.Context, request DeleteTenantUuidFlowFlowIdRequestObject) (DeleteTenantUuidFlowFlowIdResponseObject, error)
 
 	// (GET /tenant/{uuid}/flows)
@@ -670,7 +670,7 @@ type StrictServerInterface interface {
 	// (POST /tenant/{uuid}/templates/create)
 	PostTenantUuidTemplatesCreate(ctx context.Context, request PostTenantUuidTemplatesCreateRequestObject) (PostTenantUuidTemplatesCreateResponseObject, error)
 
-	// (DELETE /tenant/{uuid}/templates/{template-name})
+	// (DELETE /tenant/{uuid}/templates/{templateName})
 	DeleteTenantUuidTemplatesTemplateName(ctx context.Context, request DeleteTenantUuidTemplatesTemplateNameRequestObject) (DeleteTenantUuidTemplatesTemplateNameResponseObject, error)
 
 	// (GET /tenant/{uuid}/topology)
@@ -960,33 +960,33 @@ func (sh *strictHandler) GetTenantUuidTopology(ctx echo.Context, uuid Uuid) erro
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"WVktrxH09frfAAAA//826IWZNiEAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

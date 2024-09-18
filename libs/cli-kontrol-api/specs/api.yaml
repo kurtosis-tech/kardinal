@@ -30,12 +30,12 @@ paths:
             schema:
               type: object
               properties:
-                flow_spec:
+                flowSpec:
                   $ref: "#/components/schemas/FlowSpec"
-                template_spec:
+                templateSpec:
                   $ref: "#/components/schemas/TemplateSpec"
               required:
-                - flow_spec
+                - flowSpec
       responses:
         "500":
           $ref: "#/components/responses/Error"
@@ -66,11 +66,11 @@ paths:
                 items:
                   $ref: "#/components/schemas/Flow"
 
-  /tenant/{uuid}/flow/{flow-id}:
+  /tenant/{uuid}/flow/{flowId}:
     delete:
       parameters:
         - $ref: "#/components/parameters/uuid"
-        - $ref: "#/components/parameters/flow-id"
+        - $ref: "#/components/parameters/flowId"
       responses:
         "500":
           $ref: "#/components/responses/Error"
@@ -159,11 +159,11 @@ paths:
                 items:
                   $ref: "#/components/schemas/Template"
 
-  /tenant/{uuid}/templates/{template-name}:
+  /tenant/{uuid}/templates/{templateName}:
     delete:
       parameters:
         - $ref: "#/components/parameters/uuid"
-        - $ref: "#/components/parameters/template-name"
+        - $ref: "#/components/parameters/templateName"
       responses:
         "500":
           $ref: "#/components/responses/Error"
@@ -218,14 +218,14 @@ components:
           schema:
             type: object
             properties:
-              resource-type:
+              resourceType:
                 type: string
                 description: Resource type
               id:
                 type: string
                 description: Resource ID
             required:
-              - resource-type
+              - resourceType
               - id
   parameters:
     uuid:
@@ -236,8 +236,8 @@ components:
       schema:
         type: string
 
-    flow-id:
-      name: flow-id
+    flowId:
+      name: flowId
       in: path
       required: true
       description: Flow identifier
@@ -245,8 +245,8 @@ components:
         type: string
 
 
-    template-name:
-      name: template-name
+    templateName:
+      name: templateName
       in: path
       required: true
       description: name of the template
@@ -257,11 +257,11 @@ components:
     MainClusterConfig:
       type: object
       properties:
-        service-configs:
+        serviceConfigs:
           type: array
           items:
             $ref: "#/components/schemas/ServiceConfig"
-        ingress-configs:
+        ingressConfigs:
           type: array
           items:
             $ref: "#/components/schemas/IngressConfig"
@@ -271,44 +271,44 @@ components:
     Flow:
       type: object
       properties:
-        flow-id:
+        flowId:
           type: string
-        flow-urls:
+        flowUrls:
           type: array
           items:
             type: string
-        is-baseline:
+        isBaseline:
           type: boolean
       required:
-        - flow-id
-        - flow-urls
+        - flowId
+        - flowUrls
 
     FlowSpec:
       type: array
       items:
         type: object
         properties:
-          image-locator:
+          imageLocator:
             type: string
             example: backend-a:latest
-          service-name:
+          serviceName:
             type: string
             example: backend-service-a
         required:
-          - image-locator
-          - service-name
+          - imageLocator
+          - serviceName
 
     TemplateSpec:
       type: object
       properties:
-        template_name:
+        templateName:
           type: string
           description: name of the template
         arguments:
           type: object
           additionalProperties: true
       required:
-        - template_name
+        - templateName
 
     Node:
       type: object
@@ -418,14 +418,14 @@ components:
     Template:
       type: object
       properties:
-        template-id:
+        templateId:
           type: string
         name:
           type: string
         description:
           type: string
       required:
-        - template-id
+        - templateId
         - name
 
     IngressConfig:
