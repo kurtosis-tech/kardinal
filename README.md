@@ -47,6 +47,10 @@ We have a playground that runs in Github Codespaces so you can try Kardinal righ
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=818205437&skip_quickstart=true&machine=standardLinux32gb&devcontainer_path=.devcontainer%2Fdevcontainer.json)
 
+> [!WARNING]
+> Please keep in mind that Kardinal is still under active development
+> and therefore full backward compatibility is not guaranteed before reaching v1.0.0.
+
 ## Quick start with a demo application
 
 ### Step 1: Deploy the demo app
