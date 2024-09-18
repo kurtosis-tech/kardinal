@@ -1,4 +1,5 @@
-[![Docker Hub](https://img.shields.io/badge/dockerhub-images-important.svg?logo=docker)](https://hub.docker.com/u/kurtosistech) 
+[![Docker Hub](https://img.shields.io/badge/dockerhub-images-important.svg?logo=docker)](https://hub.docker.com/u/kurtosistech)
+
 # Kardinal
 
 ## What is Kardinal?
@@ -10,17 +11,19 @@ In Kardinal, an environment is called a "[flow](https://kardinal.dev/docs/concep
 https://github.com/user-attachments/assets/3b4316f7-9f08-4dfa-8ea5-f66e76e01012
 
 ### Why choose Kardinal?
+
 - **Ephemeral Environments**: Spin up a new environment exactly when you need it, and just as quickly spin it down when you’re done.
 - **Minimal Resource Usage**: Only deploy the services you’re actively working on. Kardinal takes care of the rest, so you don’t waste resources.
 - **Flexible Environment Types**: Whether you need to test a single service or an entire application, Kardinal has you covered:
-    - Single-Service Flows: Perfect for when you’re tweaking just one service.
-    - Multi-Service Flows: Ideal for when your feature involves multiple services.
-    - State-Isolated Flows: Great for features that need their own isolated databases or caches.
-    - Full Application Flows: For those times when you need end-to-end testing with full isolation.
+  - Single-Service Flows: Perfect for when you’re tweaking just one service.
+  - Multi-Service Flows: Ideal for when your feature involves multiple services.
+  - State-Isolated Flows: Great for features that need their own isolated databases or caches.
+  - Full Application Flows: For those times when you need end-to-end testing with full isolation.
 - **Cost Savings**: Kardinal can help you save big by avoiding unnecessary resource duplication. It’s a game-changer for teams looking to cut costs. Check out [this calculator](https://kardinal.dev/calculator) to run your own calculations.
 - **Open Source**: Kardinal is open source, so use it however fits best within your workflows
 
 ### Want a demo?
+
 Sign-up for a free demo of Kardinal below 👇
 
 [![Get a demo](https://img.shields.io/badge/Get_a_demo-FC7444?style=for-the-badge)](https://calendly.com/d/cqhd-tgj-vmc/45-minute-meeting?month=2024-09)
@@ -28,19 +31,25 @@ Sign-up for a free demo of Kardinal below 👇
 ## Installation
 
 ### **Step 1: Install Kardinal**
+
 To install Kardinal, run the following command:
+
 ```
 curl get.kardinal.dev -sL | sh
 ```
+
 ### **Step 2: Set up a development Kubernetes cluster**
 
 All you need is a Kubernetes cluster with Istio enabled, and kubectl installed on your machine, pointing to your cluster. If you need help with this, read more [here](https://kardinal.dev/docs/getting-started/install)
 
 ### **Step 3: Deploy the Kardinal Manager to your cluster**
+
 Make sure that kubectl is pointing to your cluster, and then run the following command:
+
 ```
 kardinal manager deploy kloud-kontrol
 ```
+
 Once installed check out our docs on [creating your first flow](https://kardinal.dev/docs/getting-started/own-app).
 
 ## Try it out in a Playground
@@ -131,6 +140,10 @@ Is it possible to develop your app with Kardinal + [Tilt](https://tilt.dev/). He
 - [Tilt](https://docs.tilt.dev/install.html)
 - Local K8s cluster, it could be [Minikube](https://minikube.sigs.k8s.io/docs/start) or [Docker desktop](https://docs.docker.com/desktop/kubernetes/) for instance
 - [Istio](https://istio.io/latest/docs/setup/install/istioctl/#install-istio-using-the-default-profile)
+- Gateway API
+  - ```bash
+    kubectl kustomize "github.com/kubernetes-sigs/gateway-api/config/crd?ref=v1.1.0" | kubectl apply -f -;
+    ```
 
 ### Deploy your application:
 
@@ -141,18 +154,20 @@ Assuming you’ve already deployed your application’s manifest using the `kard
 Example:
 
 1- Create this `Tiltfile`
+
 ```python
 kardinal_topology_yaml = local(['kardinal', 'topology', 'print-manifest', '--add-trace-router'], quiet=True)
 kardinal_topology_yaml_str = str(kardinal_topology_yaml)
 
 if kardinal_topology_yaml_str != '':
     k8s_yaml(kardinal_topology_yaml, allow_duplicates = True)
-    
+
 local_resource(
     name='ingress-gateway-port-forward',
     serve_cmd=['kubectl', 'port-forward', 'service/istio-ingressgateway', '80:80', '-n', 'istio-system']
 )
 ```
+
 2- Run `sudo tilt up`
 
 The first `local` call retrieves the cluster topology from Kardinal Kontrol using the `kardinal topology` command. This command prints a multi-resource manifest that Tilt captures and then applies with the `k8s_yaml` command.  
@@ -165,6 +180,7 @@ You can also include the `kardinal deploy` command inside the Tilt to handle all
 Example:
 
 1- Create a `Tiltfile` like this, replacing the placeholder data with your own.
+
 ```python
 local(['kardinal', 'deploy', '-k', '{your-kardinal-manifest-yaml-filepath}'])
 
@@ -173,12 +189,13 @@ kardinal_topology_yaml_str = str(kardinal_topology_yaml)
 
 if kardinal_topology_yaml_str != '':
     k8s_yaml(kardinal_topology_yaml, allow_duplicates = True)
-    
+
 local_resource(
     name='ingress-gateway-port-forward',
     serve_cmd=['kubectl', 'port-forward', 'service/istio-ingressgateway', '80:80', '-n', 'istio-system']
 )
 ```
+
 2- Run `sudo tilt up`
 
 In this example, the `kardinal deploy` command is used at the start to deploy the multi-resource manifest file to Kardinal Kontrol.
@@ -207,7 +224,7 @@ kardinal_topology_yaml_str = str(kardinal_topology_yaml)
 
 if kardinal_topology_yaml_str != '':
     k8s_yaml(kardinal_topology_yaml, allow_duplicates = True)
-    
+
 local_resource(
     name='ingress-gateway-port-forward',
     serve_cmd=['kubectl', 'port-forward', 'service/istio-ingressgateway', '80:80', '-n', 'istio-system']
@@ -239,6 +256,7 @@ The `delete-namespaces` flag is used to remove the application’s namespace, it
 ### More configuration examples:
 
 For additional examples of configuring Kardinal with Tilt, refer to the [Tiltfile in the Kardinal Boutique demo app](https://github.com/kurtosis-tech/new-obd/blob/main/Tiltfile).
+
 </details>
 
 ## Develop with Kardinal + Telepresence
@@ -262,25 +280,33 @@ Assuming you’ve already deployed your application’s manifest using the `kard
 
 Example:
 
-1- Install Telepresence manager with Istio integration in your cluster (make sure that you have selected the targe cluster with kubectl before running it) 
+1- Install Telepresence manager with Istio integration in your cluster (make sure that you have selected the targe cluster with kubectl before running it)
+
 ```shell
-telepresence helm install --set trafficManager.serviceMesh.type=istio 
+telepresence helm install --set trafficManager.serviceMesh.type=istio
 ```
+
 2- Connect Telepresence to the namespace where Kardinal deployed the application
+
 ```shell
-telepresence connect -n prod 
+telepresence connect -n prod
 ```
+
 3- Create a dev flow with `Kardinal`.
+
 ```shell
 kardinal flow create frontend kurtosistech/frontend:demo-on-sale
 ```
+
 4- Take note of the flow ID created
 5- Start the `frontend` app locally in a local port either with the terminal or your IDE, you can even start it in debug mode.
 6- Take note the `port` where it's running because it will be used later
 7- Run the telepresence intercept command to intercept the traffic (replace the values between the brackets)
+
 ```shell
 telepresence intercept $(kubectl get deployments -l app=frontend,version={{flow-id}} -o jsonpath='{.items[*].metadata.name}' -n prod) --port {{local-port}}:http
 ```
+
 8- Navigate the website in the browser to receive the request in the app running locally outside the cluster
 
 </details>

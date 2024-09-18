@@ -2,6 +2,8 @@ package cluster_manager
 
 import (
 	"context"
+	"encoding/json"
+	"strings"
 
 	"github.com/kurtosis-tech/kardinal/libs/manager-kontrol-api/api/golang/types"
 	"github.com/kurtosis-tech/stacktrace"
@@ -291,24 +293,6 @@ func (manager *ClusterManager) CleanUpClusterResources(ctx context.Context, clus
 		return nil
 	}
 
-	// Clean up services
-	servicesByNS := lo.GroupBy(*clusterResources.Services, func(item corev1.Service) string {
-		return item.Namespace
-	})
-	for namespace, services := range servicesByNS {
-		if err := manager.cleanUpServicesInNamespace(ctx, namespace, services); err != nil {
-			return stacktrace.Propagate(err, "An error occurred cleaning up services '%+v' in namespace '%s'", services, namespace)
-		}
-	}
-
-	// Clean up deployments
-	deploymentsByNS := lo.GroupBy(*clusterResources.Deployments, func(item appsv1.Deployment) string { return item.Namespace })
-	for namespace, deployments := range deploymentsByNS {
-		if err := manager.cleanUpDeploymentsInNamespace(ctx, namespace, deployments); err != nil {
-			return stacktrace.Propagate(err, "An error occurred cleaning up deployments '%+v' in namespace '%s'", deployments, namespace)
-		}
-	}
-
 	// Clean up virtual services
 	virtualServicesByNS := lo.GroupBy(*clusterResources.VirtualServices, func(item v1alpha3.VirtualService) string { return item.Namespace })
 	for namespace, virtualServices := range virtualServicesByNS {
@@ -331,7 +315,6 @@ func (manager *ClusterManager) CleanUpClusterResources(ctx context.Context, clus
 	routesByNs := lo.GroupBy(*clusterResources.HttpRoutes, func(item gateway.HTTPRoute) string {
 		return item.Namespace
 	})
-
 	for namespace, routes := range routesByNs {
 		if err := manager.cleanUpHttpRoutesInNamespace(ctx, namespace, routes); err != nil {
 			return stacktrace.Propagate(err, "An error occurred cleaning up http routes '%+v' in namespace '%s'", routes, namespace)
@@ -342,7 +325,6 @@ func (manager *ClusterManager) CleanUpClusterResources(ctx context.Context, clus
 	gatewaysByNs := lo.GroupBy(*clusterResources.Gateways, func(item gateway.Gateway) string {
 		return item.Namespace
 	})
-
 	for namespace, gateways := range gatewaysByNs {
 		if err := manager.cleanUpGatewaysInNamespace(ctx, namespace, gateways); err != nil {
 			return stacktrace.Propagate(err, "An error occurred cleaning up gateways '%+v' in namespace '%s'", gateways, namespace)
@@ -358,6 +340,25 @@ func (manager *ClusterManager) CleanUpClusterResources(ctx context.Context, clus
 			if err := manager.cleanupEnvoyFiltersInNamespace(ctx, namespace, envoyFilters); err != nil {
 				return stacktrace.Propagate(err, "An error occurred cleaning up envoy filters '%+v' in namespace '%s'", envoyFilters, namespace)
 			}
+		}
+	}
+
+	// Clean up services
+	servicesByNS := lo.GroupBy(*clusterResources.Services, func(item corev1.Service) string {
+		return item.Namespace
+	})
+	for namespace, services := range servicesByNS {
+		gateways := gatewaysByNs[namespace]
+		if err := manager.cleanUpServicesInNamespace(ctx, namespace, services, gateways); err != nil {
+			return stacktrace.Propagate(err, "An error occurred cleaning up services '%+v' in namespace '%s'", services, namespace)
+		}
+	}
+
+	// Clean up deployments
+	deploymentsByNS := lo.GroupBy(*clusterResources.Deployments, func(item appsv1.Deployment) string { return item.Namespace })
+	for namespace, deployments := range deploymentsByNS {
+		if err := manager.cleanUpDeploymentsInNamespace(ctx, namespace, deployments); err != nil {
+			return stacktrace.Propagate(err, "An error occurred cleaning up deployments '%+v' in namespace '%s'", deployments, namespace)
 		}
 	}
 
@@ -406,17 +407,17 @@ func (manager *ClusterManager) createOrUpdateService(ctx context.Context, servic
 	serviceClient := manager.kubernetesClient.clientSet.CoreV1().Services(service.Namespace)
 	existingService, err := serviceClient.Get(ctx, service.Name, metav1.GetOptions{})
 	if err != nil {
-		// Resource does not exist, create new one
 		_, err = serviceClient.Create(ctx, service, globalCreateOptions)
 		if err != nil {
 			return stacktrace.Propagate(err, "Failed to create service: %s", service.GetName())
 		}
 	} else {
-		// Update the resource version to the latest before updating
-		service.ResourceVersion = existingService.ResourceVersion
-		_, err = serviceClient.Update(ctx, service, globalUpdateOptions)
-		if err != nil {
-			return stacktrace.Propagate(err, "Failed to update service: %s", service.GetName())
+		if !deepCheckEqual(existingService.Spec, service.Spec) {
+			service.ResourceVersion = existingService.ResourceVersion
+			_, err = serviceClient.Update(ctx, service, globalUpdateOptions)
+			if err != nil {
+				return stacktrace.Propagate(err, "Failed to update service: %s", service.GetName())
+			}
 		}
 	}
 
@@ -432,10 +433,12 @@ func (manager *ClusterManager) createOrUpdateDeployment(ctx context.Context, dep
 			return stacktrace.Propagate(err, "Failed to create deployment: %s", deployment.GetName())
 		}
 	} else {
-		updateDeploymentWithRelevantValuesFromCurrentDeployment(deployment, existingDeployment)
-		_, err = deploymentClient.Update(ctx, deployment, globalUpdateOptions)
-		if err != nil {
-			return stacktrace.Propagate(err, "Failed to update deployment: %s", deployment.GetName())
+		if !deepCheckEqual(existingDeployment.Spec, deployment.Spec) {
+			updateDeploymentWithRelevantValuesFromCurrentDeployment(deployment, existingDeployment)
+			_, err = deploymentClient.Update(ctx, deployment, globalUpdateOptions)
+			if err != nil {
+				return stacktrace.Propagate(err, "Failed to update deployment: %s", deployment.GetName())
+			}
 		}
 	}
 
@@ -468,10 +471,12 @@ func (manager *ClusterManager) createOrUpdateVirtualService(ctx context.Context,
 			return stacktrace.Propagate(err, "Failed to create virtual service: %s", virtualService.GetName())
 		}
 	} else {
-		virtualService.ResourceVersion = existingVirtService.ResourceVersion
-		_, err = virtServiceClient.Update(ctx, virtualService, globalUpdateOptions)
-		if err != nil {
-			return stacktrace.Propagate(err, "Failed to update virtual service: %s", virtualService.GetName())
+		if !deepCheckEqual(existingVirtService.Spec, virtualService.Spec) {
+			virtualService.ResourceVersion = existingVirtService.ResourceVersion
+			_, err = virtServiceClient.Update(ctx, virtualService, globalUpdateOptions)
+			if err != nil {
+				return stacktrace.Propagate(err, "Failed to update virtual service: %s", virtualService.GetName())
+			}
 		}
 	}
 
@@ -488,10 +493,12 @@ func (manager *ClusterManager) createOrUpdateDestinationRule(ctx context.Context
 			return stacktrace.Propagate(err, "Failed to create destination rule: %s", destinationRule.GetName())
 		}
 	} else {
-		destinationRule.ResourceVersion = existingDestRule.ResourceVersion
-		_, err = destRuleClient.Update(ctx, destinationRule, globalUpdateOptions)
-		if err != nil {
-			return stacktrace.Propagate(err, "Failed to update destination rule: %s", destinationRule.GetName())
+		if !deepCheckEqual(existingDestRule.Spec, destinationRule.Spec) {
+			destinationRule.ResourceVersion = existingDestRule.ResourceVersion
+			_, err = destRuleClient.Update(ctx, destinationRule, globalUpdateOptions)
+			if err != nil {
+				return stacktrace.Propagate(err, "Failed to update destination rule: %s", destinationRule.GetName())
+			}
 		}
 	}
 
@@ -507,10 +514,12 @@ func (manager *ClusterManager) createOrUpdateGateway(ctx context.Context, gatewa
 			return stacktrace.Propagate(err, "Failed to create gateway: %s", gateway.GetName())
 		}
 	} else {
-		gateway.ResourceVersion = existingGateway.ResourceVersion
-		_, err = gatewayClient.Update(ctx, gateway, globalUpdateOptions)
-		if err != nil {
-			return stacktrace.Propagate(err, "Failed to update gateway: %s", gateway.GetName())
+		if !deepCheckEqual(existingGateway.Spec, gateway.Spec) {
+			gateway.ResourceVersion = existingGateway.ResourceVersion
+			_, err = gatewayClient.Update(ctx, gateway, globalUpdateOptions)
+			if err != nil {
+				return stacktrace.Propagate(err, "Failed to update gateway: %s", gateway.GetName())
+			}
 		}
 	}
 
@@ -526,10 +535,12 @@ func (manager *ClusterManager) createOrUpdateHttpRoute(ctx context.Context, rout
 			return stacktrace.Propagate(err, "Failed to create route: %s", route.GetName())
 		}
 	} else {
-		route.ResourceVersion = existingRoute.ResourceVersion
-		_, err = routeClient.Update(ctx, route, globalUpdateOptions)
-		if err != nil {
-			return stacktrace.Propagate(err, "Failed to update route: %s", route.GetName())
+		if !deepCheckEqual(existingRoute.Spec, route.Spec) {
+			route.ResourceVersion = existingRoute.ResourceVersion
+			_, err = routeClient.Update(ctx, route, globalUpdateOptions)
+			if err != nil {
+				return stacktrace.Propagate(err, "Failed to update route: %s", route.GetName())
+			}
 		}
 	}
 
@@ -545,10 +556,12 @@ func (manager *ClusterManager) createOrUpdateEnvoyFilter(ctx context.Context, fi
 			return stacktrace.Propagate(err, "Failed to create envoy filter: %s", filter.GetName())
 		}
 	} else {
-		filter.ResourceVersion = existingFilter.ResourceVersion
-		_, err = envoyFilterClient.Update(ctx, filter, globalUpdateOptions)
-		if err != nil {
-			return stacktrace.Propagate(err, "Failed to update filter: %s", filter.GetName())
+		if !deepCheckEqual(existingFilter.Spec, filter.Spec) {
+			filter.ResourceVersion = existingFilter.ResourceVersion
+			_, err = envoyFilterClient.Update(ctx, filter, globalUpdateOptions)
+			if err != nil {
+				return stacktrace.Propagate(err, "Failed to update filter: %s", filter.GetName())
+			}
 		}
 	}
 	return nil
@@ -563,24 +576,36 @@ func (manager *ClusterManager) createOrUpdateAuthorizationPolicies(ctx context.C
 			return stacktrace.Propagate(err, "Failed to create policy: %s", policy.GetName())
 		}
 	} else {
-		policy.ResourceVersion = existingPolicy.ResourceVersion
-		_, err = authorizationPolicyClient.Update(ctx, policy, globalUpdateOptions)
-		if err != nil {
-			return stacktrace.Propagate(err, "Failed to update policy: %s", policy.GetName())
+		if !deepCheckEqual(existingPolicy.Spec, policy.Spec) {
+			policy.ResourceVersion = existingPolicy.ResourceVersion
+			_, err = authorizationPolicyClient.Update(ctx, policy, globalUpdateOptions)
+			if err != nil {
+				return stacktrace.Propagate(err, "Failed to update policy: %s", policy.GetName())
+			}
 		}
 	}
 	return nil
 }
 
-func (manager *ClusterManager) cleanUpServicesInNamespace(ctx context.Context, namespace string, servicesToKeep []corev1.Service) error {
+func (manager *ClusterManager) cleanUpServicesInNamespace(ctx context.Context, namespace string, servicesToKeep []corev1.Service, gateways []gateway.Gateway) error {
 	serviceClient := manager.kubernetesClient.clientSet.CoreV1().Services(namespace)
+	gatewayNames := lo.Map(gateways, func(item gateway.Gateway, _ int) string { return item.Name })
 	allServices, err := serviceClient.List(ctx, globalListOptions)
 	if err != nil {
 		return stacktrace.Propagate(err, "Failed to list services in namespace %s", namespace)
 	}
-	for _, service := range allServices.Items {
+
+	allServicesSkippingGateways := lo.Filter(allServices.Items, func(item corev1.Service, _ int) bool {
+		_, found := lo.Find(gatewayNames, func(gatewayName string) bool { return strings.HasPrefix(item.Name, gatewayName) })
+		if found {
+			logrus.Infof("Skipping deletion service %s because it seems a service from one of the gateways %v", item.Name, gatewayNames)
+		}
+		return !found
+	})
+	for _, service := range allServicesSkippingGateways {
 		_, exists := lo.Find(servicesToKeep, func(item corev1.Service) bool { return item.Name == service.Name })
 		if !exists {
+			logrus.Infof("Deleting service %s", service.Name)
 			err = serviceClient.Delete(ctx, service.Name, globalDeleteOptions)
 			if err != nil {
 				return stacktrace.Propagate(err, "Failed to delete service %s", service.GetName())
@@ -741,4 +766,16 @@ func isValid(clusterResources *types.ClusterResources) bool {
 	}
 
 	return true
+}
+
+func deepCheckEqual(a, b interface{}) bool {
+	aj, err := json.Marshal(a)
+	if err != nil {
+		return false
+	}
+	bj, err := json.Marshal(b)
+	if err != nil {
+		return false
+	}
+	return string(aj) == string(bj)
 }
