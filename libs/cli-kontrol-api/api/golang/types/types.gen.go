@@ -79,9 +79,9 @@ type NodeType string
 
 // NodeVersion defines model for NodeVersion.
 type NodeVersion struct {
-	FlowId     string  `json:"flow-id"`
-	ImageTag   *string `json:"image-tag,omitempty"`
-	IsBaseline bool    `json:"is-baseline"`
+	FlowId     string  `json:"flowId"`
+	ImageTag   *string `json:"imageTag,omitempty"`
+	IsBaseline bool    `json:"isBaseline"`
 }
 
 // ServiceConfig defines model for ServiceConfig.

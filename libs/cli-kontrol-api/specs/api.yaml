@@ -336,15 +336,15 @@ components:
     NodeVersion:
       type: object
       properties:
-        flow-id:
+        flowId:
           type: string
-        image-tag:
+        imageTag:
           type: string
-        is-baseline:
+        isBaseline:
           type: boolean
       required:
-        - flow-id
-        - is-baseline
+        - flowId
+        - isBaseline
 
     Edge:
       type: object

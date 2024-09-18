@@ -255,9 +255,9 @@ export interface components {
       versions?: components["schemas"]["NodeVersion"][];
     };
     NodeVersion: {
-      "flow-id": string;
-      "image-tag"?: string;
-      "is-baseline": boolean;
+      flowId: string;
+      imageTag?: string;
+      isBaseline: boolean;
     };
     Edge: {
       /** @description The identifier of the source node of the edge. */
