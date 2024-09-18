@@ -1,24 +1,25 @@
 "use client";
 
 import { NextPage } from "next";
-import styled from "styled-components";
-import { IMAGES } from "../constants/assets";
 import Image from "next/image";
+import styled from "styled-components";
+
+import notFoundImg from "@/public/not-found.jpg";
 
 const Custom404: NextPage = () => {
   return (
     <S.Container>
-      <S.SubHeading>Opps page not found</S.SubHeading>
+      <S.SubHeading>Oops! Page not found.</S.SubHeading>
       <S.ImageContainer>
         <Image
-          src={IMAGES?.NOT_FOUND}
-          alt="page-not-found"
+          src={notFoundImg}
+          alt="Page not found"
           width={350}
           height={280}
         />
       </S.ImageContainer>
       <S.SubHeading>
-        We are sorry but the page you are rquested was not found
+        We are sorry but the page you requested was not found.
       </S.SubHeading>
     </S.Container>
   );
