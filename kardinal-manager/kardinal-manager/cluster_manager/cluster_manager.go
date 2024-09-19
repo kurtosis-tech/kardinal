@@ -213,7 +213,7 @@ func (manager *ClusterManager) ApplyClusterResources(ctx context.Context, cluste
 		allNSs = append(allNSs, [][]string{authPoliciesNS}...)
 	}
 
-	uniqueNamespaces := lo.Uniq(lo.Flatten(allNSs))
+	uniqueNamespaces := lo.ReplaceAll(lo.Uniq(lo.Flatten(allNSs)), "", "default")
 
 	for _, namespace := range uniqueNamespaces {
 		if err := manager.ensureNamespace(ctx, namespace); err != nil {
