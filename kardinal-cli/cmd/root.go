@@ -568,7 +568,7 @@ var gatewayCmd = &cobra.Command{
 			}
 		}
 
-		if err := deployment.StartGateway(hostFlowIdMap); err != nil {
+		if err := deployment.StartGateway(ctx, hostFlowIdMap); err != nil {
 			log.Fatal("An error occurred while creating a gateway", err)
 		}
 	},
