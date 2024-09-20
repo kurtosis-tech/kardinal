@@ -173,6 +173,31 @@ func (client *kubernetesClient) RemoveNamespaceResourcesByLabels(ctx context.Con
 	return nil
 }
 
+func (client *kubernetesClient) GetNamespacesByLabels(ctx context.Context, namespaceLabels map[string]string) (*corev1.NamespaceList, error) {
+	namespaceClient := client.clientSet.CoreV1().Namespaces()
+
+	listOptions := buildListOptionsFromLabels(namespaceLabels)
+	namespaces, err := namespaceClient.List(ctx, listOptions)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "Failed to list namespaces with labels '%+v'", namespaceLabels)
+	}
+
+	// Only return objects not tombstoned by Kubernetes
+	var namespacesNotMarkedForDeletionList []corev1.Namespace
+	for _, namespace := range namespaces.Items {
+		deletionTimestamp := namespace.GetObjectMeta().GetDeletionTimestamp()
+		if deletionTimestamp == nil {
+			namespacesNotMarkedForDeletionList = append(namespacesNotMarkedForDeletionList, namespace)
+		}
+	}
+	namespacesNotMarkedForDeletionnamespaceList := corev1.NamespaceList{
+		Items:    namespacesNotMarkedForDeletionList,
+		TypeMeta: namespaces.TypeMeta,
+		ListMeta: namespaces.ListMeta,
+	}
+	return &namespacesNotMarkedForDeletionnamespaceList, nil
+}
+
 func buildListOptionsFromLabels(labelsMap map[string]string) metav1.ListOptions {
 	return metav1.ListOptions{
 		TypeMeta: metav1.TypeMeta{
