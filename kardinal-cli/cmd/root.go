@@ -853,7 +853,7 @@ func createDevFlow(tenantUuid api_types.Uuid, pairsMap map[string]string, templa
 	if resp.StatusCode() == 404 {
 		fmt.Printf("Could not create flow, missing %s: %s\n", resp.JSON404.ResourceType, resp.JSON404.Id)
 	} else if resp.StatusCode() == 500 {
-		fmt.Printf("Could not create flow, error %s: %v\n", resp.JSON500.Error, resp.JSON500.Msg)
+		fmt.Printf("Could not create flow, error %s: %s\n", resp.JSON500.Error, *resp.JSON500.Msg)
 	} else {
 		fmt.Printf("Failed to create dev flow: %s\n", string(resp.Body))
 	}
@@ -893,7 +893,7 @@ func deploy(tenantUuid api_types.Uuid, serviceConfigs []api_types.ServiceConfig,
 	if resp.StatusCode() == 404 {
 		fmt.Printf("Could not create flow, missing %s: %s\n", resp.JSON404.ResourceType, resp.JSON404.Id)
 	} else if resp.StatusCode() == 500 {
-		fmt.Printf("Could not create flow, error %s: %v\n", resp.JSON500.Error, resp.JSON500.Msg)
+		fmt.Printf("Could not create flow, error %s: %s\n", resp.JSON500.Error, *resp.JSON500.Msg)
 	} else {
 		fmt.Printf("Failed to create dev flow: %s\n", string(resp.Body))
 	}
@@ -974,7 +974,7 @@ func createTemplate(tenantUuid api_types.Uuid, templateName string, services []c
 	if resp.StatusCode() == 404 {
 		fmt.Printf("Could not create template, missing %s: %s\n", resp.JSON404.ResourceType, resp.JSON404.Id)
 	} else if resp.StatusCode() == 500 {
-		fmt.Printf("Could not create template, error %s: %v\n", resp.JSON500.Error, resp.JSON500.Msg)
+		fmt.Printf("Could not create template, error %s: %s\n", resp.JSON500.Error, *resp.JSON500.Msg)
 	} else {
 		fmt.Printf("Failed to create template: %s\n", string(resp.Body))
 	}
@@ -1016,7 +1016,7 @@ func listTemplates(tenantUuid api_types.Uuid) {
 	if resp.StatusCode() == 404 {
 		fmt.Printf("Could not list templates, missing %s: %s\n", resp.JSON404.ResourceType, resp.JSON404.Id)
 	} else if resp.StatusCode() == 500 {
-		fmt.Printf("Could not list templates, error %s: %v\n", resp.JSON500.Error, resp.JSON500.Msg)
+		fmt.Printf("Could not list templates, error %s: %s\n", resp.JSON500.Error, *resp.JSON500.Msg)
 	} else {
 		fmt.Printf("Failed to list templates: %s\n", string(resp.Body))
 	}
