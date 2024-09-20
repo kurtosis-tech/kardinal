@@ -1,6 +1,10 @@
 [![Docker Hub](https://img.shields.io/badge/dockerhub-images-important.svg?logo=docker)](https://hub.docker.com/u/kurtosistech) 
 # Kardinal
 
+> [!WARNING]
+> Please keep in mind that Kardinal is still under active development
+> and therefore full backward compatibility is not guaranteed before reaching v1.0.0.
+
 ## What is Kardinal?
 
 Kardinal is an open-source framework for creating extremely lightweight ephemeral development environments within a shared Kubernetes cluster. Between dev environments, Kardinal shares every microservice or database that can be feasibly be shared, optimizing for cloud costs and fast spin-up/tear-down. To see how much you would save using Kardinal for your particular architecture, check out the [cost saving calculator](https://kardinal.dev/calculator).
@@ -18,42 +22,44 @@ In Kardinal, an environment is called a "[flow](https://kardinal.dev/docs/concep
 - **Cost Savings**: Kardinal can help you save big by avoiding unnecessary resource duplication. It’s a game-changer for teams looking to cut costs. Check out [this calculator](https://kardinal.dev/calculator) to run your own calculations.
 - **Open Source**: Kardinal is open source, so use it however fits best within your workflows
 
-### Want a demo?
+### Want a hands-on demo?
 Sign-up for a free demo of Kardinal below 👇
 
 [![Get a demo](https://img.shields.io/badge/Get_a_demo-FC7444?style=for-the-badge)](https://calendly.com/d/cqhd-tgj-vmc/45-minute-meeting?month=2024-09)
 
-## Installation
+## Quick Start Playground: GitHub Codespaces
 
-### **Step 1: Install Kardinal**
+We have a playground that runs in Github Codespaces so you can try Kardinal right now without installing anything. Click below to open a Codespace with the playground.
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=818205437&skip_quickstart=true&machine=standardLinux32gb&devcontainer_path=.devcontainer%2Fdevcontainer.json)
+
+- Use the recommended defaults for Codespaces infrastructure.
+- Follow the README.md that loads inside Codespaces.
+
+## Install on Kubernetes
+
+For the subsequent installation steps, you'll need: 
+
+- A Kubernetes cluster with Istio enabled
+- kubectl installed on your machine, pointing to your cluster.
+
+If you need help with this, read more [here](https://kardinal.dev/docs/getting-started/install). If you'd prefer to try Kardinal without these prerequisites, try the GitHub Codespaces Quick Start Playground, above.
+
+
+### Step 1: Install Kardinal Locally
 To install Kardinal, run the following command:
 ```
 curl get.kardinal.dev -sL | sh
 ```
-### **Step 2: Set up a development Kubernetes cluster**
 
-All you need is a Kubernetes cluster with Istio enabled, and kubectl installed on your machine, pointing to your cluster. If you need help with this, read more [here](https://kardinal.dev/docs/getting-started/install)
-
-### **Step 3: Deploy the Kardinal Manager to your cluster**
+### Step 2: Deploy the Kardinal Manager to your cluster
 Make sure that kubectl is pointing to your cluster, and then run the following command:
 ```
 kardinal manager deploy kloud-kontrol
 ```
 Once installed check out our docs on [creating your first flow](https://kardinal.dev/docs/getting-started/own-app).
 
-## Try it out in a Playground
-
-We have a playground that runs in Github Codespaces so you can try Kardinal right now without installing anything. Click below to open a Codespace with the playground. The default settings for the Codespace will work just fine.
-
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=818205437&skip_quickstart=true&machine=standardLinux32gb&devcontainer_path=.devcontainer%2Fdevcontainer.json)
-
-> [!WARNING]
-> Please keep in mind that Kardinal is still under active development
-> and therefore full backward compatibility is not guaranteed before reaching v1.0.0.
-
-## Quick start with a demo application
-
-### Step 1: Deploy the demo app
+### Step 3: Deploy the demo app
 
 Once you have Kardinal installed, you can run through the following demo. For step 1, since this guide is using minikube, you'll need to set up the minikube tunnel to access the frontend of the application you're about to deploy:
 
@@ -82,7 +88,7 @@ kardinal dashboard
 
 and click on the "Traffic configuration" sidebar item.
 
-### Step 2: Create a lightweight development environment (dev flow)
+### Step 4: Create a lightweight development environment (dev flow)
 
 Create a new flow by specifying a service name and a container image.
 
@@ -104,7 +110,7 @@ kardinal dashboard
 
 and click on the "Traffic configuration" sidebar item.
 
-### Step 3: Clean up your development flow
+### Step 5: Clean up your development flow
 
 When you're done with your development flow, you can delete it by running:
 
