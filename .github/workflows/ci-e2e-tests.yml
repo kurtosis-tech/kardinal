@@ -94,6 +94,10 @@ jobs:
         run: |
           KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli deploy -k ci/obd-demo.yaml
       
+      - name: Start gateway to the baseline flow
+        run: |
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli baseline
+      
       - name: Validate that Kardinal manager applied the changes
         run: |
           # Check that the four baseline service pods are running and ready
