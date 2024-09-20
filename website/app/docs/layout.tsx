@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { PropsWithChildren } from "react";
+import Head from "next/head";
 
 import DocsLayout from "@/components/DocsLayout";
 
@@ -9,7 +10,14 @@ export const metadata: Metadata = {
 };
 
 const Layout = ({ children }: PropsWithChildren) => {
-  return <DocsLayout>{children}</DocsLayout>;
+  return (
+    <>
+      <Head>
+        <link rel="canonical" href="https://kardinal.dev/docs" />
+      </Head>
+      <DocsLayout>{children}</DocsLayout>
+    </>
+  );
 };
 
 export default Layout;

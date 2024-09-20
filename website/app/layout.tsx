@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ReactNode } from "react";
 import { Suspense } from "react";
+import Script from "next/script";
 
 import Footer from "@/components/Footer";
 import Main from "@/components/Main";
@@ -52,6 +53,27 @@ export default function RootLayout({
           sizes="<generated>"
         />
         <link rel="icon" href="/favicon.ico" sizes="any" />
+
+        {/* Canonical Tag */}
+        <link rel="canonical" href="https://kardinal.dev/" />
+      
+        {/* Google Tag (gtag.js) */}
+        <Script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-NSSL0D7NJ3"
+        />
+        <Script id="gtag-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-NSSL0D7NJ3');
+          `}
+        </Script>
+        <meta
+          name="google-site-verification"
+          content="TyEWPOTqy29q6e2c_YerchK788fJdKbRYW42BnBywmY"
+        />
       </head>
       <SegmentAnalytics />
       <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GTM_ID!} />

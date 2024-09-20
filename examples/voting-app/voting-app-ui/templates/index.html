@@ -1,142 +1,159 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Voting App</title>
-</head>
-<style>
+  </head>
+  <style>
     body {
-        background-color: #fff;
+      background-color: #fff;
     }
 
     div#logo {
-        isplay: block;
-        margin: 0 auto;
-        width: 500px;
-        text-align: center;
-        font-size: 30px;
-        font-family: Helvetica;
+      display: block;
+      margin: 0 auto;
+      width: 500px;
+      text-align: center;
+      font-size: 30px;
+      font-family: Helvetica;
     }
 
     div#container {
-        margin-top: 5%;
+      margin-top: 5%;
     }
 
     div.space {
-        display: block;
-        margin: 0 auto;
-        width: 500px;
-        height: 10px;
+      display: block;
+      margin: 0 auto;
+      width: 500px;
+      height: 10px;
     }
 
     div#form {
-        padding: 40px;
-        padding-right: 20px;
-        padding-top: 20px;
-        display: block;
-        margin: 0 auto;
-        width: 500px;
-        text-align: center;
-        font-size: 30px;
-        font-family: Helvetica;
-        border-bottom: 1px solid black;
-        border-top: 1px solid black;
+      padding: 40px;
+      padding-right: 20px;
+      padding-top: 20px;
+      display: block;
+      margin: 0 auto;
+      width: 500px;
+      text-align: center;
+      font-size: 30px;
+      font-family: Helvetica;
+      border-bottom: 1px solid black;
+      border-top: 1px solid black;
     }
 
     div#results {
-        display: block;
-        margin: 0 auto;
-        width: 500px;
-        text-align: center;
-        font-size: 26px;
-        font-family: Helvetica;
-        color: #8d8d8d;
+      display: block;
+      margin: 0 auto;
+      width: 500px;
+      text-align: center;
+      font-size: 26px;
+      font-family: Helvetica;
+      color: #8d8d8d;
     }
 
     div#result-title {
-        font-size: 26px;
-        margin-bottom: 20px;
-        margin-top: 20px;
-        color: #8d8d8d;
+      font-size: 26px;
+      margin-bottom: 20px;
+      margin-top: 20px;
+      color: #8d8d8d;
     }
 
     .button {
-        background-color: #4CAF50;
-        border: none;
-        color: white;
-        padding: 16px 32px;
-        text-align: center;
-        text-decoration: none;
-        display: inline-block;
-        font-size: 16px;
-        margin: 4px 2px;
-        -webkit-transition-duration: 0.4s;
-        transition-duration: 0.4s;
-        cursor: pointer;
-        width: 250px;
+      background-color: #4caf50;
+      border: none;
+      color: white;
+      padding: 16px 32px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 4px 2px;
+      -webkit-transition-duration: 0.4s;
+      transition-duration: 0.4s;
+      cursor: pointer;
+      width: 250px;
     }
 
     .button1 {
-        background-color: white;
-        color: black;
-        border: 2px solid #008CBA;
+      background-color: white;
+      color: black;
+      border: 2px solid #008cba;
     }
 
     .button1:hover {
-        background-color: #008CBA;
-        color: white;
+      background-color: #008cba;
+      color: white;
     }
 
     .button2 {
-        background-color: white;
-        color: black;
-        border: 2px solid #18a42d;
+      background-color: white;
+      color: black;
+      border: 2px solid #18a42d;
     }
 
     .button2:hover {
-        background-color: #18a42d;
-        color: white;
+      background-color: #18a42d;
+      color: white;
     }
 
     .button3 {
-        background-color: white;
-        color: black;
-        border: 2px solid #f44336;
+      background-color: white;
+      color: black;
+      border: 2px solid #f44336;
     }
 
     .button3:hover {
-        background-color: #f44336;
-        color: white;
+      background-color: #f44336;
+      color: white;
     }
-</style>
-<body>
-<div id="container">
-    <div id="logo">{{ title }}</div>
-    <div class="space"></div>
-    <div class="space"></div>
-    <div id="form">
+  </style>
+  <body>
+    <div id="container">
+      <div id="logo">{{ title }}</div>
+      <div class="space"></div>
+      <div class="space"></div>
+      <div id="form">
         <form action="/" method="POST">
-            <center>
-                <button type="submit" name="vote" value="option1" class="button button1">Vote for {{ option1 }}</button>
-                <button type="submit" name="vote" value="option2" class="button button2">Vote for {{ option2 }}</button>
-                {% if option3 %}
-                <button type="submit" name="vote" value="option3" class="button button3">Vote for {{ option3 }}</button>
-                {% endif %}
-            </center>
+          <center>
+            <button
+              type="submit"
+              name="vote"
+              value="option1"
+              class="button button1"
+            >
+              Vote for {{ option1 }}
+            </button>
+            <button
+              type="submit"
+              name="vote"
+              value="option2"
+              class="button button2"
+            >
+              Vote for {{ option2 }}
+            </button>
+            {% if option3 %}
+            <button
+              type="submit"
+              name="vote"
+              value="option3"
+              class="button button3"
+            >
+              Vote for {{ option3 }}
+            </button>
+            {% endif %}
+          </center>
         </form>
         <div class="space"></div>
         <div class="space"></div>
         <div id="result-title">Current votes</div>
         <div id="results">
-            {{ option1 }}: {{ option1_votes }} |
-            {{ option2 }}: {{ option2_votes }}
-            {% if option3 %}
-                |
-                {{ option3 }}: {{ option3_votes }}
-            {% endif %}
+          {{ option1 }}: {{ option1_votes }} | {{ option2 }}: {{ option2_votes
+          }} {% if option3 %} | {{ option3 }}: {{ option3_votes }} {% endif %}
         </div>
+      </div>
     </div>
-</div>
-</body>
+  </body>
 </html>
