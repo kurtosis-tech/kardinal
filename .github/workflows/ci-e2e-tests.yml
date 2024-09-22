@@ -94,10 +94,6 @@ jobs:
         run: |
           KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli deploy -k ci/obd-demo.yaml
       
-      - name: Start gateway to the baseline flow
-        run: |
-          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli gateway baseline
-      
       - name: Validate that Kardinal manager applied the changes
         run: |
           # Check that the four baseline service pods are running and ready
@@ -121,6 +117,10 @@ jobs:
             echo "Errors found in the kardinal manager"
             kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep "ERRO"
           fi
+
+      - name: Start gateway to the baseline flow
+        run: |
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli gateway baseline
 
       - name: Create, validate and delete flow
         run: |
