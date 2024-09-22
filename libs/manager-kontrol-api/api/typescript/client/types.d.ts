@@ -45,6 +45,7 @@ export interface components {
       destination_rules?: unknown[];
       gateways?: unknown[];
       http_routes?: unknown[];
+      ingresses?: unknown[];
       envoy_filters?: unknown[];
       authorization_policies?: unknown[];
     };

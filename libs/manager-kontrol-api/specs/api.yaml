@@ -106,6 +106,13 @@ components:
             x-go-type-import:
               path: sigs.k8s.io/gateway-api/apis/v1
               name: gateway
+        ingresses:
+          type: array
+          items:
+            x-go-type: net.Ingress
+            x-go-type-import:
+              path: k8s.io/api/networking/v1
+              name: net
         envoy_filters:
           type: array
           items:

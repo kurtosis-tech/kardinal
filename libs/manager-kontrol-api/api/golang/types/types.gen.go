@@ -8,6 +8,7 @@ import (
 	v1beta1 "istio.io/client-go/pkg/apis/security/v1beta1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	net "k8s.io/api/networking/v1"
 	gateway "sigs.k8s.io/gateway-api/apis/v1"
 )
 
@@ -26,6 +27,7 @@ type ClusterResources struct {
 	EnvoyFilters          *[]v1alpha3.EnvoyFilter        `json:"envoy_filters,omitempty"`
 	Gateways              *[]gateway.Gateway             `json:"gateways,omitempty"`
 	HttpRoutes            *[]gateway.HTTPRoute           `json:"http_routes,omitempty"`
+	Ingresses             *[]net.Ingress                 `json:"ingresses,omitempty"`
 	Services              *[]corev1.Service              `json:"services,omitempty"`
 	VirtualServices       *[]v1alpha3.VirtualService     `json:"virtual_services,omitempty"`
 }
