@@ -96,7 +96,7 @@ jobs:
       
       - name: Start gateway to the baseline flow
         run: |
-          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli baseline
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli gateway baseline
       
       - name: Validate that Kardinal manager applied the changes
         run: |
