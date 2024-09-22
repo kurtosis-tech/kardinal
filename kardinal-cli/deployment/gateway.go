@@ -35,7 +35,6 @@ const (
 	proxyPortRangeEnd   = 60000
 	maxRetries          = 10
 	retryInterval       = 10 * time.Second
-	prodNamespace       = "prod"
 )
 
 func hashStringToRange(s string, maxRange int) int {
@@ -67,7 +66,7 @@ func findAvailablePortInRange(host string, portsInUse *[]int) (int, error) {
 	return port, nil
 }
 
-func StartGateway(hostFlowIdMap map[string]string) error {
+func StartGateway(ctx context.Context, hostFlowIdMap map[string]string) error {
 	client, err := kubernetes_pack.CreateKubernetesClient()
 	if err != nil {
 		return fmt.Errorf("an error occurred while creating a kubernetes client:\n %v", err)
@@ -76,10 +75,27 @@ func StartGateway(hostFlowIdMap map[string]string) error {
 	for host, flowId := range hostFlowIdMap {
 		logrus.Printf("Starting gateway for host: %s", host)
 
-		// Check for pods in the prod namespace
-		err = assertProdNamespaceReady(client.GetClientSet(), flowId)
+		// TODO move these values to a shared library between Kardinal Manager, Kontrol and Kardinal CLI
+		kardinalLabelKey := "kardinal.dev"
+		enabledKardinal := "enabled"
+
+		namespaceLabels := map[string]string{
+			kardinalLabelKey: enabledKardinal,
+		}
+
+		namespaceList, err := client.GetNamespacesByLabels(ctx, namespaceLabels)
 		if err != nil {
-			return fmt.Errorf("failed to assert that prod namespace is ready: %v", err)
+			return fmt.Errorf("failed to list namespaces from Kubernetes: %v", err)
+		}
+		if len(namespaceList.Items) > 1 {
+			return fmt.Errorf("cannot start gateway because more than one Kardinal namespace was found")
+		}
+		baselineNamespace := namespaceList.Items[0]
+
+		// Check for pods in the baseline namespace
+		err = assertBaselineNamespaceReady(client.GetClientSet(), flowId, baselineNamespace.Name)
+		if err != nil {
+			return fmt.Errorf("failed to assert that baseline namespace is ready: %v", err)
 		}
 
 		// Check for the Envoy filter before proceeding
@@ -155,17 +171,18 @@ func StartGateway(hostFlowIdMap map[string]string) error {
 }
 
 // TODO move to the kubernetes package
-func assertProdNamespaceReady(client *kubernetes.Clientset, flowId string) error {
+func assertBaselineNamespaceReady(client *kubernetes.Clientset, flowId string, baselineNamespace string) error {
+
 	for retry := 0; retry < maxRetries; retry++ {
-		pods, err := client.CoreV1().Pods(prodNamespace).List(context.Background(), metav1.ListOptions{})
+		pods, err := client.CoreV1().Pods(baselineNamespace).List(context.Background(), metav1.ListOptions{})
 		if err != nil {
-			logrus.Printf("Error listing pods in prod namespace (attempt %d/%d): %v", retry+1, maxRetries, err)
+			logrus.Printf("Error listing pods in baseline namespace (attempt %d/%d): %v", retry+1, maxRetries, err)
 			time.Sleep(retryInterval)
 			continue
 		}
 
 		if len(pods.Items) == 0 {
-			logrus.Printf("No pods found in namespace %s (attempt %d/%d)", prodNamespace, retry+1, maxRetries)
+			logrus.Printf("No pods found in namespace %s (attempt %d/%d)", baselineNamespace, retry+1, maxRetries)
 			time.Sleep(retryInterval)
 			continue
 		}
@@ -190,7 +207,7 @@ func assertProdNamespaceReady(client *kubernetes.Clientset, flowId string) error
 		}
 
 		if allReady && flowIdFound {
-			logrus.Printf("All pods in namespace %s are ready and flowId %s found", prodNamespace, flowId)
+			logrus.Printf("All pods in namespace %s are ready and flowId %s found", baselineNamespace, flowId)
 			return nil
 		}
 
@@ -198,7 +215,7 @@ func assertProdNamespaceReady(client *kubernetes.Clientset, flowId string) error
 		time.Sleep(retryInterval)
 	}
 
-	return fmt.Errorf("failed to assert all pods are ready and flowId %s found in namespace %s after %d attempts", flowId, prodNamespace, maxRetries)
+	return fmt.Errorf("failed to assert all pods are ready and flowId %s found in namespace %s after %d attempts", flowId, baselineNamespace, maxRetries)
 }
 
 func isPodReady(pod *corev1.Pod) bool {

@@ -22,6 +22,10 @@ const (
 	istioLabel                              = "istio-injection"
 	enabledIstioValue                       = "enabled"
 	telepresenceRestartedAtAnnotation       = "telepresence.getambassador.io/restartedAt"
+
+	// TODO move these values to a shared library between Kardinal Manager, Kontrol and Kardinal CLI
+	kardinalLabelKey = "kardinal.dev"
+	enabledKardinal  = "enabled"
 )
 
 var (
@@ -389,7 +393,8 @@ func (manager *ClusterManager) ensureNamespace(ctx context.Context, name string)
 			ObjectMeta: metav1.ObjectMeta{
 				Name: name,
 				Labels: map[string]string{
-					istioLabel: enabledIstioValue,
+					istioLabel:       enabledIstioValue,
+					kardinalLabelKey: enabledKardinal,
 				},
 			},
 		}

@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.2.7](https://github.com/kurtosis-tech/kardinal/compare/0.2.6...0.2.7) (2024-09-20)
+
+
+### Features
+
+* Topology node list of versions containing flow id, image tag and baseline flag ([#228](https://github.com/kurtosis-tech/kardinal/issues/228)) ([b42fad2](https://github.com/kurtosis-tech/kardinal/commit/b42fad213b93d26ab93b8f31104f5ab4ac994aa9))
+
+
+### Bug Fixes
+
+* Display JSON 500 error message ([#235](https://github.com/kurtosis-tech/kardinal/issues/235)) ([1073cb5](https://github.com/kurtosis-tech/kardinal/commit/1073cb55c1fc5eff77d1b41028a5e95ec16b01df))
+* using dynamic namespace for the gateway cmd ([#239](https://github.com/kurtosis-tech/kardinal/issues/239)) ([7615ce3](https://github.com/kurtosis-tech/kardinal/commit/7615ce35251484cace736a42cf53b4f18a4890f7))
+
 ## [0.2.6](https://github.com/kurtosis-tech/kardinal/compare/0.2.5...0.2.6) (2024-09-17)
 
 
