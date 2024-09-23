@@ -132,7 +132,7 @@ jobs:
               ((c++)) && ((c==12)) && exit 1
               sleep 10
           done
-          flow_url=$(grep "http" kardinal.out | awk '{print $NF}'
+          flow_url=$(grep "http" kardinal.out | awk '{print $NF}')
           status_code=$(curl -s -o /dev/null -w "%{http_code}" ${flow_url})
           echo "${flow_url} returned status code ${status_code}"
           if [ "${status_code}" != "200" ]; then exit 1; fi
