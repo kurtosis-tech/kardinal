@@ -386,7 +386,11 @@ func (manager *ClusterManager) ensureNamespace(ctx context.Context, name string)
 		value, found := existingNamespace.Labels[istioLabel]
 		if !found || value != enabledIstioValue {
 			existingNamespace.Labels[istioLabel] = enabledIstioValue
-			manager.kubernetesClient.clientSet.CoreV1().Namespaces().Update(ctx, existingNamespace, globalUpdateOptions)
+			existingNamespace.Labels[kardinalLabelKey] = enabledKardinal
+			_, err = manager.kubernetesClient.clientSet.CoreV1().Namespaces().Update(ctx, existingNamespace, globalUpdateOptions)
+			if err != nil {
+				return stacktrace.Propagate(err, "Failed to update Namespace: %s", name)
+			}
 		}
 	} else {
 		newNamespace := corev1.Namespace{
