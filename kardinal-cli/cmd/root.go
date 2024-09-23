@@ -569,7 +569,7 @@ var gatewayCmd = &cobra.Command{
 		}
 
 		if err := deployment.StartGateway(ctx, hostFlowIdMap); err != nil {
-			log.Fatal("An error occurred while creating a gateway", err)
+			log.Fatalf("An error occurred while creating a gateway: %v", err)
 		}
 	},
 }

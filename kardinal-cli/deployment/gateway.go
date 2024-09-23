@@ -72,25 +72,28 @@ func StartGateway(ctx context.Context, hostFlowIdMap map[string]string) error {
 		return fmt.Errorf("an error occurred while creating a kubernetes client:\n %v", err)
 	}
 
+	// TODO move these values to a shared library between Kardinal Manager, Kontrol and Kardinal CLI
+	kardinalLabelKey := "kardinal.dev"
+	enabledKardinal := "enabled"
+
+	namespaceLabels := map[string]string{
+		kardinalLabelKey: enabledKardinal,
+	}
+
+	namespaceList, err := client.GetNamespacesByLabels(ctx, namespaceLabels)
+	if err != nil {
+		return fmt.Errorf("failed to list namespaces from Kubernetes: %v", err)
+	}
+	if len(namespaceList.Items) == 0 {
+		return fmt.Errorf("cannot start gateway because no Kardinal namespace was found")
+	}
+	if len(namespaceList.Items) > 1 {
+		return fmt.Errorf("cannot start gateway because more than one Kardinal namespace was found")
+	}
+	baselineNamespace := namespaceList.Items[0]
+
 	for host, flowId := range hostFlowIdMap {
 		logrus.Printf("Starting gateway for host: %s", host)
-
-		// TODO move these values to a shared library between Kardinal Manager, Kontrol and Kardinal CLI
-		kardinalLabelKey := "kardinal.dev"
-		enabledKardinal := "enabled"
-
-		namespaceLabels := map[string]string{
-			kardinalLabelKey: enabledKardinal,
-		}
-
-		namespaceList, err := client.GetNamespacesByLabels(ctx, namespaceLabels)
-		if err != nil {
-			return fmt.Errorf("failed to list namespaces from Kubernetes: %v", err)
-		}
-		if len(namespaceList.Items) > 1 {
-			return fmt.Errorf("cannot start gateway because more than one Kardinal namespace was found")
-		}
-		baselineNamespace := namespaceList.Items[0]
 
 		// Check for pods in the baseline namespace
 		err = assertBaselineNamespaceReady(client.GetClientSet(), flowId, baselineNamespace.Name)
