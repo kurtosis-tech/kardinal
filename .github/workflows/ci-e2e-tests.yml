@@ -118,9 +118,20 @@ jobs:
             kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep "ERRO"
           fi
 
-      - name: Start gateway to the baseline flow
+      - name: Start gateway to the baseline flow and validate access
         run: |
-          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli gateway baseline
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli gateway baseline > kardinal.out &
+          while ! grep "Proxy server for host" kardinal.out
+          do
+              echo "Waiting for gateway to start..."
+              cat kardinal.out
+              ((c++)) && ((c==12)) && exit 1
+              sleep 10
+          done
+          flow_url=$(grep "http" kardinal.out | awk '{print $NF}'
+          status_code=$(curl -s -o /dev/null -w "%{http_code}" ${flow_url})
+          echo "${flow_url} returned status code ${status_code}"
+          if [ "${status_code}" != "200" ]; then exit 1; fi
 
       - name: Create, validate and delete flow
         run: |
