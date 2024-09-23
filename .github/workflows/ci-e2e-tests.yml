@@ -121,6 +121,8 @@ jobs:
       - name: Start gateway to the baseline flow and validate access
         run: |
           kubectl get namespaces
+          kubectl describe namespace baseline
+          kubectl describe namespace istio-system
           kubectl get namespaces -l kardinal.dev=enabled
           KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli gateway baseline > kardinal.out &
           while ! grep "Proxy server for host" kardinal.out
