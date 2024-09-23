@@ -402,8 +402,8 @@ var gatewayCmd = &cobra.Command{
 		for _, flow := range *resp.JSON200 {
 			if slices.Contains(flowIds, flow.FlowId) {
 				flowId := flow.FlowId
-				if len(flow.FlowUrls) > 0 {
-					host = flow.FlowUrls[0]
+				if len(flow.AccessEntry) > 0 {
+					host = flow.AccessEntry[0].Hostname
 					if host == "" {
 						log.Fatalf("Couldn't find flow with id '%s'", flowId)
 					}
@@ -713,8 +713,8 @@ func createDevFlow(tenantUuid api_types.Uuid, pairsMap map[string]string, templa
 
 	if resp.StatusCode() == 200 {
 		fmt.Printf("Flow \"%s\" created. Access it on:\n", resp.JSON200.FlowId)
-		for _, url := range resp.JSON200.FlowUrls {
-			fmt.Printf("🌐 http://%s\n", url)
+		for _, entry := range resp.JSON200.AccessEntry {
+			fmt.Printf("🌐 http://%s\n", entry.Hostname)
 		}
 		return
 	}
@@ -761,8 +761,8 @@ func deploy(
 
 	if resp.StatusCode() == 200 {
 		fmt.Printf("Flow \"%s\" created. Access it on:\n", resp.JSON200.FlowId)
-		for _, url := range resp.JSON200.FlowUrls {
-			fmt.Printf("🌐 http://%s\n", url)
+		for _, entry := range resp.JSON200.AccessEntry {
+			fmt.Printf("🌐 http://%s\n", entry.Hostname)
 		}
 		fmt.Printf("View and manage flows:\n⚙️  %s\n", trafficConfigurationURL)
 		return

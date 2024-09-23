@@ -38,8 +38,8 @@ type Edge struct {
 
 // Flow defines model for Flow.
 type Flow struct {
-	FlowId   string   `json:"flow-id"`
-	FlowUrls []string `json:"flow-urls"`
+	AccessEntry []IngressAccessEntry `json:"access-entry"`
+	FlowId      string               `json:"flow-id"`
 }
 
 // FlowSpec defines model for FlowSpec.
@@ -51,6 +51,15 @@ type FlowSpec = []struct {
 // GatewayConfig defines model for GatewayConfig.
 type GatewayConfig struct {
 	Gateway gateway.Gateway `json:"gateway"`
+}
+
+// IngressAccessEntry defines model for IngressAccessEntry.
+type IngressAccessEntry struct {
+	FlowId    string `json:"flow-id"`
+	Hostname  string `json:"hostname"`
+	Namespace string `json:"namespace"`
+	Service   string `json:"service"`
+	Type      string `json:"type"`
 }
 
 // IngressConfig defines model for IngressConfig.

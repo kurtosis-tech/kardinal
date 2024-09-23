@@ -226,7 +226,14 @@ export interface components {
     };
     Flow: {
       "flow-id": string;
-      "flow-urls": string[];
+      "access-entry": components["schemas"]["IngressAccessEntry"][];
+    };
+    IngressAccessEntry: {
+      "flow-id": string;
+      hostname: string;
+      service: string;
+      namespace: string;
+      type: string;
     };
     FlowSpec: {
         /** @example backend-a:latest */

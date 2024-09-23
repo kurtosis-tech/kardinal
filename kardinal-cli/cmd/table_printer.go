@@ -35,7 +35,9 @@ func printFlowTable(flows []api_types.Flow) {
 	data := lo.Map(flows, func(flow api_types.Flow, _ int) []string {
 		return []string{
 			flow.FlowId,
-			strings.Join(lo.Map(flow.FlowUrls, func(item string, _ int) string { return fmt.Sprintf("http://%s", item) }), ", "),
+			strings.Join(lo.Map(
+				flow.AccessEntry,
+				func(item api_types.IngressAccessEntry, _ int) string { return fmt.Sprintf("http://%s", item.Hostname) }), ", "),
 		}
 	})
 

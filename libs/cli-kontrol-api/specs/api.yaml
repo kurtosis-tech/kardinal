@@ -278,13 +278,33 @@ components:
       properties:
         flow-id:
           type: string
-        flow-urls:
+        access-entry:
           type: array
           items:
-            type: string
+            $ref: "#/components/schemas/IngressAccessEntry"
       required:
         - flow-id
-        - flow-urls
+        - access-entry
+
+    IngressAccessEntry:
+      type: object
+      properties:
+        flow-id:
+          type: string
+        hostname:
+          type: string
+        service:
+          type: string
+        namespace:
+          type: string
+        type:
+          type: string
+      required:
+        - flow-id
+        - hostname
+        - service
+        - namespace
+        - type
 
     FlowSpec:
       type: array
