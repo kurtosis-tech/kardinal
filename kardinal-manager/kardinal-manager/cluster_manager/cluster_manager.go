@@ -14,6 +14,7 @@ import (
 	securityv1beta1 "istio.io/client-go/pkg/apis/security/v1beta1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	net "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"kardinal.kontrol/kardinal-manager/topology"
 	gateway "sigs.k8s.io/gateway-api/apis/v1"
@@ -284,6 +285,12 @@ func (manager *ClusterManager) ApplyClusterResources(ctx context.Context, cluste
 		}
 	}
 
+	for _, ingress := range *clusterResources.Ingresses {
+		if err := manager.createOrUpdateIngress(ctx, &ingress); err != nil {
+			return stacktrace.Propagate(err, "An error occurred while creating or updating the ingress")
+		}
+	}
+
 	return nil
 }
 
@@ -308,6 +315,16 @@ func (manager *ClusterManager) CleanUpClusterResources(ctx context.Context, clus
 	for namespace, destinationRules := range destinationRulesByNS {
 		if err := manager.cleanUpDestinationRulesInNamespace(ctx, namespace, destinationRules); err != nil {
 			return stacktrace.Propagate(err, "An error occurred cleaning up destination rules '%+v' in namespace '%s'", destinationRules, namespace)
+		}
+	}
+
+	// Clean up Ingresses
+	ingressesByNs := lo.GroupBy(*clusterResources.Ingresses, func(item net.Ingress) string {
+		return item.Namespace
+	})
+	for namespace, ingresses := range ingressesByNs {
+		if err := manager.cleanUpIngressesInNamespace(ctx, namespace, ingresses); err != nil {
+			return stacktrace.Propagate(err, "An error occurred cleaning up ingresses '%+v' in namespace '%s'", ingresses, namespace)
 		}
 	}
 
@@ -547,6 +564,27 @@ func (manager *ClusterManager) createOrUpdateHttpRoute(ctx context.Context, rout
 	return nil
 }
 
+func (manager *ClusterManager) createOrUpdateIngress(ctx context.Context, ingress *net.Ingress) error {
+	routeClient := manager.kubernetesClient.clientSet.NetworkingV1().Ingresses(ingress.GetNamespace())
+	existingRoute, err := routeClient.Get(ctx, ingress.Name, metav1.GetOptions{})
+	if err != nil {
+		_, err = routeClient.Create(ctx, ingress, globalCreateOptions)
+		if err != nil {
+			return stacktrace.Propagate(err, "Failed to create ingress: %s", ingress.GetName())
+		}
+	} else {
+		if !deepCheckEqual(existingRoute.Spec, ingress.Spec) {
+			ingress.ResourceVersion = existingRoute.ResourceVersion
+			_, err = routeClient.Update(ctx, ingress, globalUpdateOptions)
+			if err != nil {
+				return stacktrace.Propagate(err, "Failed to update ingress: %s", ingress.GetName())
+			}
+		}
+	}
+
+	return nil
+}
+
 func (manager *ClusterManager) createOrUpdateEnvoyFilter(ctx context.Context, filter *v1alpha3.EnvoyFilter) error {
 	envoyFilterClient := manager.istioClient.clientSet.NetworkingV1alpha3().EnvoyFilters(filter.GetNamespace())
 	existingFilter, err := envoyFilterClient.Get(ctx, filter.Name, metav1.GetOptions{})
@@ -683,6 +721,25 @@ func (manager *ClusterManager) cleanUpGatewaysInNamespace(ctx context.Context, n
 			err = gatewayClient.Delete(ctx, gatewayItem.Name, globalDeleteOptions)
 			if err != nil {
 				return stacktrace.Propagate(err, "Failed to delete gateway %s", gatewayItem.GetName())
+			}
+		}
+	}
+
+	return nil
+}
+
+func (manager *ClusterManager) cleanUpIngressesInNamespace(ctx context.Context, namespace string, ingressesToKeep []net.Ingress) error {
+	ingressClient := manager.kubernetesClient.clientSet.NetworkingV1().Ingresses(namespace)
+	allingresss, err := ingressClient.List(ctx, globalListOptions)
+	if err != nil {
+		return stacktrace.Propagate(err, "Failed to list Ingress in namespace %s", namespace)
+	}
+	for _, ingressItem := range allingresss.Items {
+		_, exists := lo.Find(ingressesToKeep, func(item net.Ingress) bool { return item.Name == ingressItem.Name })
+		if !exists {
+			err = ingressClient.Delete(ctx, ingressItem.Name, globalDeleteOptions)
+			if err != nil {
+				return stacktrace.Propagate(err, "Failed to delete gateway %s", ingressItem.GetName())
 			}
 		}
 	}
