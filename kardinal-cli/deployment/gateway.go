@@ -90,7 +90,7 @@ func StartGateway(hostFlowIdMap []api_types.IngressAccessEntry) error {
 
 		logrus.Printf("Starting gateway for host: %s", host)
 
-		err = assertBaselineNamespaceReady(client.GetClientSet(), entry.FlowId, entry.Namespace)
+		err = assertBaselineNamespaceReady(client.GetClientSet(), entry.FlowId, entry.FlowNamespace)
 		if err != nil {
 			return fmt.Errorf("failed to assert that baseline namespace is ready: %v", err)
 		}
