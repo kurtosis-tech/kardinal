@@ -55,11 +55,12 @@ type GatewayConfig struct {
 
 // IngressAccessEntry defines model for IngressAccessEntry.
 type IngressAccessEntry struct {
-	FlowId    string `json:"flow-id"`
-	Hostname  string `json:"hostname"`
-	Namespace string `json:"namespace"`
-	Service   string `json:"service"`
-	Type      string `json:"type"`
+	FlowId        string `json:"flow-id"`
+	FlowNamespace string `json:"flow-namespace"`
+	Hostname      string `json:"hostname"`
+	Namespace     string `json:"namespace"`
+	Service       string `json:"service"`
+	Type          string `json:"type"`
 }
 
 // IngressConfig defines model for IngressConfig.

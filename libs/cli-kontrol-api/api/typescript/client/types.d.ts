@@ -232,6 +232,7 @@ export interface components {
     };
     IngressAccessEntry: {
       "flow-id": string;
+      "flow-namespace": string;
       hostname: string;
       service: string;
       namespace: string;
