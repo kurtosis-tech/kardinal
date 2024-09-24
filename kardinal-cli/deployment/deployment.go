@@ -73,6 +73,7 @@ spec:
     metadata:
       labels:
         {{.KardinalAppIDLabelKey}}: {{.KardinalManagerAppIDLabelValue}}
+        app: kardinal-manager
     spec:
       serviceAccountName: kardinal-manager
       containers:
