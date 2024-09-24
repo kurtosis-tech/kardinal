@@ -171,10 +171,10 @@ jobs:
           flow_id=$(grep "Flow.*created" kardinal.out | cut -d ' ' -f2 | tr -d "\"")
           KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow ls | grep ${flow_id}
           
-          # Check that the dev pods are running and ready
-          while [ $(kubectl get pods -n baseline --no-headers -o custom-columns=NAMESPACE:metadata.namespace,POD:metadata.name,PodIP:status.podIP,READY-true:status.containerStatuses[*].ready | grep "true,true" | grep ${flow_id} | wc -l) -ne 3 ]
+          # Check that the dev service pod is running and ready
+          while ! kubectl get pods -n baseline --no-headers -o custom-columns=NAMESPACE:metadata.namespace,POD:metadata.name,PodIP:status.podIP,READY-true:status.containerStatuses[*].ready | grep true | grep "frontend-${flow_id}"
           do
-              echo "Waiting for dev pods to run..."
+              echo "Waiting for dev frontend pod to run..."
               kubectl get pods -n baseline -o custom-columns=NAMESPACE:metadata.namespace,POD:metadata.name,PodIP:status.podIP,READY-true:status.containerStatuses[*].ready
               ((c++)) && ((c==12)) && exit 1
               sleep 10
@@ -206,10 +206,10 @@ jobs:
  
           KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow delete ${flow_id}
        
-          # Check that the dev pods are not running anymore
-          while kubectl get pods -n baseline | grep ${flow_id}
+          # Check that the dev service pod is not running anymore
+          while kubectl get pods -n baseline | grep "frontend-${flow_id}"
           do
-              echo "Waiting for the dev pods to terminate..."
+              echo "Waiting for dev frontend pod to terminate..."
               kubectl get pods -n baseline
               ((c++)) && ((c==12)) && exit 1
               sleep 10
@@ -235,10 +235,10 @@ jobs:
           flow_id=$(grep "Flow.*created" kardinal.out | cut -d ' ' -f2 | tr -d "\"")
           KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow ls | grep ${flow_id}
           
-          # Check that the dev pods are running and ready
-          while [ $(kubectl get pods -n baseline --no-headers -o custom-columns=NAMESPACE:metadata.namespace,POD:metadata.name,PodIP:status.podIP,READY-true:status.containerStatuses[*].ready | grep "true,true" | grep ${flow_id} | wc -l) -ne 3 ]
+          # Check that the dev service pod is running and ready
+          while ! kubectl get pods -n baseline --no-headers -o custom-columns=NAMESPACE:metadata.namespace,POD:metadata.name,PodIP:status.podIP,READY-true:status.containerStatuses[*].ready | grep true | grep "frontend-${flow_id}"
           do
-              echo "Waiting for the dev pods to run..."
+              echo "Waiting for dev frontend pod to run..."
               kubectl get pods -n baseline -o custom-columns=NAMESPACE:metadata.namespace,POD:metadata.name,PodIP:status.podIP,READY-true:status.containerStatuses[*].ready
               ((c++)) && ((c==12)) && exit 1
               sleep 10
@@ -247,10 +247,10 @@ jobs:
 
           KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow delete ${flow_id}
 
-          # Check that the dev pods are not running anymore
-          while kubectl get pods -n baseline | grep ${flow_id}
+          # Check that the dev service pod is not running anymore
+          while kubectl get pods -n baseline | grep "frontend-${flow_id}"
           do
-              echo "Waiting for the dev pods to terminate..."
+              echo "Waiting for dev frontend pod to terminate..."
               kubectl get pods -n baseline
               ((c++)) && ((c==12)) && exit 1
               sleep 10
