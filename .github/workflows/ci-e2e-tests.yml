@@ -205,7 +205,17 @@ jobs:
           fi
  
           KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow delete ${flow_id}
-        
+       
+          # Check that the dev service pod is not running anymore
+          while kubectl get pods -n baseline | grep "frontend-${flow_id}"
+          do
+              echo "Waiting for dev frontend pod to terminate..."
+              kubectl get pods -n baseline
+              ((c++)) && ((c==12)) && exit 1
+              sleep 10
+          done
+          kubectl get pods -n baseline
+ 
           # Check for errors in the kardinal manager logs
           if kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep "ERRO"
           then
@@ -236,6 +246,16 @@ jobs:
           kubectl get pods -n baseline
 
           KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow delete ${flow_id}
+
+          # Check that the dev service pod is not running anymore
+          while kubectl get pods -n baseline | grep "frontend-${flow_id}"
+          do
+              echo "Waiting for dev frontend pod to terminate..."
+              kubectl get pods -n baseline
+              ((c++)) && ((c==12)) && exit 1
+              sleep 10
+          done
+          kubectl get pods -n baseline
 
           # Check for errors in the kardinal manager logs
           if kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep "ERRO"
