@@ -143,6 +143,7 @@ jobs:
       - name: Start gateway to the baseline flow and validate access
         run: |
           KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli gateway baseline > kardinal.out &
+          cli_pid=$!
           while ! grep "Proxy server for host" kardinal.out
           do
               echo "Waiting for gateway to start..."
@@ -154,6 +155,7 @@ jobs:
           status_code=$(curl -s -o /dev/null -w "%{http_code}" ${flow_url})
           echo "${flow_url} returned status code ${status_code}"
           if [ "${status_code}" != "200" ]; then exit 1; fi
+          kill ${cli_pid}
 
           # Check for errors in the trace router logs
           if kubectl logs -n default -l app=trace-router | grep "ERRO"
@@ -181,6 +183,7 @@ jobs:
          
           # Start gateway to the flow and validate access
           KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli gateway ${flow_id} > kardinal.out &
+          cli_pid=$!
           while ! grep "Proxy server for host" kardinal.out
           do
               echo "Waiting for gateway to start..."
@@ -192,6 +195,7 @@ jobs:
           status_code=$(curl -s -o /dev/null -w "%{http_code}" ${flow_url})
           echo "${flow_url} returned status code ${status_code}"
           if [ "${status_code}" != "200" ]; then exit 1; fi
+          kill ${cli_pid}
           
           # Check for errors in the trace router logs
           if kubectl logs -n default -l app=trace-router | grep "ERRO"
