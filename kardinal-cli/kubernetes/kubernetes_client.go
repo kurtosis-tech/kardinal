@@ -1,4 +1,4 @@
-package deployment
+package kubernetes
 
 import (
 	"bytes"
@@ -7,6 +7,8 @@ import (
 	"github.com/kurtosis-tech/stacktrace"
 	"gopkg.in/yaml.v3"
 	"io"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/labels"
@@ -32,6 +34,49 @@ type kubernetesClient struct {
 
 func newKubernetesClient(config *rest.Config, clientSet *kubernetes.Clientset, dynamicClient *dynamic.DynamicClient, discoveryMapper *restmapper.DeferredDiscoveryRESTMapper) *kubernetesClient {
 	return &kubernetesClient{config: config, clientSet: clientSet, dynamicClient: dynamicClient, discoveryMapper: discoveryMapper}
+}
+
+func (client *kubernetesClient) GetClientSet() *kubernetes.Clientset {
+	return client.clientSet
+}
+
+func (client *kubernetesClient) GetConfig() *rest.Config {
+	return client.config
+}
+
+func (client *kubernetesClient) GetService(ctx context.Context, namespaceName string, name string) (*corev1.Service, error) {
+	serviceClient := client.clientSet.CoreV1().Services(namespaceName)
+	serviceObj, err := serviceClient.Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "An error occurred getting service '%s' from namespace '%s'", name, namespaceName)
+	}
+	return serviceObj, nil
+}
+
+func (client *kubernetesClient) GetDeploymentsByLabels(ctx context.Context, namespace string, labels map[string]string) (*appsv1.DeploymentList, error) {
+	deploymentClient := client.clientSet.AppsV1().Deployments(namespace)
+
+	opts := buildListOptionsFromLabels(labels)
+	deploymentResult, err := deploymentClient.List(ctx, opts)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "Failed to list deployments with labels '%+v' in namespace '%s'", labels, namespace)
+	}
+
+	// Only return objects not tombstoned by Kubernetes
+	var deploymentsNotMarkedForDeletionList []appsv1.Deployment
+	for _, deployment := range deploymentResult.Items {
+		deletionTimestamp := deployment.GetObjectMeta().GetDeletionTimestamp()
+		if deletionTimestamp == nil {
+			deploymentsNotMarkedForDeletionList = append(deploymentsNotMarkedForDeletionList, deployment)
+		}
+	}
+	deploymentList := appsv1.DeploymentList{
+		Items:    deploymentsNotMarkedForDeletionList,
+		TypeMeta: deploymentResult.TypeMeta,
+		ListMeta: deploymentResult.ListMeta,
+	}
+
+	return &deploymentList, nil
 }
 
 func (client *kubernetesClient) ApplyYamlFileContentInNamespace(ctx context.Context, namespace string, yamlFileContent []byte) error {
@@ -126,6 +171,31 @@ func (client *kubernetesClient) RemoveNamespaceResourcesByLabels(ctx context.Con
 	}
 
 	return nil
+}
+
+func (client *kubernetesClient) GetNamespacesByLabels(ctx context.Context, namespaceLabels map[string]string) (*corev1.NamespaceList, error) {
+	namespaceClient := client.clientSet.CoreV1().Namespaces()
+
+	listOptions := buildListOptionsFromLabels(namespaceLabels)
+	namespaces, err := namespaceClient.List(ctx, listOptions)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "Failed to list namespaces with labels '%+v'", namespaceLabels)
+	}
+
+	// Only return objects not tombstoned by Kubernetes
+	var namespacesNotMarkedForDeletionList []corev1.Namespace
+	for _, namespace := range namespaces.Items {
+		deletionTimestamp := namespace.GetObjectMeta().GetDeletionTimestamp()
+		if deletionTimestamp == nil {
+			namespacesNotMarkedForDeletionList = append(namespacesNotMarkedForDeletionList, namespace)
+		}
+	}
+	namespacesNotMarkedForDeletionnamespaceList := corev1.NamespaceList{
+		Items:    namespacesNotMarkedForDeletionList,
+		TypeMeta: namespaces.TypeMeta,
+		ListMeta: namespaces.ListMeta,
+	}
+	return &namespacesNotMarkedForDeletionnamespaceList, nil
 }
 
 func buildListOptionsFromLabels(labelsMap map[string]string) metav1.ListOptions {

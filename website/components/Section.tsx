@@ -67,10 +67,11 @@ namespace S {
     display: flex;
     justify-content: center;
     position: relative;
-    min-height: ${(props) => (props.$contrast ? "992px" : "unset")};
+    min-height: ${(props) => (props.$contrast ? "593px" : "unset")};
 
     background-image: ${(props) =>
       props.$contrast ? "url('/dotted-bg.svg')" : "transparent"};
+    background-repeat: no-repeat;
 
     @media ${mobile} {
       min-height: unset;

@@ -23,7 +23,7 @@ const steps: VideoStep[] = [
   {
     title: "Staging at a glance",
     content:
-      "Imagine you're on the cart-service team. \
+      "Imagine you're on the cartservice team. \
             Your shared staging environment looks like this.",
     duration: 8 * SECOND,
   },

@@ -5,6 +5,8 @@ import (
 	"context"
 	"text/template"
 
+	"kardinal.cli/kubernetes"
+
 	"kardinal.cli/kontrol"
 
 	"github.com/kurtosis-tech/stacktrace"
@@ -193,11 +195,11 @@ type templateData struct {
 }
 
 func DeployKardinalManagerInCluster(ctx context.Context, clusterResourcesURL string, kontrolLocation string) error {
-	k8sConfig, err := getConfig()
+	k8sConfig, err := kubernetes.GetConfig()
 	if err != nil {
 		return stacktrace.Propagate(err, "An error occurred while creating the Kubernetes client")
 	}
-	kubernetesClientObj, err := createKubernetesClient(k8sConfig)
+	kubernetesClientObj, err := kubernetes.CreateKubernetesClient(k8sConfig)
 	if err != nil {
 		return stacktrace.Propagate(err, "An error occurred while creating the Kubernetes client")
 	}
@@ -241,11 +243,11 @@ func DeployKardinalManagerInCluster(ctx context.Context, clusterResourcesURL str
 }
 
 func RemoveKardinalManagerFromCluster(ctx context.Context) error {
-	k8sConfig, err := getConfig()
+	k8sConfig, err := kubernetes.GetConfig()
 	if err != nil {
 		return stacktrace.Propagate(err, "An error occurred while creating the Kubernetes client")
 	}
-	kubernetesClientObj, err := createKubernetesClient(k8sConfig)
+	kubernetesClientObj, err := kubernetes.CreateKubernetesClient(k8sConfig)
 	if err != nil {
 		return stacktrace.Propagate(err, "An error occurred while creating the Kubernetes client")
 	}

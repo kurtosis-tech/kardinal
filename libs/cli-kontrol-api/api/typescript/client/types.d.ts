@@ -14,6 +14,7 @@ export interface paths {
             "application/json": string;
           };
         };
+        500: components["responses"]["Error"];
       };
     };
   };
@@ -227,6 +228,7 @@ export interface components {
     Flow: {
       "flow-id": string;
       "access-entry": components["schemas"]["IngressAccessEntry"][];
+      "is-baseline"?: boolean;
     };
     IngressAccessEntry: {
       "flow-id": string;
@@ -252,16 +254,19 @@ export interface components {
       /** @description Unique identifier for the node. */
       id: string;
       /** @description Label for the node. */
-      label?: string;
+      label: string;
       /**
        * @description Type of the node
        * @enum {string}
        */
-      type: "gateway" | "service" | "service-version" | "redis";
-      /** @description Parent node */
-      parent?: string;
+      type: "gateway" | "service" | "external";
       /** @description Node versions */
-      versions?: string[];
+      versions?: components["schemas"]["NodeVersion"][];
+    };
+    NodeVersion: {
+      flowId: string;
+      imageTag?: string;
+      isBaseline: boolean;
     };
     Edge: {
       /** @description The identifier of the source node of the edge. */

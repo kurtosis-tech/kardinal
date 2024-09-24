@@ -28,6 +28,11 @@ const (
 	istioLabel                              = "istio-injection"
 	enabledIstioValue                       = "enabled"
 	telepresenceRestartedAtAnnotation       = "telepresence.getambassador.io/restartedAt"
+	istioSystemNamespace                    = "istio-system"
+
+	// TODO move these values to a shared library between Kardinal Manager, Kontrol and Kardinal CLI
+	kardinalLabelKey = "kardinal.dev"
+	enabledKardinal  = "enabled"
 )
 
 var (
@@ -395,19 +400,34 @@ func (manager *ClusterManager) CleanUpClusterResources(ctx context.Context, clus
 }
 
 func (manager *ClusterManager) ensureNamespace(ctx context.Context, name string) error {
+
+	if name == istioSystemNamespace {
+		// Some resources might be under the istio system namespace but we don't want to alter
+		// this namespace because it is managed by Istio
+		return nil
+	}
+
 	existingNamespace, err := manager.kubernetesClient.clientSet.CoreV1().Namespaces().Get(ctx, name, metav1.GetOptions{})
 	if err == nil && existingNamespace != nil {
 		value, found := existingNamespace.Labels[istioLabel]
 		if !found || value != enabledIstioValue {
 			existingNamespace.Labels[istioLabel] = enabledIstioValue
-			manager.kubernetesClient.clientSet.CoreV1().Namespaces().Update(ctx, existingNamespace, globalUpdateOptions)
+		}
+		value, found = existingNamespace.Labels[kardinalLabelKey]
+		if !found || value != enabledKardinal {
+			existingNamespace.Labels[kardinalLabelKey] = enabledKardinal
+		}
+		_, err = manager.kubernetesClient.clientSet.CoreV1().Namespaces().Update(ctx, existingNamespace, globalUpdateOptions)
+		if err != nil {
+			return stacktrace.Propagate(err, "Failed to update Namespace: %s", name)
 		}
 	} else {
 		newNamespace := corev1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: name,
 				Labels: map[string]string{
-					istioLabel: enabledIstioValue,
+					istioLabel:       enabledIstioValue,
+					kardinalLabelKey: enabledKardinal,
 				},
 			},
 		}

@@ -81,6 +81,7 @@ html,
 body {
   background: var(--background);
   overflow-x: hidden;
+  scroll-behavior: smooth;
 }
 
 body {
@@ -141,6 +142,25 @@ br[data-mobile="true"] {
 html {
   color-scheme: light;
 }
+
+pre {
+  background-color: var(--gray-bg) !important;
+  padding: 12px !important;
+}
+
+code {
+  line-height: 1.6;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+}
+
+@media (max-width: 768px) {
+  code {
+    font-size: 14px;
+  }
+}
+
 /* Carousel styles */
 .carousel .control-prev.control-arrow:before {
   border-right: 16px solid rgb(255, 255, 255) !important;

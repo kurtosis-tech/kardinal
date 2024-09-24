@@ -7,10 +7,16 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
+	"net/http"
 	"os"
+	"os/exec"
 	"path"
 	"slices"
 	"strings"
+	"time"
+
+	"kardinal.cli/kubernetes"
 
 	"gopkg.in/yaml.v3"
 	"kardinal.cli/consts"
@@ -28,7 +34,7 @@ import (
 	api_types "github.com/kurtosis-tech/kardinal/libs/cli-kontrol-api/api/golang/types"
 	appv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	net "k8s.io/api/networking/v1"
+	k8snet "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	gateway "sigs.k8s.io/gateway-api/apis/v1"
@@ -36,18 +42,19 @@ import (
 )
 
 const (
-	kontrolBaseURLTmpl                          = "%s://%s"
-	kontrolClusterResourcesEndpointTmpl         = "%s/tenant/%s/cluster-resources"
-	kontrolClusterResourcesManifestEndpointTmpl = "%s/tenant/%s/cluster-resources/manifest"
+	kontrolBaseURLTmpl                  = "%s://%s"
+	kontrolClusterResourcesEndpointTmpl = "%s/tenant/%s/cluster-resources"
 
 	kontrolTrafficConfigurationURLTmpl = "%s/%s/traffic-configuration"
 
 	localMinikubeKontrolAPIHost = "host.minikube.internal:8080"
-	localKontrolAPIHost         = "localhost:8080"
-	localFrontendHost           = "localhost:5173"
+	localhost                   = "localhost"
+	localKontrolAPIHost         = localhost + ":8080"
+	localFrontendHost           = localhost + ":5173"
 	kloudKontrolHost            = "app.kardinal.dev"
 	kloudKontrolAPIHost         = kloudKontrolHost + "/api"
 
+	tcpProtocol = "tcp"
 	httpSchme   = "http"
 	httpsScheme = httpSchme + "s"
 
@@ -55,6 +62,15 @@ const (
 
 	addTraceRouterFlagName = "add-trace-router"
 	yamlSeparator          = "---"
+
+	telepresenceCmdName     = "telepresence"
+	telepresenceInstallDocs = "https://www.telepresence.io/docs/latest/quick-start/"
+	telepresenceAppLabel    = "traffic-manager"
+	ambassadorNamespace     = "ambassador"
+
+	appLabelKey      = "app"
+	versionLabelKey  = "version"
+	portCheckTimeout = 5 * time.Second
 )
 
 var (
@@ -267,6 +283,153 @@ var deleteCmd = &cobra.Command{
 	},
 }
 
+var telepresenceInterceptCmd = &cobra.Command{
+	Use:   "telepresence-intercept [flow-id] [service name] [local port]",
+	Short: "Execute a Telepresence intercept for a service in a dev flow",
+	Args:  cobra.ExactArgs(3),
+	Run: func(cmd *cobra.Command, args []string) {
+		ctx := context.Background()
+
+		flowId, serviceName, localPort := args[0], args[1], args[2]
+
+		// GUARDRAILS
+		// Is telepresence CLI in host
+		_, err := exec.LookPath(telepresenceCmdName)
+		if err != nil {
+			log.Fatalf("The %s command was not foun in the host, you can install it following this docs: %s", telepresenceCmdName, telepresenceInstallDocs)
+		}
+
+		// Is the port open and HTTP
+		if err := isPortOpenAndHTTP(localPort); err != nil {
+			log.Fatalf("An error occurred checking port '%s': %s", localPort, err)
+		}
+
+		// is Traffic-manager installed
+		k8sConfig, err := kubernetes.GetConfig()
+		if err != nil {
+			log.Fatalf("An error occurred while creating the Kubernetes client: %s", err)
+			return
+		}
+		kubernetesClt, err := kubernetes.CreateKubernetesClient(k8sConfig)
+		if err != nil {
+			log.Fatalf("An error occurred while creating the Kubernetes client: %s", err)
+			return
+		}
+
+		trafficManagerDeploymentLabels := map[string]string{
+			appLabelKey: telepresenceAppLabel,
+		}
+
+		ambassadorNamespaceName := ambassadorNamespace
+		trafficManagerDeployments, err := kubernetesClt.GetDeploymentsByLabels(ctx, ambassadorNamespaceName, trafficManagerDeploymentLabels)
+		if err != nil {
+			log.Fatalf("An error occurred getting deployments with labels '%+v' in namespace '%s': %s", trafficManagerDeploymentLabels, ambassadorNamespaceName, err)
+		}
+		if len(trafficManagerDeployments.Items) == 0 {
+			log.Fatalf("The 'traffic-manager' deployment was not foun in '%s' namespace", ambassadorNamespaceName)
+		}
+
+		tenantUuid, err := tenant.GetOrCreateUserTenantUUID()
+		if err != nil {
+			log.Fatal("Error getting or creating user tenant UUID", err)
+		}
+
+		var namespaceName string
+		currentFlows, err := getTenantUuidFlows(tenantUuid.String())
+		if err != nil {
+			log.Fatalf("Failed to get the current dev flows: %v", err)
+		}
+		for _, currentFlow := range currentFlows {
+			if *currentFlow.IsBaseline {
+				namespaceName = currentFlow.FlowId
+			}
+		}
+
+		serviceObj, err := kubernetesClt.GetService(ctx, namespaceName, serviceName)
+		if err != nil {
+			log.Fatalf("An error occurred getting service '%s': %s", serviceName, err)
+		}
+
+		var appLabel string
+		// getting the app label
+		for labelKey, labelValue := range serviceObj.GetLabels() {
+			if labelKey == appLabelKey {
+				appLabel = labelValue
+			}
+		}
+		if appLabel == "" {
+			log.Fatalf("Won't be possible to create the intercept because service '%s' doesn't have the '%s' label which is necessary to get the deployment linked to this", serviceName, appLabelKey)
+		}
+
+		deploymentLabels := map[string]string{
+			appLabelKey:     appLabel,
+			versionLabelKey: flowId,
+		}
+
+		deployments, err := kubernetesClt.GetDeploymentsByLabels(ctx, namespaceName, deploymentLabels)
+		if err != nil {
+			log.Fatalf("An error occurred getting deployments with labels '%+v' in namespace '%s': %s", deploymentLabels, namespaceName, err)
+		}
+		if len(deployments.Items) > 1 {
+			log.Fatalf("Found more than one deployment with labels '%+v' in namespace '%s'", deploymentLabels, namespaceName)
+		}
+
+		interceptBaseName := deployments.Items[0].GetName()
+
+		logrus.Info("Executing Telepresence intercept...")
+
+		telepresenceConnectCmdArgs := []string{"connect", "-n", namespaceName}
+		logrus.Infof("Executing Telepresence connect to namespace '%s'...", namespaceName)
+		telepresenceConnectCmd := exec.Command(telepresenceCmdName, telepresenceConnectCmdArgs...)
+		telepresenceConnectOutput, err := telepresenceConnectCmd.CombinedOutput()
+		logrus.Infof("Telepresence connect command output: %s", string(telepresenceConnectOutput))
+		if err != nil {
+			log.Fatalf("An error occurred connecting Telepresence: %v", err)
+		}
+		logrus.Infof("Telepresence has been successfully connected to namespace '%s'...", namespaceName)
+
+		logrus.Infof("Executing Telepresence intercept to flow id '%s'...", namespaceName)
+
+		telepresenceInterceptCmdArgs := []string{"intercept", interceptBaseName, "--port", fmt.Sprintf("%s:http", localPort)}
+		telepresenceInterceptCmd := exec.Command(telepresenceCmdName, telepresenceInterceptCmdArgs...)
+		telepresenceInterceptOutput, err := telepresenceInterceptCmd.CombinedOutput()
+		logrus.Infof("Telepresence intercept command output: %s", string(telepresenceInterceptOutput))
+		if err != nil {
+			log.Fatalf("An error occurred running Telepresence intercept: %v", err)
+		}
+		logrus.Infof("Telepresence intercept successfully created in flow ID '%s' and service '%s'", flowId, serviceName)
+	},
+}
+
+func isPortOpenAndHTTP(localPortStr string) error {
+	// Check if the port is open
+	localServiceAddress := fmt.Sprintf("%s:%s", localhost, localPortStr)
+	conn, err := net.DialTimeout(tcpProtocol, localServiceAddress, portCheckTimeout)
+	if err != nil {
+		return stacktrace.Propagate(err, "Port %s is not open or not reachable", localPortStr)
+	}
+	defer conn.Close()
+
+	logrus.Debugf("Port %s is open", localPortStr)
+
+	client := &http.Client{
+		Timeout: portCheckTimeout,
+	}
+
+	// Check if there is an HTTP server running on the port
+	httpServerAddr := fmt.Sprintf("%s://%s", httpSchme, localServiceAddress)
+	resp, err := client.Get(httpServerAddr)
+	if err != nil {
+		return stacktrace.Propagate(err, "failing to call an HTTP server on '%s'", httpServerAddr)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return stacktrace.NewError("the HTTP server in 'httpServerAddr' did not return a successful response. Got '%d'", resp.StatusCode)
+	}
+	return nil
+}
+
 var topologyManifestCmd = &cobra.Command{
 	Use:   "print-manifest",
 	Short: "print the current cluster topology manifest deployed in Kontrol",
@@ -409,7 +572,7 @@ var gatewayCmd = &cobra.Command{
 		}
 
 		if err := deployment.StartGateway(hostFlowIdMap); err != nil {
-			log.Fatal("An error occurred while creating a gateway", err)
+			log.Fatalf("An error occurred while creating a gateway: %v", err)
 		}
 	},
 }
@@ -470,7 +633,7 @@ func init() {
 	rootCmd.AddCommand(topologyCmd)
 	rootCmd.AddCommand(tenantCmd)
 
-	flowCmd.AddCommand(listCmd, createCmd, deleteCmd)
+	flowCmd.AddCommand(listCmd, createCmd, deleteCmd, telepresenceInterceptCmd)
 	managerCmd.AddCommand(deployManagerCmd, removeManagerCmd)
 	templateCmd.AddCommand(templateCreateCmd, templateDeleteCmd, templateListCmd)
 	topologyCmd.AddCommand(topologyManifestCmd)
@@ -563,7 +726,7 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.Ser
 			} else {
 				serviceConfigs[deploymentName].Deployment = *deployment
 			}
-		case *net.Ingress:
+		case *k8snet.Ingress:
 			ingress := obj
 			ingressName := getObjectName(ingress.GetObjectMeta().(*metav1.ObjectMeta))
 			ingressConfigs[ingressName] = &api_types.IngressConfig{Ingress: *ingress}
@@ -716,7 +879,7 @@ func createDevFlow(tenantUuid api_types.Uuid, pairsMap map[string]string, templa
 	if resp.StatusCode() == 404 {
 		fmt.Printf("Could not create flow, missing %s: %s\n", resp.JSON404.ResourceType, resp.JSON404.Id)
 	} else if resp.StatusCode() == 500 {
-		fmt.Printf("Could not create flow, error %s: %v\n", resp.JSON500.Error, resp.JSON500.Msg)
+		fmt.Printf("Could not create flow, error %s: %s\n", resp.JSON500.Error, *resp.JSON500.Msg)
 	} else {
 		fmt.Printf("Failed to create dev flow: %s\n", string(resp.Body))
 	}
@@ -765,7 +928,7 @@ func deploy(
 	if resp.StatusCode() == 404 {
 		fmt.Printf("Could not create flow, missing %s: %s\n", resp.JSON404.ResourceType, resp.JSON404.Id)
 	} else if resp.StatusCode() == 500 {
-		fmt.Printf("Could not create flow, error %s: %v\n", resp.JSON500.Error, resp.JSON500.Msg)
+		fmt.Printf("Could not create flow, error %s: %s\n", resp.JSON500.Error, *resp.JSON500.Msg)
 	} else {
 		fmt.Printf("Failed to create dev flow: %s\n", string(resp.Body))
 	}
@@ -846,7 +1009,7 @@ func createTemplate(tenantUuid api_types.Uuid, templateName string, services []c
 	if resp.StatusCode() == 404 {
 		fmt.Printf("Could not create template, missing %s: %s\n", resp.JSON404.ResourceType, resp.JSON404.Id)
 	} else if resp.StatusCode() == 500 {
-		fmt.Printf("Could not create template, error %s: %v\n", resp.JSON500.Error, resp.JSON500.Msg)
+		fmt.Printf("Could not create template, error %s: %s\n", resp.JSON500.Error, *resp.JSON500.Msg)
 	} else {
 		fmt.Printf("Failed to create template: %s\n", string(resp.Body))
 	}
@@ -888,7 +1051,7 @@ func listTemplates(tenantUuid api_types.Uuid) {
 	if resp.StatusCode() == 404 {
 		fmt.Printf("Could not list templates, missing %s: %s\n", resp.JSON404.ResourceType, resp.JSON404.Id)
 	} else if resp.StatusCode() == 500 {
-		fmt.Printf("Could not list templates, error %s: %v\n", resp.JSON500.Error, resp.JSON500.Msg)
+		fmt.Printf("Could not list templates, error %s: %s\n", resp.JSON500.Error, *resp.JSON500.Msg)
 	} else {
 		fmt.Printf("Failed to list templates: %s\n", string(resp.Body))
 	}

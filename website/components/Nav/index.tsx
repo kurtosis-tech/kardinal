@@ -49,7 +49,7 @@ const NavLinksAndButton = () => {
         >
           Blog
         </S.NavLink>
-        <ButtonTertiary
+        <S.PlaygroundButton
           analyticsId="button_nav_playground"
           href="https://github.com/kurtosis-tech/kardinal-playground"
           rel="noopener noreferrer"
@@ -57,9 +57,9 @@ const NavLinksAndButton = () => {
           iconRight={<Sparkles size={16} />}
         >
           Try in Playground
-        </ButtonTertiary>
+        </S.PlaygroundButton>
       </S.NavItemsWrapper>
-    </ResponsiveNav >
+    </ResponsiveNav>
   );
 };
 
@@ -156,7 +156,7 @@ namespace S {
     }
   `;
 
-  export const NavLink = styled(Link) <{ $emphasis?: boolean }>`
+  export const NavLink = styled(Link)<{ $emphasis?: boolean }>`
     align-items: center;
     display: flex;
     gap: 4px;
@@ -173,7 +173,7 @@ namespace S {
     &:hover {
       transform: translateY(-2px);
       color: ${({ $emphasis }) =>
-      $emphasis ? "var(--brand-secondary)" : "var(--brand-primary)"};
+        $emphasis ? "var(--brand-secondary)" : "var(--brand-primary)"};
     }
   `;
 
@@ -210,6 +210,12 @@ namespace S {
     @media ${mobile} {
       flex-direction: column;
     }
+  `;
+
+  export const PlaygroundButton = styled(ButtonTertiary)`
+    color: var(--gray-dark);
+    font-size: 16px;
+    font-weight: 500;
   `;
 }
 export default Nav;

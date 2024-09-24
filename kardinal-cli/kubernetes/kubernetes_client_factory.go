@@ -1,4 +1,4 @@
-package deployment
+package kubernetes
 
 import (
 	"path/filepath"
@@ -14,7 +14,7 @@ import (
 	gatewayclientset "sigs.k8s.io/gateway-api/pkg/client/clientset/versioned"
 )
 
-func getConfig() (*rest.Config, error) {
+func GetConfig() (*rest.Config, error) {
 	var config *rest.Config
 
 	// Load in-cluster configuration
@@ -32,7 +32,7 @@ func getConfig() (*rest.Config, error) {
 	return config, nil
 }
 
-func createKubernetesClient(config *rest.Config) (*kubernetesClient, error) {
+func CreateKubernetesClient(config *rest.Config) (*kubernetesClient, error) {
 	clientSet, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "An error occurred while creating kubernetes client using config '%+v'", config)
@@ -51,7 +51,7 @@ func createKubernetesClient(config *rest.Config) (*kubernetesClient, error) {
 	return kubernetesClientObj, nil
 }
 
-func createGatewayApiClient(k8sConfig *rest.Config) (*gatewayclientset.Clientset, error) {
+func CreateGatewayApiClient(k8sConfig *rest.Config) (*gatewayclientset.Clientset, error) {
 	gwc, err := gatewayclientset.NewForConfig(k8sConfig)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "An error occurred creating IstIo client from k8s config: %v", k8sConfig)

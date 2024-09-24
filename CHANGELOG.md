@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.2.7](https://github.com/kurtosis-tech/kardinal/compare/0.2.6...0.2.7) (2024-09-20)
+
+
+### Features
+
+* Topology node list of versions containing flow id, image tag and baseline flag ([#228](https://github.com/kurtosis-tech/kardinal/issues/228)) ([b42fad2](https://github.com/kurtosis-tech/kardinal/commit/b42fad213b93d26ab93b8f31104f5ab4ac994aa9))
+
+
+### Bug Fixes
+
+* Display JSON 500 error message ([#235](https://github.com/kurtosis-tech/kardinal/issues/235)) ([1073cb5](https://github.com/kurtosis-tech/kardinal/commit/1073cb55c1fc5eff77d1b41028a5e95ec16b01df))
+* using dynamic namespace for the gateway cmd ([#239](https://github.com/kurtosis-tech/kardinal/issues/239)) ([7615ce3](https://github.com/kurtosis-tech/kardinal/commit/7615ce35251484cace736a42cf53b4f18a4890f7))
+
+## [0.2.6](https://github.com/kurtosis-tech/kardinal/compare/0.2.5...0.2.6) (2024-09-17)
+
+
+### Features
+
+* add flow telepresence-intercept CLI command ([#213](https://github.com/kurtosis-tech/kardinal/issues/213)) ([d5a75f6](https://github.com/kurtosis-tech/kardinal/commit/d5a75f64bec64551fff53ee852de6b8cfe29496b))
+* Add health error response ([#224](https://github.com/kurtosis-tech/kardinal/issues/224)) ([d86eaa7](https://github.com/kurtosis-tech/kardinal/commit/d86eaa704e51de33c7cd82dd4ca802c5737c7b0d))
+* add the `baseline` column in the `flow ls` CLI command ([#217](https://github.com/kurtosis-tech/kardinal/issues/217)) ([9360ef3](https://github.com/kurtosis-tech/kardinal/commit/9360ef3ad01305c05770e5637837b55dcbd6fc21))
+* calculator track events when values change ([#215](https://github.com/kurtosis-tech/kardinal/issues/215)) ([7a16e40](https://github.com/kurtosis-tech/kardinal/commit/7a16e40141d02065033fcc71326e68468ad0e9f6))
+* docs anchor links for headings ([#214](https://github.com/kurtosis-tech/kardinal/issues/214)) ([7fbb139](https://github.com/kurtosis-tech/kardinal/commit/7fbb13996c24edf4e75a525f61f189b62573fcd5))
+* variant of calculator page with share section ([#207](https://github.com/kurtosis-tech/kardinal/issues/207)) ([f4242f2](https://github.com/kurtosis-tech/kardinal/commit/f4242f2f122c565fec55b67d592c39b826e8387f))
+* website get started section ([#220](https://github.com/kurtosis-tech/kardinal/issues/220)) ([805189b](https://github.com/kurtosis-tech/kardinal/commit/805189b6a1ff2d4263c6682cad5fa9517a3c51c5))
+
+
+### Bug Fixes
+
+* calculator mobile styles ([#216](https://github.com/kurtosis-tech/kardinal/issues/216)) ([9aa6af7](https://github.com/kurtosis-tech/kardinal/commit/9aa6af7bfcfe6c340405924a27583f2268fb4418))
+* fix some confusing copy ([#221](https://github.com/kurtosis-tech/kardinal/issues/221)) ([e831db5](https://github.com/kurtosis-tech/kardinal/commit/e831db545217ae7d9a969ccc7652fd98282a3c97))
+* replace 'prod' default namespace with 'baseline' in the ci-e2e-tests.yml ([#227](https://github.com/kurtosis-tech/kardinal/issues/227)) ([c81b2d4](https://github.com/kurtosis-tech/kardinal/commit/c81b2d4d67d5abb19c4d7f7c039cb7fe24863846))
+
 ## [0.2.5](https://github.com/kurtosis-tech/kardinal/compare/0.2.4...0.2.5) (2024-09-11)
 
 

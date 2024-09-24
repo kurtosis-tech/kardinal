@@ -8,8 +8,6 @@ Kardinal is an open-source framework for creating extremely lightweight ephemera
 
 In Kardinal, an environment is called a "[flow](https://kardinal.dev/docs/concepts/flows)" because it represents a path that a request takes through the cluster. Versions of services that are under development are deployed on-demand, and then shared across all development work that depends on that version. Read more about Kardinal in our [docs](https://kardinal.dev/docs).
 
-https://github.com/user-attachments/assets/3b4316f7-9f08-4dfa-8ea5-f66e76e01012
-
 ### Why choose Kardinal?
 
 - **Ephemeral Environments**: Spin up a new environment exactly when you need it, and just as quickly spin it down when you’re done.
@@ -57,6 +55,10 @@ Once installed check out our docs on [creating your first flow](https://kardinal
 We have a playground that runs in Github Codespaces so you can try Kardinal right now without installing anything. Click below to open a Codespace with the playground. The default settings for the Codespace will work just fine.
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=818205437&skip_quickstart=true&machine=standardLinux32gb&devcontainer_path=.devcontainer%2Fdevcontainer.json)
+
+> [!WARNING]
+> Please keep in mind that Kardinal is still under active development
+> and therefore full backward compatibility is not guaranteed before reaching v1.0.0.
 
 ## Quick start with a demo application
 
@@ -153,8 +155,7 @@ Assuming you’ve already deployed your application’s manifest using the `kard
 
 Example:
 
-1- Create this `Tiltfile`
-
+1. Create this `Tiltfile`
 ```python
 kardinal_topology_yaml = local(['kardinal', 'topology', 'print-manifest', '--add-trace-router'], quiet=True)
 kardinal_topology_yaml_str = str(kardinal_topology_yaml)
@@ -167,8 +168,7 @@ local_resource(
     serve_cmd=['kubectl', 'port-forward', 'service/istio-ingressgateway', '80:80', '-n', 'istio-system']
 )
 ```
-
-2- Run `sudo tilt up`
+2. Run `sudo tilt up`
 
 The first `local` call retrieves the cluster topology from Kardinal Kontrol using the `kardinal topology` command. This command prints a multi-resource manifest that Tilt captures and then applies with the `k8s_yaml` command.  
 Finally, the `local_resource` function executes the port forwarding command, allowing the Ingress Gateway to handle browser requests on the default port 80. This command requires `sudo` privileges because it binds to the default port 80.
@@ -179,8 +179,7 @@ You can also include the `kardinal deploy` command inside the Tilt to handle all
 
 Example:
 
-1- Create a `Tiltfile` like this, replacing the placeholder data with your own.
-
+1. Create a `Tiltfile` like this, replacing the placeholder data with your own.
 ```python
 local(['kardinal', 'deploy', '-k', '{your-kardinal-manifest-yaml-filepath}'])
 
@@ -195,8 +194,7 @@ local_resource(
     serve_cmd=['kubectl', 'port-forward', 'service/istio-ingressgateway', '80:80', '-n', 'istio-system']
 )
 ```
-
-2- Run `sudo tilt up`
+2. Run `sudo tilt up`
 
 In this example, the `kardinal deploy` command is used at the start to deploy the multi-resource manifest file to Kardinal Kontrol.
 
@@ -206,7 +204,7 @@ You can also integrate Kardinal with Tilt to build your app’s containers and s
 
 Example:
 
-1- Create a `Tiltfile` like this, replacing the placeholder data with your own.
+1. Create a `Tiltfile` like this, replacing the placeholder data with your own.
 
 ```python
 local(['kardinal', 'deploy', '-k', '{your-kardinal-manifest-yaml-filepath}'])
@@ -231,7 +229,7 @@ local_resource(
 )
 ```
 
-2- Run `sudo tilt up`
+2. Run `sudo tilt up`
 
 This example introduces two new elements: first, the `kardinal flow` local execution to create the development flow post-deployment. Note the image name `service-dev-image`, as it will be used in the second element.
 The second element is the `docker build` function call, where, we use `service-dev-image` as the first argument. This creates a link, between the container being built and the service in the development flow. Consequently, any changes to files within the specified context (the second argument) will trigger Tilt's hot reload mechanism, updating the Kardinal development flow.
@@ -280,34 +278,22 @@ Assuming you’ve already deployed your application’s manifest using the `kard
 
 Example:
 
-1- Install Telepresence manager with Istio integration in your cluster (make sure that you have selected the targe cluster with kubectl before running it)
-
+1. Install Telepresence manager with Istio integration in your cluster (make sure that you have selected the targe cluster with kubectl before running it) 
 ```shell
 telepresence helm install --set trafficManager.serviceMesh.type=istio
 ```
-
-2- Connect Telepresence to the namespace where Kardinal deployed the application
-
-```shell
-telepresence connect -n prod
-```
-
-3- Create a dev flow with `Kardinal`.
-
+2. Create a dev flow with `Kardinal`.
 ```shell
 kardinal flow create frontend kurtosistech/frontend:demo-on-sale
 ```
-
-4- Take note of the flow ID created
-5- Start the `frontend` app locally in a local port either with the terminal or your IDE, you can even start it in debug mode.
-6- Take note the `port` where it's running because it will be used later
-7- Run the telepresence intercept command to intercept the traffic (replace the values between the brackets)
-
+3. Take note of the flow ID created
+4. Start the `frontend` app locally in a local port either with the terminal or your IDE, you can even start it in debug mode.
+5. Take note the `port` where it's running because it will be used later
+6. Run the Kardinal flow `telepresence-intercept` command to intercept the traffic (replace the values between the brackets)
 ```shell
-telepresence intercept $(kubectl get deployments -l app=frontend,version={{flow-id}} -o jsonpath='{.items[*].metadata.name}' -n prod) --port {{local-port}}:http
+kardinal flow telepresence-intercept {{flow-id}} {{service-name}} {{local-port}}
 ```
-
-8- Navigate the website in the browser to receive the request in the app running locally outside the cluster
+7. Navigate the website in the browser to receive the request in the app running locally outside the cluster
 
 </details>
 
@@ -316,3 +302,4 @@ telepresence intercept $(kubectl get deployments -l app=frontend,version={{flow-
 - Explore our [docs](https://kardinal.dev/docs) to learn more about how Kardinal works.
 - Ask questions and get help in our community [forum](https://discuss.kardinal.dev).
 - Read our [blog](https://blog.kardinal.dev/) for tips from developers and creators.
+
