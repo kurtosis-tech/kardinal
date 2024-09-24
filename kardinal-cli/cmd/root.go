@@ -395,19 +395,13 @@ var gatewayCmd = &cobra.Command{
 			log.Fatalf("List flow response is empty")
 		}
 
-		var host string
-
-		hostFlowIdMap := make(map[string]string)
+		hostFlowIdMap := make([]api_types.IngressAccessEntry, 0)
 
 		for _, flow := range *resp.JSON200 {
 			if slices.Contains(flowIds, flow.FlowId) {
 				flowId := flow.FlowId
 				if len(flow.AccessEntry) > 0 {
-					host = flow.AccessEntry[0].Hostname
-					if host == "" {
-						log.Fatalf("Couldn't find flow with id '%s'", flowId)
-					}
-					hostFlowIdMap[host] = flowId
+					hostFlowIdMap = append(hostFlowIdMap, flow.AccessEntry...)
 				} else {
 					log.Fatalf("Flow '%s' has no hosts", flowId)
 				}
