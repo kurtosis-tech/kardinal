@@ -90,7 +90,7 @@ jobs:
         run: |
           KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli manager deploy local-minikube
 
-          # Check that the three service pods are running and ready
+          # Check that the three kardinal manager service pods are running and ready
           while [ $(kubectl get pods -n default --no-headers -o custom-columns=NAMESPACE:metadata.namespace,POD:metadata.name,PodIP:status.podIP,READY-true:status.containerStatuses[*].ready | grep "true" | wc -l) -ne 3 ]
           do
               echo "Waiting for kardinal manager pods to run..."
@@ -98,9 +98,6 @@ jobs:
               ((c++)) && ((c==12)) && exit 1
               sleep 10
           done
-          kubectl get pods -n default
-
-          # Check the right services are running.
           apps=$(kubectl get pods -n default -o custom-columns=:metadata.labels.app | tr " " "\n" | sort -g | tr "\n" " " | xargs)
           echo ${apps}
           if [ "${apps}" != "kardinal-manager trace-router trace-router-redis" ]; then exit 1; fi
@@ -126,9 +123,6 @@ jobs:
               ((c++)) && ((c==12)) && exit 1
               sleep 10
           done
-          kubectl get pods -n baseline
-
-          # Check the right services are running.
           apps=$(kubectl get pods -n baseline -o custom-columns=:metadata.labels.app | tr " " "\n" | sort -g | tr "\n" " " | xargs)
           echo ${apps}
           if [ "${apps}" != "cartservice frontend postgres productcatalogservice" ]; then exit 1; fi
