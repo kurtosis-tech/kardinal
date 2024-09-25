@@ -419,7 +419,7 @@ func NewDeleteTenantUuidFlowFlowIdRequest(server string, uuid Uuid, flowId FlowI
 
 	var pathParam1 string
 
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "flow-id", runtime.ParamLocationPath, flowId)
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "flowId", runtime.ParamLocationPath, flowId)
 	if err != nil {
 		return nil, err
 	}
@@ -609,7 +609,7 @@ func NewDeleteTenantUuidTemplatesTemplateNameRequest(server string, uuid Uuid, t
 
 	var pathParam1 string
 
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "template-name", runtime.ParamLocationPath, templateName)
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "templateName", runtime.ParamLocationPath, templateName)
 	if err != nil {
 		return nil, err
 	}
