@@ -88,7 +88,7 @@ jobs:
 
       - name: Deploy Kardinal manager
         run: |
-          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli manager deploy local-minikube
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli manager deploy local-kardinal-kontrol
 
           # Check that the three kardinal manager service pods are running and ready
           while [ $(kubectl get pods -n default --no-headers -o custom-columns=NAMESPACE:metadata.namespace,POD:metadata.name,PodIP:status.podIP,READY-true:status.containerStatuses[*].ready | grep "true" | wc -l) -ne 3 ]

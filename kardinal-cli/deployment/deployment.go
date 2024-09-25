@@ -3,8 +3,9 @@ package deployment
 import (
 	"bytes"
 	"context"
-	"kardinal.cli/kubernetes"
 	"text/template"
+
+	"kardinal.cli/kubernetes"
 
 	"kardinal.cli/kontrol"
 
@@ -208,9 +209,9 @@ func DeployKardinalManagerInCluster(ctx context.Context, clusterResourcesURL str
 	var imagePullPolicy string
 
 	switch kontrolLocation {
-	case kontrol.KontrolLocationLocalMinikube:
+	case kontrol.KontrolLocationLocal:
 		imagePullPolicy = "IfNotPresent"
-	case kontrol.KontrolLocationKloudKontrol:
+	case kontrol.KontrolLocationKloud:
 		imagePullPolicy = "Always"
 	default:
 		stacktrace.NewError("invalid Kontrol location: %s", kontrolLocation)

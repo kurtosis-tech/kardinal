@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"kardinal.cli/kubernetes"
 	"log"
 	"net"
 	"net/http"
@@ -16,6 +15,8 @@ import (
 	"slices"
 	"strings"
 	"time"
+
+	"kardinal.cli/kubernetes"
 
 	"gopkg.in/yaml.v3"
 	"kardinal.cli/consts"
@@ -471,9 +472,10 @@ var topologyManifestCmd = &cobra.Command{
 }
 
 var deployManagerCmd = &cobra.Command{
-	Use:       fmt.Sprintf("deploy [kontrol location] accepted values: %s and %s ", kontrol.KontrolLocationLocalMinikube, kontrol.KontrolLocationKloudKontrol),
+	Use:       fmt.Sprintf("deploy [kardinal-kontrol service location] accepted values: %s and %s ", kontrol.KontrolLocationLocal, kontrol.KontrolLocationKloud),
 	Short:     "Deploy Kardinal manager into the cluster",
-	ValidArgs: []string{kontrol.KontrolLocationLocalMinikube, kontrol.KontrolLocationKloudKontrol},
+	Long:      "The Kardinal Manager retrieves the latest configuration from the Kardinal Kontrol service and applies changes to the user K8S topology.  The Kardinal Kontrol service can be the one running in the Kardinal Cloud or can be the one deployed locally.",
+	ValidArgs: []string{kontrol.KontrolLocationLocal, kontrol.KontrolLocationKloud},
 	Args:      cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
 	Run: func(cmd *cobra.Command, args []string) {
 		kontrolLocation := args[0]
@@ -1087,10 +1089,10 @@ func getKontrolBaseURLForManager() (string, error) {
 	)
 
 	switch kontrolLocation {
-	case kontrol.KontrolLocationLocalMinikube:
+	case kontrol.KontrolLocationLocal:
 		scheme = httpSchme
 		host = localMinikubeKontrolAPIHost
-	case kontrol.KontrolLocationKloudKontrol:
+	case kontrol.KontrolLocationKloud:
 		scheme = httpsScheme
 		host = kloudKontrolAPIHost
 	default:
