@@ -88,7 +88,7 @@ jobs:
 
       - name: Deploy Kardinal manager
         run: |
-          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli manager deploy local-minikube
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli manager deploy local-kardinal-kontrol
 
       - name: Deploy boutique demo manifest
         run: |
