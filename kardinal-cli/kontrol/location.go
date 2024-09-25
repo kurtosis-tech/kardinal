@@ -1,15 +1,19 @@
 package kontrol
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/kurtosis-tech/stacktrace"
 	"github.com/sirupsen/logrus"
 	"kardinal.cli/host_machine_directories"
-	"os"
 )
 
 const (
-	KontrolLocationLocalMinikube               = "local-minikube"
-	KontrolLocationKloudKontrol                = "kloud-kontrol"
+	KontrolLocationLocal                       = "local-kardinal-kontrol"
+	KontrolLocationKloud                       = "kloud-kardinal-kontrol"
+	OldKontrolLocationLocal                    = "local-minikube"
+	OldKontrolLocationKloud                    = "kloud-kontrol"
 	kontrolLocationFilePermissions os.FileMode = 0644
 )
 
@@ -33,9 +37,10 @@ func GetKontrolLocation() (string, error) {
 		return "", stacktrace.Propagate(err, "An error occurred getting the Kontrol location filepath")
 	}
 
+	fmt.Println(kontrolLocationFilepath)
 	_, err = os.Stat(kontrolLocationFilepath)
 	if err != nil {
-		return "", stacktrace.Propagate(err, "An error occurred getting the Kontrol location  file info")
+		return "", stacktrace.Propagate(err, "An error occurred getting the Kontrol location file info")
 	}
 
 	kontrolLocationFileBytes, err := os.ReadFile(kontrolLocationFilepath)
@@ -44,6 +49,12 @@ func GetKontrolLocation() (string, error) {
 	}
 
 	kontrolLocationFileStr := string(kontrolLocationFileBytes)
+	switch kontrolLocationFileStr {
+	case OldKontrolLocationLocal:
+		kontrolLocationFileStr = KontrolLocationLocal
+	case OldKontrolLocationKloud:
+		kontrolLocationFileStr = KontrolLocationKloud
+	}
 
 	logrus.Infof("Using Kontrol location %s", kontrolLocationFileStr)
 	return kontrolLocationFileStr, nil
