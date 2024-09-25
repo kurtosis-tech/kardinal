@@ -103,7 +103,7 @@ jobs:
           if [ "${apps}" != "kardinal-manager trace-router trace-router-redis" ]; then exit 1; fi
           
           # Check for errors in the kardinal manager logs
-          if kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep "ERRO"
+          if kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep -q "ERRO"
           then
             echo "Errors found in the kardinal manager logs"
             kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep "ERRO"
@@ -128,7 +128,7 @@ jobs:
           if [ "${apps}" != "cartservice frontend postgres productcatalogservice" ]; then exit 1; fi
         
           # Check for errors in the kardinal manager logs
-          if kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep "ERRO"
+          if kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep -q "ERRO"
           then
             echo "Errors found in the kardinal manager logs"
             kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep "ERRO"
@@ -152,7 +152,7 @@ jobs:
           kill ${cli_pid}
 
           # Check for errors in the trace router logs
-          if kubectl logs -n default -l app=trace-router | grep "ERRO"
+          if kubectl logs -n default -l app=trace-router | grep -q "ERRO"
           then
             echo "Errors found in the trace router logs"
             kubectl logs -n default -l app=trace-router | grep "ERRO"
@@ -192,7 +192,7 @@ jobs:
           kill ${cli_pid}
           
           # Check for errors in the trace router logs
-          if kubectl logs -n default -l app=trace-router | grep "ERRO"
+          if kubectl logs -n default -l app=trace-router | grep -q "ERRO"
           then
             echo "Errors found in the trace router logs"
             kubectl logs -n default -l app=trace-router | grep "ERRO"
@@ -211,7 +211,7 @@ jobs:
           kubectl get pods -n baseline
  
           # Check for errors in the kardinal manager logs
-          if kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep "ERRO"
+          if kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep -q "ERRO"
           then
             echo "Errors found in the kardinal manager logs"
             kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep "ERRO"
@@ -252,7 +252,7 @@ jobs:
           kubectl get pods -n baseline
 
           # Check for errors in the kardinal manager logs
-          if kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep "ERRO"
+          if kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep -q "ERRO"
           then
             echo "Errors found in the kardinal manager logs"
             kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep "ERRO"
@@ -279,7 +279,7 @@ jobs:
           kubectl get pods -n baseline
           
           # Check for errors in the kardinal manager logs
-          if kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep "ERRO"
+          if kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep -q "ERRO"
           then
             echo "Errors found in the kardinal manager logs"
             kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep "ERRO"
