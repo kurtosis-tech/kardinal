@@ -98,7 +98,6 @@ func StartGateway(hostFlowIdMap []api_types.IngressAccessEntry) error {
 		// Find a pod for the service
 		pod, port, namespace, err := findPodForService(client.GetClientSet(), gatewayClient, entry)
 		if err != nil {
-			// return fmt.Errorf("failed to find pod for service: %v", err)
 			logrus.Errorf("failed to find pod for service: %v", err)
 			continue
 		}
@@ -139,6 +138,10 @@ func StartGateway(hostFlowIdMap []api_types.IngressAccessEntry) error {
 		}()
 
 		fmt.Printf("\n🔗 Proxy server for host %s started on: http://localhost:%d\n", host, availablePort)
+	}
+
+	if len(servers) == 0 {
+		return fmt.Errorf("no gateway servers started")
 	}
 
 	sigChan := make(chan os.Signal, 1)
