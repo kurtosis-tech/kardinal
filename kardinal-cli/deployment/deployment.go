@@ -3,6 +3,8 @@ package deployment
 import (
 	"bytes"
 	"context"
+	"io"
+	"net/http"
 	"text/template"
 
 	"kardinal.cli/kubernetes"
@@ -17,6 +19,7 @@ const (
 	kardinalNamespace                   = "default"
 	kardinalManagerDeploymentTmplName   = "kardinal-manager-deployment"
 	kardinalTraceRouterManifestTmplName = "kardinal-trace-router-manifest"
+	gatewayAPIInstallYamlURL            = "https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.1.0/standard-install.yaml"
 
 	kardinalManagerAuthTmpl = `
 apiVersion: v1
@@ -239,6 +242,34 @@ func DeployKardinalManagerInCluster(ctx context.Context, clusterResourcesURL str
 		return stacktrace.Propagate(err, "An error occurred while applying the kardinal-manager deployment")
 	}
 
+	if err := installGatewayAPI(ctx, kubernetesClientObj); err != nil {
+		return stacktrace.Propagate(err, "An error occurred while installing the Gateway API")
+	}
+
+	return nil
+}
+
+func installGatewayAPI(ctx context.Context, kubernetesClientObj *kubernetes.KubernetesClient) error {
+	resp, err := http.Get(gatewayAPIInstallYamlURL)
+	if err != nil {
+		return stacktrace.Propagate(err, "An error occurred while downloading the gateway API YAML")
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return stacktrace.NewError("Failed to download file, status code: %d", resp.StatusCode)
+	}
+
+	var buf bytes.Buffer
+
+	_, err = io.Copy(&buf, resp.Body)
+	if err != nil {
+		return stacktrace.Propagate(err, "An error occurred while reading the response body")
+	}
+
+	if err := kubernetesClientObj.ApplyYamlFileContentInNamespace(ctx, kardinalNamespace, buf.Bytes()); err != nil {
+		return stacktrace.Propagate(err, "An error occurred while applying the gateway API YAML")
+	}
 	return nil
 }
 

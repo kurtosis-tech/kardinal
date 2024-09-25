@@ -32,7 +32,7 @@ func GetConfig() (*rest.Config, error) {
 	return config, nil
 }
 
-func CreateKubernetesClient(config *rest.Config) (*kubernetesClient, error) {
+func CreateKubernetesClient(config *rest.Config) (*KubernetesClient, error) {
 	clientSet, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "An error occurred while creating kubernetes client using config '%+v'", config)

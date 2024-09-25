@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"io"
+
 	"github.com/kurtosis-tech/stacktrace"
 	"gopkg.in/yaml.v3"
-	"io"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -25,26 +26,26 @@ const (
 	deleteOptionsGracePeriodSeconds int64 = 0
 )
 
-type kubernetesClient struct {
+type KubernetesClient struct {
 	config          *rest.Config
 	clientSet       *kubernetes.Clientset
 	dynamicClient   *dynamic.DynamicClient
 	discoveryMapper *restmapper.DeferredDiscoveryRESTMapper
 }
 
-func newKubernetesClient(config *rest.Config, clientSet *kubernetes.Clientset, dynamicClient *dynamic.DynamicClient, discoveryMapper *restmapper.DeferredDiscoveryRESTMapper) *kubernetesClient {
-	return &kubernetesClient{config: config, clientSet: clientSet, dynamicClient: dynamicClient, discoveryMapper: discoveryMapper}
+func newKubernetesClient(config *rest.Config, clientSet *kubernetes.Clientset, dynamicClient *dynamic.DynamicClient, discoveryMapper *restmapper.DeferredDiscoveryRESTMapper) *KubernetesClient {
+	return &KubernetesClient{config: config, clientSet: clientSet, dynamicClient: dynamicClient, discoveryMapper: discoveryMapper}
 }
 
-func (client *kubernetesClient) GetClientSet() *kubernetes.Clientset {
+func (client *KubernetesClient) GetClientSet() *kubernetes.Clientset {
 	return client.clientSet
 }
 
-func (client *kubernetesClient) GetConfig() *rest.Config {
+func (client *KubernetesClient) GetConfig() *rest.Config {
 	return client.config
 }
 
-func (client *kubernetesClient) GetService(ctx context.Context, namespaceName string, name string) (*corev1.Service, error) {
+func (client *KubernetesClient) GetService(ctx context.Context, namespaceName string, name string) (*corev1.Service, error) {
 	serviceClient := client.clientSet.CoreV1().Services(namespaceName)
 	serviceObj, err := serviceClient.Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
@@ -53,7 +54,7 @@ func (client *kubernetesClient) GetService(ctx context.Context, namespaceName st
 	return serviceObj, nil
 }
 
-func (client *kubernetesClient) GetDeploymentsByLabels(ctx context.Context, namespace string, labels map[string]string) (*appsv1.DeploymentList, error) {
+func (client *KubernetesClient) GetDeploymentsByLabels(ctx context.Context, namespace string, labels map[string]string) (*appsv1.DeploymentList, error) {
 	deploymentClient := client.clientSet.AppsV1().Deployments(namespace)
 
 	opts := buildListOptionsFromLabels(labels)
@@ -79,7 +80,7 @@ func (client *kubernetesClient) GetDeploymentsByLabels(ctx context.Context, name
 	return &deploymentList, nil
 }
 
-func (client *kubernetesClient) ApplyYamlFileContentInNamespace(ctx context.Context, namespace string, yamlFileContent []byte) error {
+func (client *KubernetesClient) ApplyYamlFileContentInNamespace(ctx context.Context, namespace string, yamlFileContent []byte) error {
 	yamlReader := bytes.NewReader(yamlFileContent)
 
 	dec := yaml.NewDecoder(yamlReader)
@@ -132,8 +133,7 @@ func (client *kubernetesClient) ApplyYamlFileContentInNamespace(ctx context.Cont
 	}
 }
 
-func (client *kubernetesClient) RemoveNamespaceResourcesByLabels(ctx context.Context, namespace string, labels map[string]string) error {
-
+func (client *KubernetesClient) RemoveNamespaceResourcesByLabels(ctx context.Context, namespace string, labels map[string]string) error {
 	opts := buildListOptionsFromLabels(labels)
 
 	deleteOptions := metav1.NewDeleteOptions(deleteOptionsGracePeriodSeconds)
@@ -173,7 +173,7 @@ func (client *kubernetesClient) RemoveNamespaceResourcesByLabels(ctx context.Con
 	return nil
 }
 
-func (client *kubernetesClient) GetNamespacesByLabels(ctx context.Context, namespaceLabels map[string]string) (*corev1.NamespaceList, error) {
+func (client *KubernetesClient) GetNamespacesByLabels(ctx context.Context, namespaceLabels map[string]string) (*corev1.NamespaceList, error) {
 	namespaceClient := client.clientSet.CoreV1().Namespaces()
 
 	listOptions := buildListOptionsFromLabels(namespaceLabels)
