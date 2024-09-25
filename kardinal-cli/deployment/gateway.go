@@ -254,7 +254,7 @@ func findPodForService(client *kubernetes.Clientset, gwClient *gatewayclientset.
 	} else if accessEntry.Type == "gateway" {
 		gw, err := gwClient.GatewayV1().Gateways(accessEntry.Namespace).Get(context.Background(), accessEntry.Service, metav1.GetOptions{})
 		if err != nil {
-			return "", 0, "", fmt.Errorf("error getting gateway: %v", err)
+			return "", -1, "", fmt.Errorf("error getting gateway: %v", err)
 		}
 		port = int32(gw.Spec.Listeners[0].Port)
 		labelSelectors = append(labelSelectors, fmt.Sprintf("gateway.networking.k8s.io/gateway-name=%s", accessEntry.Service))
