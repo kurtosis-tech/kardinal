@@ -3,6 +3,7 @@ package deployment
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"text/template"
@@ -12,6 +13,7 @@ import (
 	"kardinal.cli/kontrol"
 
 	"github.com/kurtosis-tech/stacktrace"
+	"github.com/sirupsen/logrus"
 	"kardinal.cli/consts"
 )
 
@@ -267,6 +269,7 @@ func installGatewayAPI(ctx context.Context, kubernetesClientObj *kubernetes.Kube
 		return stacktrace.Propagate(err, "An error occurred while reading the response body")
 	}
 
+	logrus.Info("ℹ️  Installing the Gateway API (https://gateway-api.sigs.k8s.io/) in the cluster.")
 	if err := kubernetesClientObj.ApplyYamlFileContentInNamespace(ctx, kardinalNamespace, buf.Bytes()); err != nil {
 		return stacktrace.Propagate(err, "An error occurred while applying the gateway API YAML")
 	}
@@ -290,6 +293,7 @@ func RemoveKardinalManagerFromCluster(ctx context.Context) error {
 	if err = kubernetesClientObj.RemoveNamespaceResourcesByLabels(ctx, kardinalNamespace, labels); err != nil {
 		return stacktrace.Propagate(err, "An error occurred while removing the kardinal-manager from the cluster using labels '%+v'", labels)
 	}
+	fmt.Printf("⚠️  If you also want to unistall the Gateway API, run the following command:\nkubectl delete -f %s\n\n", gatewayAPIInstallYamlURL)
 
 	return nil
 }
