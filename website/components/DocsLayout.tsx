@@ -80,7 +80,6 @@ namespace S {
 
     h3 {
       font-size: 24px;
-      font-weight: 500;
       line-height: 1.33;
 
       @media (max-width: 768px) {
