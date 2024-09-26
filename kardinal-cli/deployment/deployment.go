@@ -79,6 +79,7 @@ spec:
     metadata:
       labels:
         {{.KardinalAppIDLabelKey}}: {{.KardinalManagerAppIDLabelValue}}
+        app: kardinal-manager
     spec:
       serviceAccountName: kardinal-manager
       containers:
@@ -217,9 +218,9 @@ func DeployKardinalManagerInCluster(ctx context.Context, clusterResourcesURL str
 	var imagePullPolicy string
 
 	switch kontrolLocation {
-	case kontrol.KontrolLocationLocalMinikube:
+	case kontrol.KontrolLocationLocal:
 		imagePullPolicy = "IfNotPresent"
-	case kontrol.KontrolLocationKloudKontrol:
+	case kontrol.KontrolLocationKloud:
 		imagePullPolicy = "Always"
 	default:
 		stacktrace.NewError("invalid Kontrol location: %s", kontrolLocation)
