@@ -45,7 +45,7 @@ All you need is a Kubernetes cluster with Istio enabled, and kubectl installed o
 Make sure that kubectl is pointing to your cluster, and then run the following command:
 
 ```
-kardinal manager deploy kloud-kontrol
+kardinal manager deploy kloud-kardinal-kontrol
 ```
 
 Once installed check out our docs on [creating your first flow](https://kardinal.dev/docs/getting-started/own-app).
