@@ -55,26 +55,36 @@ namespace S {
     h5,
     h6 {
       margin-bottom: 0;
-      margin-top: 0;
+      margin-top: 1em;
       color: var(--foreground-dark);
-      font-size: 42px;
+      font-size: 48px;
       font-style: normal;
       font-weight: 500;
       line-height: normal;
       letter-spacing: unset;
 
       @media (max-width: 768px) {
-        font-size: 24px;
+        font-size: 32px;
       }
     }
 
-    h3 {
+    h2 {
       font-size: 32px;
       font-weight: 600;
       line-height: 1.33;
 
       @media (max-width: 768px) {
         font-size: 18px;
+      }
+    }
+
+    h3 {
+      font-size: 24px;
+      font-weight: 500;
+      line-height: 1.33;
+
+      @media (max-width: 768px) {
+        font-size: 16px;
       }
     }
 
@@ -156,6 +166,7 @@ namespace S {
       margin-left: -1px;
       padding: 12px 8px;
       max-width: 256px;
+      text-align: left;
     }
 
     th {
