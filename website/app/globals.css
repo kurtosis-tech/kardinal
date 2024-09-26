@@ -160,30 +160,3 @@ code {
     font-size: 14px;
   }
 }
-
-/* Carousel styles */
-.carousel .control-prev.control-arrow:before {
-  border-right: 16px solid rgb(255, 255, 255) !important;
-  border-top: 16px solid transparent !important;
-  border-bottom: 16px solid transparent !important;
-}
-.carousel .control-prev {
-  margin-left: -10px;
-}
-
-.carousel .control-next.control-arrow:before {
-  border-left: 16px solid rgb(255, 255, 255) !important;
-  border-top: 16px solid transparent !important;
-  border-bottom: 16px solid transparent !important;
-}
-.carousel .control-next {
-  margin-right: -10px;
-}
-
-.carousel .control-dots .dot {
-  width: 16px !important;
-  height: 16px !important;
-}
-.carousel .control-dots {
-  margin: 0 !important;
-}
