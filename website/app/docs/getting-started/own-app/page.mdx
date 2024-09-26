@@ -36,38 +36,93 @@ If you want to use a tracing system that isn't listed here, you can submit an [i
 
 ### Step 1: Annotate the application entrypoint
 
-Kardinal expects there to be exactly one service in your Kubernetes manifest that acts as an entrypoint into the cluster, usually an load balancer or gateway of some sort that routes traffic into the cluster.
+Kardinal can manage multiple entrypoints in your Kubernetes manifest that routes traffic into the cluster. You 
+can leverage access to your services either through the Kubernetes Ingress API or the Gateway API.
 
-To get started, you just need to add the *`kardinal.dev.service/ingress`* and *`kardinal.dev.service/host`* annotations to your manifest to mark this entrypoint:
+To get started, you just need to add the *`kardinal.dev.service/ingress`*  or *`kardinal.dev.service/gateway`* 
+annotations to your Ingress or Gateway manifest to mark this entrypoint. The annotation should be set to `true` 
+for whichever Ingress or Gateway resource is the entrypoint into the cluster.
 
-- *`kardinal.dev.service/ingress`*
-  - Should be set to `true` for whichever service is an entrypoint into the cluster.
-- *`kardinal.dev.service/host`*
-  - Used to give the entrypoint a hostname you can use to access it outside of the cluster.
-  - Should integrate with whatever system you already use to set up DNS routing into your clusters.
-  - If you're using minikube, this can be something like `main.app.localhost`.
+### Example using Kubernetes Ingress
 
-Here is an example for how this annotation might look for a frontend load balancer, configured to be accessible in Kardinal via `main.app.localhost`:
+Here’s an example using an Ingress resource to handle traffic, with Kardinal annotations to mark it as the 
+cluster entrypoint:
 
 ```yaml
-apiVersion: v1
-kind: Service
+apiVersion: networking.k8s.io/v1
+kind: Ingress
 metadata:
-  name: frontend-external
+  name: ingress
   annotations:
+    kubernetes.io/ingress.class: nginx
     kardinal.dev.service/ingress: "true"
-    kardinal.dev.service/host: "main.app.localhost"
 spec:
-  type: LoadBalancer
-  selector:
-    app: frontend
-  ports:
-    - name: http
-      port: 80
-      targetPort: 8080
-      protocl: TCP
-      appProtocol: HTTP
+  rules:
+    - host: web.admin.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80
 ```
+
+In this example, traffic to `web.admin.localhost` is routed to the `frontend` service on port 80 via the 
+Ingress resource.
+
+### Example using Gateway API
+
+Alternatively, you can use the Gateway API, which provides more flexibility and control over traffic routing. 
+Here’s how the Gateway and HTTPRoute manifests would look, with Kardinal annotations:
+
+```yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: gateway
+  annotations:
+    kardinal.dev.service/gateway: "true"
+spec:
+  gatewayClassName: istio
+  listeners:
+    - name: http
+      hostname: "*.app.localhost"
+      port: 80
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: All
+```
+
+In this example, the `Gateway` resource defines a listener on port 80, routing traffic for any subdomain 
+of `app.localhost`.
+
+```yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: http
+  annotations:
+    kardinal.dev.service/route: "true"
+spec:
+  parentRefs:
+    - name: gateway
+  hostnames: ["baseline.app.localhost"]
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: frontend
+          port: 80
+```
+
+The `HTTPRoute` resource specifies that traffic to `baseline.app.localhost` should be routed to the `frontend` 
+service on port 80.
 
 
 ### Step 2: Deploy the main version of your application
