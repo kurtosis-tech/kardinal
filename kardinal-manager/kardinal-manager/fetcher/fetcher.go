@@ -3,15 +3,16 @@ package fetcher
 import (
 	"context"
 	"encoding/json"
-	"github.com/kurtosis-tech/kardinal/libs/manager-kontrol-api/api/golang/types"
-	"github.com/kurtosis-tech/stacktrace"
-	"github.com/sirupsen/logrus"
 	"io"
-	"kardinal.kontrol/kardinal-manager/cluster_manager"
-	"kardinal.kontrol/kardinal-manager/utils"
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/kurtosis-tech/kardinal/libs/manager-kontrol-api/api/golang/types"
+	"github.com/kurtosis-tech/stacktrace"
+	"github.com/sirupsen/logrus"
+	"kardinal.kontrol/kardinal-manager/cluster_manager"
+	"kardinal.kontrol/kardinal-manager/utils"
 )
 
 const (
@@ -29,7 +30,6 @@ func NewFetcher(clusterManager *cluster_manager.ClusterManager, configEndpoint s
 }
 
 func (fetcher *fetcher) Run(ctx context.Context) error {
-
 	fetcherTickerDuration := defaultTickerDuration
 
 	fetcherJobDurationSecondsEnVarValue, err := utils.GetIntFromEnvVar(fetcherJobDurationSecondsEnvVarKey, "fetcher job duration seconds")
@@ -73,7 +73,6 @@ func (fetcher *fetcher) fetchAndApply(ctx context.Context) error {
 }
 
 func (fetcher *fetcher) getClusterResourcesFromCloud() (*types.ClusterResources, error) {
-
 	configEndpointURL, err := url.Parse(fetcher.configEndpoint)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "An error occurred parsing the config endpoint '%s'", fetcher.configEndpoint)

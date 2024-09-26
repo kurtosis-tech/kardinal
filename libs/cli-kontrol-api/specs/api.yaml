@@ -182,11 +182,11 @@ paths:
       parameters:
         - $ref: "#/components/parameters/uuid"
       responses:
-        '500':
+        "500":
           $ref: "#/components/responses/Error"
-        '404':
+        "404":
           $ref: "#/components/responses/NotFound"
-        '200':
+        "200":
           description: Successful response
           content:
             application/x-yaml:
@@ -244,7 +244,6 @@ components:
       schema:
         type: string
 
-
     template-name:
       name: template-name
       in: path
@@ -265,6 +264,14 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/IngressConfig"
+        gateway-configs:
+          type: array
+          items:
+            $ref: "#/components/schemas/GatewayConfig"
+        route-configs:
+          type: array
+          items:
+            $ref: "#/components/schemas/RouteConfig"
         namespace:
           type: string
 
@@ -273,15 +280,38 @@ components:
       properties:
         flow-id:
           type: string
-        flow-urls:
+        access-entry:
           type: array
           items:
-            type: string
+            $ref: "#/components/schemas/IngressAccessEntry"
         is-baseline:
           type: boolean
       required:
         - flow-id
-        - flow-urls
+        - access-entry
+
+    IngressAccessEntry:
+      type: object
+      properties:
+        flow-id:
+          type: string
+        flow-namespace:
+          type: string
+        hostname:
+          type: string
+        service:
+          type: string
+        namespace:
+          type: string
+        type:
+          type: string
+      required:
+        - flow-id
+        - flow-namespace
+        - hostname
+        - service
+        - namespace
+        - type
 
     FlowSpec:
       type: array
@@ -438,3 +468,25 @@ components:
             name: networkingv1
       required:
         - ingress
+
+    GatewayConfig:
+      type: object
+      properties:
+        gateway:
+          x-go-type: gateway.Gateway
+          x-go-type-import:
+            path: sigs.k8s.io/gateway-api/apis/v1
+            name: gateway
+      required:
+        - gateway
+
+    RouteConfig:
+      type: object
+      properties:
+        httpRoute:
+          x-go-type: gateway.HTTPRoute
+          x-go-type-import:
+            path: sigs.k8s.io/gateway-api/apis/v1
+            name: gateway
+      required:
+        - httpRoute

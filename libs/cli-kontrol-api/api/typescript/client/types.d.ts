@@ -221,12 +221,22 @@ export interface components {
     MainClusterConfig: {
       "service-configs"?: components["schemas"]["ServiceConfig"][];
       "ingress-configs"?: components["schemas"]["IngressConfig"][];
+      "gateway-configs"?: components["schemas"]["GatewayConfig"][];
+      "route-configs"?: components["schemas"]["RouteConfig"][];
       namespace?: string;
     };
     Flow: {
       "flow-id": string;
-      "flow-urls": string[];
+      "access-entry": components["schemas"]["IngressAccessEntry"][];
       "is-baseline"?: boolean;
+    };
+    IngressAccessEntry: {
+      "flow-id": string;
+      "flow-namespace": string;
+      hostname: string;
+      service: string;
+      namespace: string;
+      type: string;
     };
     FlowSpec: {
         /** @example backend-a:latest */
@@ -289,6 +299,12 @@ export interface components {
     };
     IngressConfig: {
       ingress: unknown;
+    };
+    GatewayConfig: {
+      gateway: unknown;
+    };
+    RouteConfig: {
+      httpRoute: unknown;
     };
   };
   responses: {

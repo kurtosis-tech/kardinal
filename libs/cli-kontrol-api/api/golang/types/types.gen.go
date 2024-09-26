@@ -7,6 +7,7 @@ import (
 	appv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
+	gateway "sigs.k8s.io/gateway-api/apis/v1"
 )
 
 // Defines values for NodeType.
@@ -36,15 +37,30 @@ type Edge struct {
 
 // Flow defines model for Flow.
 type Flow struct {
-	FlowId     string   `json:"flow-id"`
-	FlowUrls   []string `json:"flow-urls"`
-	IsBaseline *bool    `json:"is-baseline,omitempty"`
+	AccessEntry []IngressAccessEntry `json:"access-entry"`
+	FlowId      string               `json:"flow-id"`
+	IsBaseline  *bool                `json:"is-baseline,omitempty"`
 }
 
 // FlowSpec defines model for FlowSpec.
 type FlowSpec = []struct {
 	ImageLocator string `json:"image-locator"`
 	ServiceName  string `json:"service-name"`
+}
+
+// GatewayConfig defines model for GatewayConfig.
+type GatewayConfig struct {
+	Gateway gateway.Gateway `json:"gateway"`
+}
+
+// IngressAccessEntry defines model for IngressAccessEntry.
+type IngressAccessEntry struct {
+	FlowId        string `json:"flow-id"`
+	FlowNamespace string `json:"flow-namespace"`
+	Hostname      string `json:"hostname"`
+	Namespace     string `json:"namespace"`
+	Service       string `json:"service"`
+	Type          string `json:"type"`
 }
 
 // IngressConfig defines model for IngressConfig.
@@ -54,8 +70,10 @@ type IngressConfig struct {
 
 // MainClusterConfig defines model for MainClusterConfig.
 type MainClusterConfig struct {
+	GatewayConfigs *[]GatewayConfig `json:"gateway-configs,omitempty"`
 	IngressConfigs *[]IngressConfig `json:"ingress-configs,omitempty"`
 	Namespace      *string          `json:"namespace,omitempty"`
+	RouteConfigs   *[]RouteConfig   `json:"route-configs,omitempty"`
 	ServiceConfigs *[]ServiceConfig `json:"service-configs,omitempty"`
 }
 
@@ -82,6 +100,11 @@ type NodeVersion struct {
 	FlowId     string  `json:"flowId"`
 	ImageTag   *string `json:"imageTag,omitempty"`
 	IsBaseline bool    `json:"isBaseline"`
+}
+
+// RouteConfig defines model for RouteConfig.
+type RouteConfig struct {
+	HttpRoute gateway.HTTPRoute `json:"httpRoute"`
 }
 
 // ServiceConfig defines model for ServiceConfig.

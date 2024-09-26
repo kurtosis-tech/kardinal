@@ -2,11 +2,9 @@ package deployment
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"hash/fnv"
 	"io"
-	kubernetes_pack "kardinal.cli/kubernetes"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -17,6 +15,7 @@ import (
 	"syscall"
 	"time"
 
+	api_types "github.com/kurtosis-tech/kardinal/libs/cli-kontrol-api/api/golang/types"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -24,13 +23,13 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/portforward"
 	"k8s.io/client-go/transport/spdy"
+	gatewayclientset "sigs.k8s.io/gateway-api/pkg/client/clientset/versioned"
+
+	cli_k8s "kardinal.cli/kubernetes"
 )
 
 const (
-	namespace           = "istio-system"
-	service             = "istio-ingressgateway"
-	localPortForIstio   = 61000
-	istioGatewayPodPort = 8080
+	localPortStartRange = 61000
 	proxyPortRangeStart = 59000
 	proxyPortRangeEnd   = 60000
 	maxRetries          = 10
@@ -66,81 +65,66 @@ func findAvailablePortInRange(host string, portsInUse *[]int) (int, error) {
 	return port, nil
 }
 
-func StartGateway(ctx context.Context, hostFlowIdMap map[string]string) error {
-	client, err := kubernetes_pack.CreateKubernetesClient()
+func StartGateway(hostFlowIdMap []api_types.IngressAccessEntry) error {
+	k8sConfig, err := cli_k8s.GetConfig()
+	if err != nil {
+		return fmt.Errorf("an error occurred while creating a kubernetes client:\n %v", err)
+	}
+	client, err := cli_k8s.CreateKubernetesClient(k8sConfig)
+	if err != nil {
+		return fmt.Errorf("an error occurred while creating a kubernetes client:\n %v", err)
+	}
+	gatewayClient, err := cli_k8s.CreateGatewayApiClient(k8sConfig)
 	if err != nil {
 		return fmt.Errorf("an error occurred while creating a kubernetes client:\n %v", err)
 	}
 
-	// TODO move these values to a shared library between Kardinal Manager, Kontrol and Kardinal CLI
-	kardinalLabelKey := "kardinal.dev"
-	enabledKardinal := "enabled"
+	servers := make([]*http.Server, 0)
+	ports := make([]int, 0)
+	stopChan := make(chan struct{}, 1)
 
-	namespaceLabels := map[string]string{
-		kardinalLabelKey: enabledKardinal,
-	}
+	for entryIx, entry := range hostFlowIdMap {
 
-	namespaceList, err := client.GetNamespacesByLabels(ctx, namespaceLabels)
-	if err != nil {
-		return fmt.Errorf("failed to list namespaces from Kubernetes: %v", err)
-	}
-	if len(namespaceList.Items) == 0 {
-		return fmt.Errorf("cannot start gateway because no Kardinal namespace was found")
-	}
-	if len(namespaceList.Items) > 1 {
-		return fmt.Errorf("cannot start gateway because more than one Kardinal namespace was found")
-	}
-	baselineNamespace := namespaceList.Items[0]
+		localPort := int32(localPortStartRange + entryIx)
+		host := entry.Hostname
 
-	for host, flowId := range hostFlowIdMap {
 		logrus.Printf("Starting gateway for host: %s", host)
 
-		// Check for pods in the baseline namespace
-		err = assertBaselineNamespaceReady(client.GetClientSet(), flowId, baselineNamespace.Name)
+		err = assertBaselineNamespaceReady(client.GetClientSet(), entry.FlowId, entry.FlowNamespace)
 		if err != nil {
 			return fmt.Errorf("failed to assert that baseline namespace is ready: %v", err)
 		}
 
-		// Check for the Envoy filter before proceeding
-		err = checkGatewayEnvoyFilter(client.GetClientSet(), host)
+		// Find a pod for the service
+		pod, port, namespace, err := findPodForService(client.GetClientSet(), gatewayClient, entry)
 		if err != nil {
-			return err
+			logrus.Errorf("failed to find pod for service: %v", err)
+			continue
 		}
-	}
 
-	// Find a pod for the service
-	pod, err := findPodForService(client.GetClientSet())
-	if err != nil {
-		return fmt.Errorf("failed to find pod for service: %v", err)
-	}
-
-	// Start port forwarding
-	stopChan := make(chan struct{}, 1)
-	readyChan := make(chan struct{})
-	go func() {
-		for {
-			err := portForwardPod(client.GetConfig(), pod, stopChan, readyChan)
-			if err != nil {
-				logrus.Printf("Port forwarding failed: %v. Retrying in 5 seconds...", err)
-				time.Sleep(5 * time.Second)
-				continue
+		// Start port forwarding
+		readyChan := make(chan struct{})
+		go func() {
+			for {
+				err := portForwardPod(client.GetConfig(), namespace, pod, port, stopChan, readyChan, localPort)
+				if err != nil {
+					logrus.Printf("Port forwarding failed: %v. Retrying in 5 seconds...", err)
+					time.Sleep(5 * time.Second)
+					continue
+				}
+				break
 			}
-			break
-		}
-	}()
+		}()
 
-	// Wait for port forwarding to be ready
-	<-readyChan
+		// Wait for port forwarding to be ready
+		<-readyChan
 
-	servers := make([]*http.Server, 0)
-	ports := make([]int, 0)
-	for host := range hostFlowIdMap {
 		availablePort, err := findAvailablePortInRange(host, &ports)
 		if err != nil {
 			return fmt.Errorf("failed to find an available port: %v", err)
 		}
 		// Start proxy server on the available port
-		proxy := createProxy(host)
+		proxy := createProxy(host, localPort)
 		server := &http.Server{
 			Addr:    fmt.Sprintf(":%d", availablePort),
 			Handler: proxy,
@@ -154,6 +138,10 @@ func StartGateway(ctx context.Context, hostFlowIdMap map[string]string) error {
 		}()
 
 		fmt.Printf("\n🔗 Proxy server for host %s started on: http://localhost:%d\n", host, availablePort)
+	}
+
+	if len(servers) == 0 {
+		return fmt.Errorf("no gateway servers started")
 	}
 
 	sigChan := make(chan os.Signal, 1)
@@ -175,7 +163,6 @@ func StartGateway(ctx context.Context, hostFlowIdMap map[string]string) error {
 
 // TODO move to the kubernetes package
 func assertBaselineNamespaceReady(client *kubernetes.Clientset, flowId string, baselineNamespace string) error {
-
 	for retry := 0; retry < maxRetries; retry++ {
 		pods, err := client.CoreV1().Pods(baselineNamespace).List(context.Background(), metav1.ListOptions{})
 		if err != nil {
@@ -239,76 +226,59 @@ func isPodReady(pod *corev1.Pod) bool {
 	return true
 }
 
-// TODO move to the kubernetes package
-func findPodForService(client *kubernetes.Clientset) (string, error) {
-	svc, err := client.CoreV1().Services(namespace).Get(context.Background(), service, metav1.GetOptions{})
-	if err != nil {
-		return "", fmt.Errorf("error getting service: %v", err)
-	}
-
+func findPodForService(client *kubernetes.Clientset, gwClient *gatewayclientset.Clientset, accessEntry api_types.IngressAccessEntry) (string, int32, string, error) {
 	var labelSelectors []string
-	for key, value := range svc.Spec.Selector {
-		labelSelectors = append(labelSelectors, fmt.Sprintf("%s=%s", key, value))
-	}
-	selector := strings.Join(labelSelectors, ",")
+	var port int32
+	var namespace string
+	if accessEntry.Type == "ingress" {
+		ingress, err := client.NetworkingV1().Ingresses(accessEntry.Namespace).Get(context.Background(), accessEntry.Service, metav1.GetOptions{})
+		if err != nil {
+			return "", -1, "", fmt.Errorf("error getting ingress: %v", err)
+		}
 
+		ingressClassName := "nginx"
+		if ingress.Spec.IngressClassName != nil {
+			ingressClassName = *ingress.Spec.IngressClassName
+		}
+		ingressClass, err := client.NetworkingV1().IngressClasses().Get(context.Background(), ingressClassName, metav1.GetOptions{})
+		if err != nil {
+			return "", -1, "", fmt.Errorf("error getting ingress class: %v", err)
+		}
+
+		for key, value := range ingressClass.Labels {
+			labelSelectors = append(labelSelectors, fmt.Sprintf("%s=%s", key, value))
+		}
+		namespace = ingressClass.Labels["app.kubernetes.io/instance"]
+		port = 80
+
+	} else if accessEntry.Type == "gateway" {
+		gw, err := gwClient.GatewayV1().Gateways(accessEntry.Namespace).Get(context.Background(), accessEntry.Service, metav1.GetOptions{})
+		if err != nil {
+			return "", -1, "", fmt.Errorf("error getting gateway: %v", err)
+		}
+		port = int32(gw.Spec.Listeners[0].Port)
+		labelSelectors = append(labelSelectors, fmt.Sprintf("gateway.networking.k8s.io/gateway-name=%s", accessEntry.Service))
+		namespace = accessEntry.Namespace
+
+	} else {
+		return "", -1, "", fmt.Errorf("unkown access type: %s", accessEntry.Type)
+	}
+
+	selector := strings.Join(labelSelectors, ",")
 	pods, err := client.CoreV1().Pods(namespace).List(context.Background(), metav1.ListOptions{LabelSelector: selector})
 	if err != nil {
-		return "", fmt.Errorf("error listing pods: %v", err)
+		return "", -1, "", fmt.Errorf("error listing pods: %v", err)
 	}
 
 	if len(pods.Items) == 0 {
-		return "", fmt.Errorf("no pods found for service %s", service)
+		return "", -1, "", fmt.Errorf("no pods found for service %s", accessEntry.Service)
 	}
 
 	podName := pods.Items[0].Name
-	return podName, nil
+	return podName, port, namespace, nil
 }
 
-// TODO move to the kubernetes package
-func checkGatewayEnvoyFilter(client *kubernetes.Clientset, host string) error {
-	for retry := 0; retry < maxRetries; retry++ {
-		envoyFilterRaw, err := client.RESTClient().
-			Get().
-			AbsPath("/apis/networking.istio.io/v1alpha3/namespaces/istio-system/envoyfilters/kardinal-gateway-tracing").
-			Do(context.Background()).
-			Raw()
-		if err != nil {
-			logrus.Printf("Error getting Envoy filter (attempt %d/%d): %v", retry+1, maxRetries, err)
-			time.Sleep(retryInterval)
-			continue
-		}
-
-		var envoyFilter map[string]interface{}
-		err = json.Unmarshal(envoyFilterRaw, &envoyFilter)
-		if err != nil {
-			logrus.Printf("Error unmarshaling Envoy filter (attempt %d/%d): %v", retry+1, maxRetries, err)
-			time.Sleep(retryInterval)
-			continue
-		}
-
-		luaCode, ok := envoyFilter["spec"].(map[string]interface{})["configPatches"].([]interface{})[0].(map[string]interface{})["patch"].(map[string]interface{})["value"].(map[string]interface{})["typed_config"].(map[string]interface{})["inlineCode"].(string)
-		if !ok {
-			logrus.Printf("Error getting Lua code from Envoy filter (attempt %d/%d)", retry+1, maxRetries)
-			time.Sleep(retryInterval)
-			continue
-		}
-
-		if !strings.Contains(luaCode, host) {
-			logrus.Printf("Envoy filter 'kardinal-gateway-tracing' does not contain the expected host string: %s (attempt %d/%d)", host, retry+1, maxRetries)
-			time.Sleep(retryInterval)
-			continue
-		}
-
-		logrus.Printf("Envoy filter 'kardinal-gateway-tracing' found and contains the expected host string: %s", host)
-		return nil
-	}
-
-	return fmt.Errorf("failed to find Envoy filter 'kardinal-gateway-tracing' containing the expected host string after %d attempts", maxRetries)
-}
-
-// TODO move to the kubernetes package
-func portForwardPod(config *rest.Config, podName string, stopChan <-chan struct{}, readyChan chan struct{}) error {
+func portForwardPod(config *rest.Config, namespace string, podName string, port int32, stopChan <-chan struct{}, readyChan chan struct{}, localPort int32) error {
 	roundTripper, upgrader, err := spdy.RoundTripperFor(config)
 	if err != nil {
 		return fmt.Errorf("failed to create round tripper: %v", err)
@@ -324,7 +294,7 @@ func portForwardPod(config *rest.Config, podName string, stopChan <-chan struct{
 
 	dialer := spdy.NewDialer(upgrader, &http.Client{Transport: roundTripper}, http.MethodPost, serverURL)
 
-	ports := []string{fmt.Sprintf("%d:%d", localPortForIstio, istioGatewayPodPort)}
+	ports := []string{fmt.Sprintf("%d:%d", localPort, port)}
 	forwarder, err := portforward.New(dialer, ports, stopChan, readyChan, io.Discard, os.Stderr)
 	if err != nil {
 		return fmt.Errorf("failed to create port forwarder: %v", err)
@@ -333,8 +303,8 @@ func portForwardPod(config *rest.Config, podName string, stopChan <-chan struct{
 	return forwarder.ForwardPorts()
 }
 
-func createProxy(host string) *httputil.ReverseProxy {
-	target, _ := url.Parse(fmt.Sprintf("http://localhost:%d", localPortForIstio))
+func createProxy(host string, localPort int32) *httputil.ReverseProxy {
+	target, _ := url.Parse(fmt.Sprintf("http://localhost:%d", localPort))
 	proxy := httputil.NewSingleHostReverseProxy(target)
 
 	originalDirector := proxy.Director

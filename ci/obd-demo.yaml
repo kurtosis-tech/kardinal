@@ -159,24 +159,7 @@ spec:
       protocol: TCP
       appProtocol: HTTP
       targetPort: 8080
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: frontend-external
-  annotations:
-    kardinal.dev.service/ingress: "true"
-    kardinal.dev.service/host: "prod.app.localhost"
-spec:
-  type: LoadBalancer
-  selector:
-    app: frontend
-  ports:
-    - name: http
-      port: 80
-      targetPort: 8080
-      protocol: TCP
-      appProtocol: HTTP
+
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -328,3 +311,24 @@ spec:
       targetPort: 8070
       protocol: TCP
       appProtocol: HTTP
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    kardinal.dev.service/ingress: "true"
+  name: ingress
+spec:
+  rules:
+    - host: prod.app.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80
