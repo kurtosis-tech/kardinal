@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.3.0](https://github.com/kurtosis-tech/kardinal/compare/0.2.7...0.3.0) (2024-09-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* new gateway management ([#238](https://github.com/kurtosis-tech/kardinal/issues/238))
+
+### Features
+
+* E2E tests iteration [#2](https://github.com/kurtosis-tech/kardinal/issues/2) ([#237](https://github.com/kurtosis-tech/kardinal/issues/237)) ([c4f6b67](https://github.com/kurtosis-tech/kardinal/commit/c4f6b679b4b1169d22b5aa3fb6b5c716348df433))
+* new gateway management ([#238](https://github.com/kurtosis-tech/kardinal/issues/238)) ([b5a9916](https://github.com/kurtosis-tech/kardinal/commit/b5a991623aebf5a49cbd96e740d873e493564f34))
+
+
+### Bug Fixes
+
+* add missing resources to policy ([#249](https://github.com/kurtosis-tech/kardinal/issues/249)) ([0ade319](https://github.com/kurtosis-tech/kardinal/commit/0ade31954906ff97b200e9e9a0f61382f31d0a3b))
+* Clarify the manager CLI command deploy kontrol service location argument ([#247](https://github.com/kurtosis-tech/kardinal/issues/247)) ([54bdc21](https://github.com/kurtosis-tech/kardinal/commit/54bdc2144d7cacab7687d0ede777dd955db10df4))
+* Do not alter the istio-system namespace ([#246](https://github.com/kurtosis-tech/kardinal/issues/246)) ([1c98304](https://github.com/kurtosis-tech/kardinal/commit/1c98304e93fcdd5c1db3d87ab0fe060ebbf5bfe7))
+* Exit with code 1 upon errors in the CLI ([#243](https://github.com/kurtosis-tech/kardinal/issues/243)) ([63c640e](https://github.com/kurtosis-tech/kardinal/commit/63c640e8529dd6f8231ca01ee570695307782fbb))
+* Handle gateway case where the baseline is missing or not labelled ([#245](https://github.com/kurtosis-tech/kardinal/issues/245)) ([b0b6bb2](https://github.com/kurtosis-tech/kardinal/commit/b0b6bb2f60f058528a51e31dc7b7cd9a146b84cc))
+
 ## [0.2.7](https://github.com/kurtosis-tech/kardinal/compare/0.2.6...0.2.7) (2024-09-20)
 
 
