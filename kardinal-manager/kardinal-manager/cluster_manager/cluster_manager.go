@@ -3,6 +3,7 @@ package cluster_manager
 import (
 	"context"
 	"encoding/json"
+	"k8s.io/apimachinery/pkg/labels"
 	"strings"
 
 	"github.com/kurtosis-tech/kardinal/libs/manager-kontrol-api/api/golang/types"
@@ -305,6 +306,13 @@ func (manager *ClusterManager) CleanUpClusterResources(ctx context.Context, clus
 		return nil
 	}
 
+	if isEmpty(clusterResources) {
+		if err := manager.removeKardinalNamespaces(ctx); err != nil {
+			return stacktrace.Propagate(err, "an error occurred removing the Kardinal namespaces")
+		}
+		return nil
+	}
+
 	// Clean up virtual services
 	virtualServicesByNS := lo.GroupBy(*clusterResources.VirtualServices, func(item v1alpha3.VirtualService) string { return item.Namespace })
 	for namespace, virtualServices := range virtualServicesByNS {
@@ -394,6 +402,70 @@ func (manager *ClusterManager) CleanUpClusterResources(ctx context.Context, clus
 				return stacktrace.Propagate(err, "An error occurred cleaning up authorization policies '%+v' in namespace '%s'", authorizationPolicies, namespace)
 			}
 		}
+	}
+
+	return nil
+}
+
+func (manager *ClusterManager) getKardinalNamespaces(ctx context.Context) (*corev1.NamespaceList, error) {
+	labels := map[string]string{
+		istioLabel:       enabledIstioValue,
+		kardinalLabelKey: enabledKardinal,
+	}
+
+	kardinalNamespaces, err := manager.getNamespacesByLabels(ctx, labels)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "an error occurred getting Kardinal namespaces using labels '%+v'", labels)
+	}
+
+	return kardinalNamespaces, nil
+}
+
+func (manager *ClusterManager) removeKardinalNamespaces(ctx context.Context) error {
+	kardinalNamespaces, err := manager.getKardinalNamespaces(ctx)
+	if err != nil {
+		return stacktrace.Propagate(err, "an error occurred getting Kardinal namespaces")
+	}
+
+	for _, namespace := range kardinalNamespaces.Items {
+		if err := manager.removeNamespace(ctx, &namespace); err != nil {
+			return stacktrace.Propagate(err, "an error occurred while removing Kardinal namespace '%s'", namespace.GetName())
+		}
+	}
+	return nil
+}
+
+func (manager *ClusterManager) getNamespacesByLabels(ctx context.Context, namespaceLabels map[string]string) (*corev1.NamespaceList, error) {
+	namespaceClient := manager.kubernetesClient.clientSet.CoreV1().Namespaces()
+
+	listOptions := buildListOptionsFromLabels(namespaceLabels)
+	namespaces, err := namespaceClient.List(ctx, listOptions)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "Failed to list namespaces with labels '%+v'", namespaceLabels)
+	}
+
+	// Only return objects not tombstoned by Kubernetes
+	var namespacesNotMarkedForDeletionList []corev1.Namespace
+	for _, namespace := range namespaces.Items {
+		deletionTimestamp := namespace.GetObjectMeta().GetDeletionTimestamp()
+		if deletionTimestamp == nil {
+			namespacesNotMarkedForDeletionList = append(namespacesNotMarkedForDeletionList, namespace)
+		}
+	}
+	namespacesNotMarkedForDeletionnamespaceList := corev1.NamespaceList{
+		Items:    namespacesNotMarkedForDeletionList,
+		TypeMeta: namespaces.TypeMeta,
+		ListMeta: namespaces.ListMeta,
+	}
+	return &namespacesNotMarkedForDeletionnamespaceList, nil
+}
+
+func (manager *ClusterManager) removeNamespace(ctx context.Context, namespace *corev1.Namespace) error {
+	name := namespace.Name
+	namespaceClient := manager.kubernetesClient.clientSet.CoreV1().Namespaces()
+
+	if err := namespaceClient.Delete(ctx, name, globalDeleteOptions); err != nil {
+		return stacktrace.Propagate(err, "Failed to delete namespace with name '%s' with delete options '%+v'", name, globalDeleteOptions)
 	}
 
 	return nil
@@ -837,12 +909,31 @@ func isValid(clusterResources *types.ClusterResources) bool {
 		clusterResources.Deployments == nil &&
 		clusterResources.DestinationRules == nil &&
 		clusterResources.Services == nil &&
-		clusterResources.VirtualServices == nil {
-		logrus.Debugf("cluster resources is empty.")
+		clusterResources.VirtualServices == nil &&
+		clusterResources.AuthorizationPolicies == nil &&
+		clusterResources.EnvoyFilters == nil &&
+		clusterResources.Ingresses == nil {
+		logrus.Debugf("cluster resources is invalid because all the internal fields are nil.")
 		return false
 	}
 
 	return true
+}
+
+func isEmpty(clusterResources *types.ClusterResources) bool {
+	if clusterResources != nil &&
+		len(*clusterResources.Gateways) == 0 &&
+		len(*clusterResources.HttpRoutes) == 0 &&
+		len(*clusterResources.Deployments) == 0 &&
+		len(*clusterResources.DestinationRules) == 0 &&
+		len(*clusterResources.Services) == 0 &&
+		len(*clusterResources.VirtualServices) == 0 &&
+		len(*clusterResources.AuthorizationPolicies) == 0 &&
+		len(*clusterResources.EnvoyFilters) == 0 &&
+		len(*clusterResources.Ingresses) == 0 {
+		return true
+	}
+	return false
 }
 
 func deepCheckEqual(a, b interface{}) bool {
@@ -855,4 +946,23 @@ func deepCheckEqual(a, b interface{}) bool {
 		return false
 	}
 	return string(aj) == string(bj)
+}
+
+func buildListOptionsFromLabels(labelsMap map[string]string) metav1.ListOptions {
+	return metav1.ListOptions{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "",
+			APIVersion: "",
+		},
+		LabelSelector:        labels.SelectorFromSet(labelsMap).String(),
+		FieldSelector:        "",
+		Watch:                false,
+		AllowWatchBookmarks:  false,
+		ResourceVersion:      "",
+		ResourceVersionMatch: "",
+		TimeoutSeconds:       int64Ptr(listOptionsTimeoutSeconds),
+		Limit:                0,
+		Continue:             "",
+		SendInitialEvents:    nil,
+	}
 }
