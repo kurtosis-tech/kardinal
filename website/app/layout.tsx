@@ -2,21 +2,15 @@ import { GoogleTagManager } from "@next/third-parties/google";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ReactNode } from "react";
-import { Suspense } from "react";
 
 import Footer from "@/components/Footer";
 import Main from "@/components/Main";
 import Modal from "@/components/Modal";
 import Nav from "@/components/Nav";
 import SegmentAnalytics from "@/components/SegmentAnalytics";
-import { CalculatorProvider } from "@/context/CalculatorContext";
-import { ModalProvider } from "@/context/ModalContext";
-import { VotingProvider } from "@/context/VotingContext";
 
-import StyledComponentsRegistry from "../lib/registry";
-
-import "react-responsive-carousel/lib/styles/carousel.min.css";
-import "./globals.css";
+import GlobalStyles from "./GlobalStyles";
+import Providers from "./Providers";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -37,7 +31,7 @@ export default function RootLayout({
   children: ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" style={{ fontFamily: "sans-serif" }}>
       <head>
         <link
           rel="icon"
@@ -56,20 +50,13 @@ export default function RootLayout({
       <SegmentAnalytics />
       <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GTM_ID!} />
       <body className={inter.className}>
-        <ModalProvider>
-          <VotingProvider>
-            <Suspense>
-              <CalculatorProvider>
-                <StyledComponentsRegistry>
-                  <Nav />
-                  <Main>{children}</Main>
-                  <Footer />
-                  <Modal />
-                </StyledComponentsRegistry>
-              </CalculatorProvider>
-            </Suspense>
-          </VotingProvider>
-        </ModalProvider>
+        <Providers>
+          <GlobalStyles />
+          <Nav />
+          <Main>{children}</Main>
+          <Footer />
+          <Modal />
+        </Providers>
       </body>
     </html>
   );
