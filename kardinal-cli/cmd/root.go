@@ -118,7 +118,7 @@ var deployCmd = &cobra.Command{
 	Short: "Deploy services",
 	Args:  cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
-		serviceConfigs, ingressConfigs, gatewayConfigs, routeConfigs, namespace, err := parseKubernetesManifestFile(kubernetesManifestFile)
+		serviceConfigs, statefulSetConfigs, ingressConfigs, gatewayConfigs, routeConfigs, namespace, err := parseKubernetesManifestFile(kubernetesManifestFile)
 		if err != nil {
 			log.Fatalf("Error loading k8s manifest file: %v", err)
 		}
@@ -127,7 +127,7 @@ var deployCmd = &cobra.Command{
 			log.Fatal("Error getting or creating user tenant UUID", err)
 		}
 
-		deploy(tenantUuid.String(), serviceConfigs, ingressConfigs, gatewayConfigs, routeConfigs, namespace)
+		deploy(tenantUuid.String(), serviceConfigs, statefulSetConfigs, ingressConfigs, gatewayConfigs, routeConfigs, namespace)
 	},
 }
 
@@ -143,7 +143,7 @@ var templateCreateCmd = &cobra.Command{
 		// A valid template only modifies services
 		// A valid template has metadata.name
 		// A valid template modifies at least one service
-		serviceConfigs, _, _, _, _, err := parseKubernetesManifestFile(templateYamlFile)
+		serviceConfigs, _, _, _, _, _, err := parseKubernetesManifestFile(templateYamlFile)
 		if err != nil {
 			log.Fatalf("Error loading template file: %v", err)
 		}
@@ -676,16 +676,17 @@ func parsePairs(pairs []string) map[string]string {
 	return pairsMap
 }
 
-func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.ServiceConfig, []api_types.IngressConfig, []api_types.GatewayConfig, []api_types.RouteConfig, string, error) {
+func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.ServiceConfig, []api_types.StatefulSetConfig, []api_types.IngressConfig, []api_types.GatewayConfig, []api_types.RouteConfig, string, error) {
 	fileBytes, err := loadKubernetesManifestFile(kubernetesManifestFile)
 	if err != nil {
 		log.Fatalf("Error loading kubernetest manifest file: %v", err)
-		return nil, nil, nil, nil, "", err
+		return nil, nil, nil, nil, nil, "", err
 	}
 
 	manifest := string(fileBytes)
 	var namespace string
 	serviceConfigs := map[string]*api_types.ServiceConfig{}
+	statefulSetConfigs := map[string]*api_types.StatefulSetConfig{}
 	ingressConfigs := map[string]*api_types.IngressConfig{}
 	gatewayConfigs := map[string]*api_types.GatewayConfig{}
 	routeConfigs := map[string]*api_types.RouteConfig{}
@@ -699,7 +700,7 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.Ser
 		}
 		obj, _, err := decode([]byte(spec), nil, nil)
 		if err != nil {
-			return nil, nil, nil, nil, "", stacktrace.Propagate(err, "An error occurred parsing the spec: %s", spec)
+			return nil, nil, nil, nil, nil, "", stacktrace.Propagate(err, "An error occurred parsing the spec: %s", spec)
 		}
 		switch obj := obj.(type) {
 		case *corev1.Service:
@@ -724,6 +725,17 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.Ser
 			} else {
 				serviceConfigs[deploymentName].Deployment = *deployment
 			}
+		case *appv1.StatefulSet:
+			statefulset := obj
+			statefulsetName := getObjectName(statefulset.GetObjectMeta().(*metav1.ObjectMeta))
+			_, ok := statefulSetConfigs[statefulsetName]
+			if !ok {
+				statefulSetConfigs[statefulsetName] = &api_types.StatefulSetConfig{
+					StatefulSet: *statefulset,
+				}
+			} else {
+				statefulSetConfigs[statefulsetName].StatefulSet = *statefulset
+			}
 		case *k8snet.Ingress:
 			ingress := obj
 			ingressName := getObjectName(ingress.GetObjectMeta().(*metav1.ObjectMeta))
@@ -741,13 +753,18 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.Ser
 			routeName := getObjectName(routeObj.GetObjectMeta().(*metav1.ObjectMeta))
 			routeConfigs[routeName] = &api_types.RouteConfig{HttpRoute: *routeObj}
 		default:
-			return nil, nil, nil, nil, "", stacktrace.NewError("An error occurred parsing the manifest because of an unsupported kubernetes type")
+			return nil, nil, nil, nil, nil, "", stacktrace.NewError("An error occurred parsing the manifest because of an unsupported kubernetes type")
 		}
 	}
 
 	finalServiceConfigs := []api_types.ServiceConfig{}
 	for _, serviceConfig := range serviceConfigs {
 		finalServiceConfigs = append(finalServiceConfigs, *serviceConfig)
+	}
+
+	finalStatefulSetConfigs := []api_types.StatefulSetConfig{}
+	for _, statefulSetConfig := range statefulSetConfigs {
+		finalStatefulSetConfigs = append(finalStatefulSetConfigs, *statefulSetConfig)
 	}
 
 	finalIngressConfigs := []api_types.IngressConfig{}
@@ -765,7 +782,7 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.Ser
 		finalRouteConfigs = append(finalRouteConfigs, *routeConfig)
 	}
 
-	return finalServiceConfigs, finalIngressConfigs, finalGatewayConfigs, finalRouteConfigs, namespace, nil
+	return finalServiceConfigs, finalStatefulSetConfigs, finalIngressConfigs, finalGatewayConfigs, finalRouteConfigs, namespace, nil
 }
 
 func parseTemplateArgs(filepathOrJson string) (map[string]interface{}, error) {
@@ -815,7 +832,6 @@ func listDevFlow(tenantUuid api_types.Uuid) {
 	}
 
 	printFlowTable(flows)
-	return
 }
 
 func getTenantUuidFlows(tenantUuid api_types.Uuid) ([]api_types.Flow, error) {
@@ -887,6 +903,7 @@ func createDevFlow(tenantUuid api_types.Uuid, pairsMap map[string]string, templa
 func deploy(
 	tenantUuid api_types.Uuid,
 	serviceConfigs []api_types.ServiceConfig,
+	statefulSetConfigs []api_types.StatefulSetConfig,
 	ingressConfigs []api_types.IngressConfig,
 	gatewayConfigs []api_types.GatewayConfig,
 	routeConfigs []api_types.RouteConfig,
@@ -895,11 +912,12 @@ func deploy(
 	ctx := context.Background()
 
 	body := api_types.PostTenantUuidDeployJSONRequestBody{
-		ServiceConfigs: &serviceConfigs,
-		IngressConfigs: &ingressConfigs,
-		GatewayConfigs: &gatewayConfigs,
-		RouteConfigs:   &routeConfigs,
-		Namespace:      &namespace,
+		ServiceConfigs:     &serviceConfigs,
+		StatefulSetConfigs: &statefulSetConfigs,
+		IngressConfigs:     &ingressConfigs,
+		GatewayConfigs:     &gatewayConfigs,
+		RouteConfigs:       &routeConfigs,
+		Namespace:          &namespace,
 	}
 	client := getKontrolServiceClient()
 

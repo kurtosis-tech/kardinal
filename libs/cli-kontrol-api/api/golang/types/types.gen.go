@@ -70,11 +70,12 @@ type IngressConfig struct {
 
 // MainClusterConfig defines model for MainClusterConfig.
 type MainClusterConfig struct {
-	GatewayConfigs *[]GatewayConfig `json:"gateway-configs,omitempty"`
-	IngressConfigs *[]IngressConfig `json:"ingress-configs,omitempty"`
-	Namespace      *string          `json:"namespace,omitempty"`
-	RouteConfigs   *[]RouteConfig   `json:"route-configs,omitempty"`
-	ServiceConfigs *[]ServiceConfig `json:"service-configs,omitempty"`
+	GatewayConfigs     *[]GatewayConfig     `json:"gateway-configs,omitempty"`
+	IngressConfigs     *[]IngressConfig     `json:"ingress-configs,omitempty"`
+	Namespace          *string              `json:"namespace,omitempty"`
+	RouteConfigs       *[]RouteConfig       `json:"route-configs,omitempty"`
+	ServiceConfigs     *[]ServiceConfig     `json:"service-configs,omitempty"`
+	StatefulSetConfigs *[]StatefulSetConfig `json:"stateful-set-configs,omitempty"`
 }
 
 // Node defines model for Node.
@@ -111,6 +112,11 @@ type RouteConfig struct {
 type ServiceConfig struct {
 	Deployment appv1.Deployment `json:"deployment"`
 	Service    corev1.Service   `json:"service"`
+}
+
+// StatefulSetConfig defines model for StatefulSetConfig.
+type StatefulSetConfig struct {
+	StatefulSet appv1.StatefulSet `json:"stateful-set"`
 }
 
 // Template defines model for Template.
