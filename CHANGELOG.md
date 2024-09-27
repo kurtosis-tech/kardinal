@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.3.1](https://github.com/kurtosis-tech/kardinal/compare/0.3.0...0.3.1) (2024-09-27)
+
+
+### Bug Fixes
+
+* fix race condition with docs voting feature ([#256](https://github.com/kurtosis-tech/kardinal/issues/256)) ([2d3f769](https://github.com/kurtosis-tech/kardinal/commit/2d3f769e39d5ae008f6b6b6ca25819cccd6847d2))
+* remove all Kardinal namespaces when cluster resources is empty during cleanup ([#255](https://github.com/kurtosis-tech/kardinal/issues/255)) ([43c4ac2](https://github.com/kurtosis-tech/kardinal/commit/43c4ac25468f1284fb53b36bc20458af5e7b9409))
+* telepresence http server check ([#251](https://github.com/kurtosis-tech/kardinal/issues/251)) ([c26f135](https://github.com/kurtosis-tech/kardinal/commit/c26f135f0656959a0b9d2dd823094fda4d652537))
+* try making some changes to change the asset hashes ([#254](https://github.com/kurtosis-tech/kardinal/issues/254)) ([668be13](https://github.com/kurtosis-tech/kardinal/commit/668be13bf4d31dabfe4fe5fc95dc3014794b54c7))
+* Update the manager deploy kontrol service location command argument ([#252](https://github.com/kurtosis-tech/kardinal/issues/252)) ([08be35c](https://github.com/kurtosis-tech/kardinal/commit/08be35c92e14178b833af2197fc0032764cb7703))
+
 ## [0.3.0](https://github.com/kurtosis-tech/kardinal/compare/0.2.7...0.3.0) (2024-09-26)
 
 
