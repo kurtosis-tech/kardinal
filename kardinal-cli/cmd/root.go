@@ -301,7 +301,7 @@ var telepresenceInterceptCmd = &cobra.Command{
 
 		// Is the port open and HTTP
 		if err := isPortOpenAndHTTP(localPort); err != nil {
-			log.Fatalf("An error occurred checking port '%s': %s", localPort, err)
+			log.Fatalf("An error occurred checking HTTP server on port '%s': %s", localPort, err)
 		}
 
 		// is Traffic-manager installed
@@ -424,9 +424,6 @@ func isPortOpenAndHTTP(localPortStr string) error {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return stacktrace.NewError("the HTTP server in 'httpServerAddr' did not return a successful response. Got '%d'", resp.StatusCode)
-	}
 	return nil
 }
 
