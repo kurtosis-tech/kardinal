@@ -37,7 +37,16 @@ interface VotingContextProps {
   getVoteCount: (feature: string) => number;
 }
 
-const VotingContext = createContext<VotingContextProps | undefined>(undefined);
+const VotingContext = createContext<VotingContextProps>({
+  localStorageVotes: [],
+  features: [],
+  upvote: async () => {},
+  downvote: async () => {},
+  getVoteStatus: () => "none",
+  isUpvoted: () => false,
+  isDownvoted: () => false,
+  getVoteCount: () => 0,
+});
 
 const doApiRequest = async (
   method: "GET" | "POST",
