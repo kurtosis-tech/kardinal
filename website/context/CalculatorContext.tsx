@@ -1,6 +1,5 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
 import {
   createContext,
   Dispatch,
@@ -43,7 +42,9 @@ const HOURLY_COST_PER_RESOURCE_REQUIREMENT: Record<
 };
 
 export const CalculatorProvider = ({ children }: PropsWithChildren) => {
-  const searchParams = useSearchParams();
+  const searchParams = new URLSearchParams(
+    typeof window !== "undefined" ? window.location.search : "",
+  );
 
   const initialEngineers: number =
     searchParams.get("engineers") != null
