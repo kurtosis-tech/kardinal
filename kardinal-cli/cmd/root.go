@@ -388,9 +388,9 @@ var telepresenceInterceptCmd = &cobra.Command{
 		}
 		logrus.Infof("Telepresence has been successfully connected to namespace '%s'...", namespaceName)
 
-		logrus.Infof("Executing Telepresence intercept to flow id '%s'...", namespaceName)
+		logrus.Infof("Executing Telepresence intercept to flow id '%s'...", flowId)
 
-		telepresenceInterceptCmdArgs := []string{"intercept", interceptBaseName, "--port", fmt.Sprintf("%s:http", localPort)}
+		telepresenceInterceptCmdArgs := []string{"intercept", "--port", fmt.Sprintf("%s:http", localPort), "--service", interceptBaseName, interceptBaseName}
 		telepresenceInterceptCmd := exec.Command(telepresenceCmdName, telepresenceInterceptCmdArgs...)
 		telepresenceInterceptOutput, err := telepresenceInterceptCmd.CombinedOutput()
 		logrus.Infof("Telepresence intercept command output: %s", string(telepresenceInterceptOutput))
