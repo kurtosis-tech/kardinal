@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.2](https://github.com/kurtosis-tech/kardinal/compare/0.3.1...0.3.2) (2024-09-28)
+
+
+### Bug Fixes
+
+* add the --service flag in the kardinal flow telepresence intercept command ([#259](https://github.com/kurtosis-tech/kardinal/issues/259)) ([5d22282](https://github.com/kurtosis-tech/kardinal/commit/5d222824139e0b9597f94cb0b4cd0663e948e413))
+* fix broken website CSS by refactoring styled-components SSR logic ([#257](https://github.com/kurtosis-tech/kardinal/issues/257)) ([505e885](https://github.com/kurtosis-tech/kardinal/commit/505e88504d020ed1c53ae6f4d018db85b86d1e1c))
+
 ## [0.3.1](https://github.com/kurtosis-tech/kardinal/compare/0.3.0...0.3.1) (2024-09-27)
 
 
