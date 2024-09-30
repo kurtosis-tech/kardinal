@@ -183,7 +183,7 @@ In order for Kardinal to guarantee data isolation and safety, Kardinal needs to 
 The level of data isolation and semantics of "dev" version will be highly dependent on your service, application, and development needs.
 This is where we can leverage a plugin to encode this information.
 
-For example, say we have a `postgres` database in our cluster. When creating dev flows, we'll avoid touching the "prod" postgres database by using the [`postgres-seed-plugin`](https://github.com/kurtosis-tech/postgres-seed-plugin) like so:
+For example, say we have a `postgres` database in our cluster. When creating dev flows, we'll avoid touching the "baseline" postgres database by using the [`postgres-seed-plugin`](https://github.com/kurtosis-tech/postgres-seed-plugin) like so:
 
 ```
 ...
@@ -282,7 +282,7 @@ Using plugins to handle dev versions of external services works very similarly.
 
 The difference is that the plugin annotation gets added to the service spec of the service that depends on the external service. Accordingly, when writing the plugin, the plugin will be modifying the deployment spec of the dependent service.
 
-For example, say we have a `cartservice` in our app that depends on an external [Neon](neon.tech) DB. When creating dev flows, we'll avoid touching the "prod" Neon database by using the [`neondb-plugin`](https://github.com/kurtosis-tech/neondb-plugin) like so:
+For example, say we have a `cartservice` in our app that depends on an external [Neon](neon.tech) DB. When creating dev flows, we'll avoid touching the "baseline" Neon database by using the [`neondb-plugin`](https://github.com/kurtosis-tech/neondb-plugin) like so:
 
 ```
 ...
