@@ -12,9 +12,9 @@ Getting started takes just a few minutes, assuming you have [installed Kardinal]
 
 To use Kardinal with your application, you will need a development Kubernetes cluster with Istio installed.
 
-It's not important that your production cluster uses Istio. Kardinal will manage everything related to Istio on your development cluster, and your application should work just fine.
+It's not important that your cluster uses Istio. Kardinal will manage everything related to Istio on your development cluster, and your application should work just fine.
 
-Then, you'll need to install the Kardinal CLI and deploy the Kardinal Manager on your application, as described in the [install Kardinal guide](./getting-started/install) 
+Then, you'll need to install the Kardinal CLI and deploy the Kardinal Manager on your application, as described in the [install Kardinal guide](./getting-started/install)
 
 Then, make sure your application is using distributed tracing. Kardinal uses your trace IDs to route requests between different development versions of services to implement logical environment isolation.
 
@@ -36,16 +36,16 @@ If you want to use a tracing system that isn't listed here, you can submit an [i
 
 ### Step 1: Annotate the application entrypoint
 
-Kardinal can manage multiple entrypoints in your Kubernetes manifest that routes traffic into the cluster. You 
+Kardinal can manage multiple entrypoints in your Kubernetes manifest that routes traffic into the cluster. You
 can leverage access to your services either through the Kubernetes Ingress API or the Gateway API.
 
-To get started, you just need to add the *`kardinal.dev.service/ingress`*  or *`kardinal.dev.service/gateway`* 
-annotations to your Ingress or Gateway manifest to mark this entrypoint. The annotation should be set to `true` 
+To get started, you just need to add the *`kardinal.dev.service/ingress`*  or *`kardinal.dev.service/gateway`*
+annotations to your Ingress or Gateway manifest to mark this entrypoint. The annotation should be set to `true`
 for whichever Ingress or Gateway resource is the entrypoint into the cluster.
 
 ### Example using Kubernetes Ingress
 
-Here’s an example using an Ingress resource to handle traffic, with Kardinal annotations to mark it as the 
+Here’s an example using an Ingress resource to handle traffic, with Kardinal annotations to mark it as the
 cluster entrypoint:
 
 ```yaml
@@ -70,12 +70,12 @@ spec:
                   number: 80
 ```
 
-In this example, traffic to `web.admin.localhost` is routed to the `frontend` service on port 80 via the 
+In this example, traffic to `web.admin.localhost` is routed to the `frontend` service on port 80 via the
 Ingress resource.
 
 ### Example using Gateway API
 
-Alternatively, you can use the Gateway API, which provides more flexibility and control over traffic routing. 
+Alternatively, you can use the Gateway API, which provides more flexibility and control over traffic routing.
 Here’s how the Gateway and HTTPRoute manifests would look, with Kardinal annotations:
 
 ```yaml
@@ -97,7 +97,7 @@ spec:
           from: All
 ```
 
-In this example, the `Gateway` resource defines a listener on port 80, routing traffic for any subdomain 
+In this example, the `Gateway` resource defines a listener on port 80, routing traffic for any subdomain
 of `app.localhost`.
 
 ```yaml
@@ -121,29 +121,29 @@ spec:
           port: 80
 ```
 
-The `HTTPRoute` resource specifies that traffic to `baseline.app.localhost` should be routed to the `frontend` 
+The `HTTPRoute` resource specifies that traffic to `baseline.app.localhost` should be routed to the `frontend`
 service on port 80.
 
 
 ### Step 2: Deploy the main version of your application
 
 Okay, now that we've got Kardinal integrated, let's deploy our application. Run:
-    
+
 ```bash
 kardinal deploy -k <path-to-k8s-manifest-annotated-with-Kardinal>
 ```
-    
+
 You should now be able to view your application in the Kardinal dashboard with:
-    
+
 ```bash
 kardinal dashboard
 ```
 
 
 ### Step 3: Create a dev flow
-    
+
 First, create a flow. Pick a service in your application to test a dev image on and run:
-    
+
 ```bash
 kardinal flow create <service-name> <your/new-dev-image:dev>
 ```
@@ -151,8 +151,8 @@ kardinal flow create <service-name> <your/new-dev-image:dev>
 You should see some output like:
 ```bash
 kardinal flow create frontend kurtosistech/frontend:demo-frontend
-INFO[0000] Using tenant UUID 483e3371-ec18-40ca-aaee-54df597d1fd2 
-INFO[0000] Creating service frontend with image kurtosistech/frontend:demo-frontend in development mode... 
+INFO[0000] Using tenant UUID 483e3371-ec18-40ca-aaee-54df597d1fd2
+INFO[0000] Creating service frontend with image kurtosistech/frontend:demo-frontend in development mode...
 Flow "dev-qlm1214pgt" created. Access it on:
 🌐 http://dev-qlm1214pgt.app.localhost
 ```
@@ -161,14 +161,14 @@ You can view all the flows in your cluster in the Kardinal dashboard:
 
 ```bash
 kardinal dashboard
-```    
+```
 
 If you run `kardinal gateway <flow-id>`, Kardinal will open a gateway to the entrypoint of the flow - whatever service of your application was annotated with the `kardinal.dev.service/ingress` annotation. Whether the service is a frontend or a backend service, you will be able to access the dev flow by making requests to the returned endpoint.
-    
+
 ```bash
 $ kardinal gateway dev-qlm1214pgt
-INFO[0000] Using tenant UUID 483e3371-ec18-40ca-aaee-54df597d1fd2 
+INFO[0000] Using tenant UUID 483e3371-ec18-40ca-aaee-54df597d1fd2
 2024/08/07 13:50:52 Starting gateway for host: dev-qlm1214pgt.app.localhost
-2024/08/07 13:50:52 All pods in namespace prod are ready and flowId dev-qlm1214pgt found
+2024/08/07 13:50:52 All pods in namespace baseline are ready and flowId dev-qlm1214pgt found
 2024/08/07 13:50:52 Proxy server for host dev-qlm1214pgt.app.localhost started on http://localhost:9060
 ```

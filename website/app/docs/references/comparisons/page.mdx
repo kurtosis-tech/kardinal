@@ -29,7 +29,7 @@ Devcontainers can connect your coding workflow into your Kardinal [flows](./conc
 <Collapsible title="Namespace-based dev deploys">
 Some teams create ephemeral development environments by deploying changed services into a new namespace into their Kubernetes cluster.
 
-Then, they configure rules per namespace that defines what is shared between that development namespace, and the "stable" shared namespace. These shared resources include the state that backs the applciation (dbs, queues, caches), as well as shared microservices.
+Then, they configure rules per namespace that defines what is shared between that development namespace, and the "baseline" shared namespace. These shared resources include the state that backs the applciation (dbs, queues, caches), as well as shared microservices.
 
 This is a sophisticated approach that can be very effective. Using this approach is similar to using Kardinal in "single-service" and "multi-service" mode, in the sense of creating flows that can contain one or more development versions of services.
 

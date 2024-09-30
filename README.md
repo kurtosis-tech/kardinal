@@ -79,7 +79,7 @@ kardinal deploy -k ./obd-kardinal.yaml
 
 You can view the frontend of the demo app by going to:
 
-`http://prod.app.localhost`
+`http://baseline.app.localhost`
 
 Feel free to click around, add items to your cart, and shop!
 
