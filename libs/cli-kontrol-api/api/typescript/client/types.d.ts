@@ -29,6 +29,7 @@ export interface paths {
       requestBody: {
         content: {
           "application/json": {
+            "flow-id"?: string;
             flow_spec: components["schemas"]["FlowSpec"];
             template_spec?: components["schemas"]["TemplateSpec"];
           };

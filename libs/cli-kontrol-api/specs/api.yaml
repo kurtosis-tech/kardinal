@@ -30,6 +30,8 @@ paths:
             schema:
               type: object
               properties:
+                flow-id:
+                  type: string
                 flow_spec:
                   $ref: "#/components/schemas/FlowSpec"
                 template_spec:

@@ -167,6 +167,7 @@ type NotFound struct {
 
 // PostTenantUuidFlowCreateJSONBody defines parameters for PostTenantUuidFlowCreate.
 type PostTenantUuidFlowCreateJSONBody struct {
+	FlowId       *string       `json:"flow-id,omitempty"`
 	FlowSpec     FlowSpec      `json:"flow_spec"`
 	TemplateSpec *TemplateSpec `json:"template_spec,omitempty"`
 }
