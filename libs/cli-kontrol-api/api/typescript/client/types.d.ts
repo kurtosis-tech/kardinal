@@ -220,6 +220,7 @@ export interface components {
   schemas: {
     MainClusterConfig: {
       "service-configs"?: components["schemas"]["ServiceConfig"][];
+      "deployment-configs"?: components["schemas"]["DeploymentConfig"][];
       "stateful-set-configs"?: components["schemas"]["StatefulSetConfig"][];
       "ingress-configs"?: components["schemas"]["IngressConfig"][];
       "gateway-configs"?: components["schemas"]["GatewayConfig"][];
@@ -284,6 +285,8 @@ export interface components {
     };
     ServiceConfig: {
       service: unknown;
+    };
+    DeploymentConfig: {
       deployment: unknown;
     };
     StatefulSetConfig: {

@@ -260,6 +260,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ServiceConfig"
+        deployment-configs:
+          type: array
+          items:
+            $ref: "#/components/schemas/DeploymentConfig"
         stateful-set-configs:
           type: array
           items:
@@ -419,13 +423,18 @@ components:
           x-go-type-import:
             path: k8s.io/api/core/v1
             name: corev1
+      required:
+        - service
+
+    DeploymentConfig:
+      type: object
+      properties:
         deployment:
           x-go-type: appv1.Deployment
           x-go-type-import:
             path: k8s.io/api/apps/v1
             name: appv1
       required:
-        - service
         - deployment
 
     StatefulSetConfig:
