@@ -11,6 +11,8 @@ paths:
       responses:
         "500":
           $ref: "#/components/responses/Error"
+        "400":
+          $ref: "#/components/responses/RequestError"
         "200":
           description: Successful response
           content:
@@ -30,6 +32,8 @@ paths:
             schema:
               type: object
               properties:
+                flow-id:
+                  type: string
                 flow_spec:
                   $ref: "#/components/schemas/FlowSpec"
                 template_spec:
@@ -39,6 +43,8 @@ paths:
       responses:
         "500":
           $ref: "#/components/responses/Error"
+        "400":
+          $ref: "#/components/responses/RequestError"
         "404":
           $ref: "#/components/responses/NotFound"
         "200":
@@ -55,6 +61,8 @@ paths:
       responses:
         "500":
           $ref: "#/components/responses/Error"
+        "400":
+          $ref: "#/components/responses/RequestError"
         "404":
           $ref: "#/components/responses/NotFound"
         "200":
@@ -74,6 +82,8 @@ paths:
       responses:
         "500":
           $ref: "#/components/responses/Error"
+        "400":
+          $ref: "#/components/responses/RequestError"
         "404":
           $ref: "#/components/responses/NotFound"
         "2xx":
@@ -93,6 +103,8 @@ paths:
       responses:
         "500":
           $ref: "#/components/responses/Error"
+        "400":
+          $ref: "#/components/responses/RequestError"
         "404":
           $ref: "#/components/responses/NotFound"
         "200":
@@ -109,6 +121,8 @@ paths:
       responses:
         "500":
           $ref: "#/components/responses/Error"
+        "400":
+          $ref: "#/components/responses/RequestError"
         "404":
           $ref: "#/components/responses/NotFound"
         "200":
@@ -132,6 +146,8 @@ paths:
       responses:
         "500":
           $ref: "#/components/responses/Error"
+        "400":
+          $ref: "#/components/responses/RequestError"
         "404":
           $ref: "#/components/responses/NotFound"
         "200":
@@ -148,6 +164,8 @@ paths:
       responses:
         "500":
           $ref: "#/components/responses/Error"
+        "400":
+          $ref: "#/components/responses/RequestError"
         "404":
           $ref: "#/components/responses/NotFound"
         "200":
@@ -167,6 +185,8 @@ paths:
       responses:
         "500":
           $ref: "#/components/responses/Error"
+        "400":
+          $ref: "#/components/responses/RequestError"
         "404":
           $ref: "#/components/responses/NotFound"
         "2xx":
@@ -184,6 +204,8 @@ paths:
       responses:
         "500":
           $ref: "#/components/responses/Error"
+        "400":
+          $ref: "#/components/responses/RequestError"
         "404":
           $ref: "#/components/responses/NotFound"
         "200":
@@ -197,6 +219,22 @@ components:
   responses:
     Error:
       description: Error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                description: Error type
+              msg:
+                type: string
+                description: Error message
+            required:
+              - error
+
+    RequestError:
+      description: Request error
       content:
         application/json:
           schema:

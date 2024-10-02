@@ -176,8 +176,18 @@ type NotFound struct {
 	ResourceType string `json:"resource-type"`
 }
 
+// RequestError defines model for RequestError.
+type RequestError struct {
+	// Error Error type
+	Error string `json:"error"`
+
+	// Msg Error message
+	Msg *string `json:"msg,omitempty"`
+}
+
 // PostTenantUuidFlowCreateJSONBody defines parameters for PostTenantUuidFlowCreate.
 type PostTenantUuidFlowCreateJSONBody struct {
+	FlowId       *string       `json:"flow-id,omitempty"`
 	FlowSpec     FlowSpec      `json:"flow_spec"`
 	TemplateSpec *TemplateSpec `json:"template_spec,omitempty"`
 }

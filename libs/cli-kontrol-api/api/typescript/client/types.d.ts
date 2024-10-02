@@ -14,6 +14,7 @@ export interface paths {
             "application/json": string;
           };
         };
+        400: components["responses"]["RequestError"];
         500: components["responses"]["Error"];
       };
     };
@@ -29,6 +30,7 @@ export interface paths {
       requestBody: {
         content: {
           "application/json": {
+            "flow-id"?: string;
             flow_spec: components["schemas"]["FlowSpec"];
             template_spec?: components["schemas"]["TemplateSpec"];
           };
@@ -41,6 +43,7 @@ export interface paths {
             "application/json": components["schemas"]["Flow"];
           };
         };
+        400: components["responses"]["RequestError"];
         404: components["responses"]["NotFound"];
         500: components["responses"]["Error"];
       };
@@ -60,6 +63,7 @@ export interface paths {
             "application/json": components["schemas"]["Flow"][];
           };
         };
+        400: components["responses"]["RequestError"];
         404: components["responses"]["NotFound"];
         500: components["responses"]["Error"];
       };
@@ -74,6 +78,7 @@ export interface paths {
         };
       };
       responses: {
+        400: components["responses"]["RequestError"];
         404: components["responses"]["NotFound"];
         500: components["responses"]["Error"];
         /** @description Dev flow deletion status */
@@ -103,6 +108,7 @@ export interface paths {
             "application/json": components["schemas"]["Flow"];
           };
         };
+        400: components["responses"]["RequestError"];
         404: components["responses"]["NotFound"];
         500: components["responses"]["Error"];
       };
@@ -122,6 +128,7 @@ export interface paths {
             "application/json": components["schemas"]["ClusterTopology"];
           };
         };
+        400: components["responses"]["RequestError"];
         404: components["responses"]["NotFound"];
         500: components["responses"]["Error"];
       };
@@ -147,6 +154,7 @@ export interface paths {
             "application/json": components["schemas"]["Template"];
           };
         };
+        400: components["responses"]["RequestError"];
         404: components["responses"]["NotFound"];
         500: components["responses"]["Error"];
       };
@@ -166,6 +174,7 @@ export interface paths {
             "application/json": components["schemas"]["Template"][];
           };
         };
+        400: components["responses"]["RequestError"];
         404: components["responses"]["NotFound"];
         500: components["responses"]["Error"];
       };
@@ -180,6 +189,7 @@ export interface paths {
         };
       };
       responses: {
+        400: components["responses"]["RequestError"];
         404: components["responses"]["NotFound"];
         500: components["responses"]["Error"];
         /** @description Template deletion status */
@@ -207,6 +217,7 @@ export interface paths {
             "application/x-yaml": string;
           };
         };
+        400: components["responses"]["RequestError"];
         404: components["responses"]["NotFound"];
         500: components["responses"]["Error"];
       };
@@ -317,6 +328,17 @@ export interface components {
   responses: {
     /** @description Error */
     Error: {
+      content: {
+        "application/json": {
+          /** @description Error type */
+          error: string;
+          /** @description Error message */
+          msg?: string;
+        };
+      };
+    };
+    /** @description Request error */
+    RequestError: {
       content: {
         "application/json": {
           /** @description Error type */

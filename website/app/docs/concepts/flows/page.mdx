@@ -6,11 +6,11 @@ export const metadata = {
 
 In Kardinal, a flow is an ephemeral environment that developers can use for development, testing, or QA.
 
-The default flow in Kardinal is called `stable`, and typically contains the latest versions of each service that you have in your staging cluster, i.e. the latest changes that are about to be promoted to production.
+The default flow in Kardinal is called `baseline`, and typically contains the latest versions of each service that you have in your staging cluster, i.e. the latest changes that are about to be promoted to production.
 
 When Kardinal creates a flow, it will deploy the set of services that encompass the changes being made for a given feature. Kardinal will also create an ingress point for the developer to use.
 
-Any communication made through the ingress point will be routed to the versions of the services that are a part of the flow. Any services that are a part of the application, but aren't being changed as a part of the feature, will still be available from the `stable` flow.
+Any communication made through the ingress point will be routed to the versions of the services that are a part of the flow. Any services that are a part of the application, but aren't being changed as a part of the feature, will still be available from the `baseline` flow.
 
 As your team onboards to Kardinal, you will be able to create flows with escalating levels of configurability:
 

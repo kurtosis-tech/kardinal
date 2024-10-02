@@ -6,13 +6,13 @@ const config = {
   distDir: "out",
   pageExtensions: ["mdx", "ts", "tsx"],
   compiler: {
-    styledComponents: true,
+    styledComponents: {
+      ssr: true,
+      displayName: true,
+    },
   },
-  ...(process.env.NODE_ENV === "production"
-    ? {
-        output: "export", // static export for production build
-      }
-    : {}),
+  output: "export",
+
   // If localhost proxy is required (e.g. for CORS), uncomment this
   // async rewrites() {
   //   return [
