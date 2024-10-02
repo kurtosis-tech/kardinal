@@ -7,10 +7,6 @@ import (
 	"testing"
 )
 
-const (
-	defaultNamespace = "default"
-)
-
 func TestClusterManager_GetVirtualServices(t *testing.T) {
 	ctx := context.Background()
 	clusterManager, err := getClusterManagerForTesting(t)
