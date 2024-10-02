@@ -81,6 +81,7 @@ var (
 	templateYamlFile       string
 	templateDescription    string
 	templateArgsFile       string
+	flowID                 string
 )
 
 var rootCmd = &cobra.Command{
@@ -641,6 +642,7 @@ func init() {
 	createCmd.Flags().StringSliceVarP(&serviceImagePairs, "service-image", "s", []string{}, "Extra service and respective image to include in the same flow (can be used multiple times)")
 	createCmd.Flags().StringVarP(&templateName, "template", "t", "", "Template name to use for the flow creation")
 	createCmd.Flags().StringVarP(&templateArgsFile, "template-args", "a", "", "JSON with the template arguments or path to YAML file containing template arguments")
+	createCmd.Flags().StringVarP(&flowID, "ID", "i", "", "Set the flow id")
 
 	deployCmd.PersistentFlags().StringVarP(&kubernetesManifestFile, "k8s-manifest", "k", "", "Path to the K8S manifest file")
 	deployCmd.MarkPersistentFlagRequired("k8s-manifest")
@@ -859,6 +861,7 @@ func createDevFlow(tenantUuid api_types.Uuid, pairsMap map[string]string, templa
 	}
 
 	resp, err := client.PostTenantUuidFlowCreateWithResponse(ctx, tenantUuid, api_types.PostTenantUuidFlowCreateJSONRequestBody{
+		FlowId:       &flowID,
 		FlowSpec:     devSpec,
 		TemplateSpec: templateSpec,
 	})
