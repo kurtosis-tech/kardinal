@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.3](https://github.com/kurtosis-tech/kardinal/compare/0.3.2...0.3.3) (2024-10-02)
+
+
+### Features
+
+* add the `id` flag in the kardinal flow create cmd ([#261](https://github.com/kurtosis-tech/kardinal/issues/261)) ([09309f1](https://github.com/kurtosis-tech/kardinal/commit/09309f173e11c6d4d2b7b8a80f55df759fb98406))
+
 ## [0.3.2](https://github.com/kurtosis-tech/kardinal/compare/0.3.1...0.3.2) (2024-09-28)
 
 
