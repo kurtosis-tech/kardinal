@@ -642,7 +642,7 @@ func init() {
 	createCmd.Flags().StringSliceVarP(&serviceImagePairs, "service-image", "s", []string{}, "Extra service and respective image to include in the same flow (can be used multiple times)")
 	createCmd.Flags().StringVarP(&templateName, "template", "t", "", "Template name to use for the flow creation")
 	createCmd.Flags().StringVarP(&templateArgsFile, "template-args", "a", "", "JSON with the template arguments or path to YAML file containing template arguments")
-	createCmd.Flags().StringVarP(&flowID, "ID", "i", "", "Set the flow id")
+	createCmd.Flags().StringVarP(&flowID, "id", "i", "", "Set the flow id")
 
 	deployCmd.PersistentFlags().StringVarP(&kubernetesManifestFile, "k8s-manifest", "k", "", "Path to the K8S manifest file")
 	deployCmd.MarkPersistentFlagRequired("k8s-manifest")
