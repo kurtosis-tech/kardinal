@@ -23,6 +23,11 @@ type ClusterTopology struct {
 	Nodes []Node `json:"nodes"`
 }
 
+// DeploymentConfig defines model for DeploymentConfig.
+type DeploymentConfig struct {
+	Deployment appv1.Deployment `json:"deployment"`
+}
+
 // Edge defines model for Edge.
 type Edge struct {
 	// Label Label for the edge.
@@ -70,11 +75,13 @@ type IngressConfig struct {
 
 // MainClusterConfig defines model for MainClusterConfig.
 type MainClusterConfig struct {
-	GatewayConfigs *[]GatewayConfig `json:"gateway-configs,omitempty"`
-	IngressConfigs *[]IngressConfig `json:"ingress-configs,omitempty"`
-	Namespace      *string          `json:"namespace,omitempty"`
-	RouteConfigs   *[]RouteConfig   `json:"route-configs,omitempty"`
-	ServiceConfigs *[]ServiceConfig `json:"service-configs,omitempty"`
+	DeploymentConfigs  *[]DeploymentConfig  `json:"deployment-configs,omitempty"`
+	GatewayConfigs     *[]GatewayConfig     `json:"gateway-configs,omitempty"`
+	IngressConfigs     *[]IngressConfig     `json:"ingress-configs,omitempty"`
+	Namespace          *string              `json:"namespace,omitempty"`
+	RouteConfigs       *[]RouteConfig       `json:"route-configs,omitempty"`
+	ServiceConfigs     *[]ServiceConfig     `json:"service-configs,omitempty"`
+	StatefulSetConfigs *[]StatefulSetConfig `json:"stateful-set-configs,omitempty"`
 }
 
 // Node defines model for Node.
@@ -109,8 +116,12 @@ type RouteConfig struct {
 
 // ServiceConfig defines model for ServiceConfig.
 type ServiceConfig struct {
-	Deployment appv1.Deployment `json:"deployment"`
-	Service    corev1.Service   `json:"service"`
+	Service corev1.Service `json:"service"`
+}
+
+// StatefulSetConfig defines model for StatefulSetConfig.
+type StatefulSetConfig struct {
+	StatefulSet appv1.StatefulSet `json:"stateful-set"`
 }
 
 // Template defines model for Template.

@@ -41,15 +41,15 @@ Plugins are Python scripts hosted on GitHub. Each plugin should have two main fu
 ```python
 # main.py
 
-def create_flow(service_spec, deployment_spec, flow_uuid, optional_argument):
+def create_flow(service_spec, pod_spec, flow_uuid, optional_argument):
     # Modify the deployment spec
     # Generate a config map if needed
     # service_spec - the Kubernetes service spec json
-    # deployment_spec - Deployment spec of the service json
+    # pod_spec - pod spec of the service json
     # flow_uuid - the uuid of the flow string
     # optional_argument - you can have any number of these, passed via annotations
     return {
-        "deployment_spec": modified_deployment_spec,
+        "pod_spec": modified_pod_spec,
         "config_map": config_map
     }
 
@@ -61,7 +61,7 @@ def delete_flow(config_map, flow_uuid):
 ### Plugin Guidelines
 
 - You need a `main.py` in the root of your repository with the above structure
-- Modify the `deployment_spec` as needed in the `create_flow` function.
+- Modify the `pod_spec` as needed in the `create_flow` function.
 - Use the `config_map` to store information that might be needed during flow deletion.
 - If your plugin has external dependencies, include a `requirements.txt` file in the root of your repository.
 
@@ -72,17 +72,15 @@ Here's an example of a simple plugin that replaces text in various parts of the 
 ```python
 REPLACED = "the-text-has-been-replaced"
 
-def create_flow(service_spec, deployment_spec, flow_uuid, text_to_replace):
-    deployment_spec['template']['metadata']['labels']['app'] = deployment_spec['template']['metadata']['labels']['app'].replace(text_to_replace, REPLACED)
-    deployment_spec['selector']['matchLabels']['app'] = deployment_spec['selector']['matchLabels']['app'].replace(text_to_replace, REPLACED)
-    deployment_spec['template']['spec']['containers'][0]['name'] = deployment_spec['template']['spec']['containers'][0]['name'].replace(text_to_replace, REPLACED)
+def create_flow(service_spec, pod_spec, flow_uuid, text_to_replace):
+    pod_spec['containers'][0]['name'] = pod_spec['containers'][0]['name'].replace(text_to_replace, REPLACED)
 
     config_map = {
         "original_text": text_to_replace
     }
 
     return {
-        "deployment_spec": deployment_spec,
+        "pod_spec": pod_spec,
         "config_map": config_map
     }
 
