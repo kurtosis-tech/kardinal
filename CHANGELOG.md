@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/kurtosis-tech/kardinal/compare/0.4.0...0.4.1) (2024-10-03)
+
+
+### Bug Fixes
+
+* add auth for statefulset during manager deployment ([#268](https://github.com/kurtosis-tech/kardinal/issues/268)) ([9c011c6](https://github.com/kurtosis-tech/kardinal/commit/9c011c66f8315a5ada9183ac0b5873a4156f7246))
+
 ## [0.4.0](https://github.com/kurtosis-tech/kardinal/compare/0.3.3...0.4.0) (2024-10-03)
 
 
