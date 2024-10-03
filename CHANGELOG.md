@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.4.0](https://github.com/kurtosis-tech/kardinal/compare/0.3.3...0.4.0) (2024-10-03)
+
+
+### ⚠ BREAKING CHANGES
+
+* add support to StatefulSet ([#263](https://github.com/kurtosis-tech/kardinal/issues/263))
+
+### Features
+
+* add canonical tag to website pages ([#266](https://github.com/kurtosis-tech/kardinal/issues/266)) ([64bdab1](https://github.com/kurtosis-tech/kardinal/commit/64bdab125ed308ca5282f70f58b0d88949e3c124)), closes [#236](https://github.com/kurtosis-tech/kardinal/issues/236)
+* add support to StatefulSet ([#263](https://github.com/kurtosis-tech/kardinal/issues/263)) ([a1632d5](https://github.com/kurtosis-tech/kardinal/commit/a1632d5aecd857f8de5b77db342c39daff91bcb2))
+
+
+### Bug Fixes
+
+* avoid trying to delete default namespace ([#265](https://github.com/kurtosis-tech/kardinal/issues/265)) ([907ad38](https://github.com/kurtosis-tech/kardinal/commit/907ad38cde24d7a7baac2b3b900187685be92149))
+
 ## [0.3.3](https://github.com/kurtosis-tech/kardinal/compare/0.3.2...0.3.3) (2024-10-02)
 
 
