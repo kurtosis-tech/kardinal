@@ -144,7 +144,7 @@ metadata:
   annotations:
     kardinal.dev.service/dependencies: "productcatalogservice:http,cartservice:http"
     kardinal.dev.service/plugins: |
-      - name: https://github.com/lostbean/free-currency-api-plugin.git
+      - name: https://github.com/kurtosis-tech/free-currency-api-plugin.git
         type: external
         servicename: free-currency-api
         args:
@@ -211,7 +211,7 @@ metadata:
   annotations:
     kardinal.dev.service/stateful: "true"
     kardinal.dev.service/plugins: |
-      - name: github.com/lostbean/postgres-seed-plugin
+      - name: github.com/kurtosis-tech/postgres-seed-plugin
         args:
           seed_script: |
             --  create the table
