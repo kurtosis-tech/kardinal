@@ -41,7 +41,7 @@ metadata:
     {{.KardinalAppIDLabelKey}}: {{.KardinalManagerAppIDLabelValue}}
 rules:
   - apiGroups: ["*"]
-    resources: ["namespaces", "pods", "services", "deployments", "virtualservices", "workloadgroups", "workloadentries", "sidecars", "serviceentries", "gateways", "envoyfilters", "destinationrules", "authorizationpolicies", "ingresses", "httproutes"]
+    resources: ["namespaces", "pods", "services", "deployments", "statefulsets", "virtualservices", "workloadgroups", "workloadentries", "sidecars", "serviceentries", "gateways", "envoyfilters", "destinationrules", "authorizationpolicies", "ingresses", "httproutes"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 
 ---
