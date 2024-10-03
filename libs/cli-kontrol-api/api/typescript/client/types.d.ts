@@ -231,6 +231,12 @@ export interface components {
         "image-locator": string;
         /** @example backend-service-a */
         "service-name": string;
+        "env-var-overrides"?: {
+          [key: string]: string;
+        };
+        "secret-env-var-overrides"?: {
+          [key: string]: string;
+        };
       }[];
     TemplateSpec: {
       /** @description name of the template */

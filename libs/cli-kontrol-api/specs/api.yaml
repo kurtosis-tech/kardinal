@@ -290,6 +290,12 @@ components:
           service-name:
             type: string
             example: backend-service-a
+          env-var-overrides:
+            type: object
+            additionalProperties: { type: string }
+          secret-env-var-overrides:
+            type: object
+            additionalProperties: { type: string }
         required:
           - image-locator
           - service-name

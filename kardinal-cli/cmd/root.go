@@ -41,7 +41,8 @@ const (
 	localKontrolAPIHost         = "localhost:8080"
 	localFrontendHost           = "localhost:5173"
 	kloudKontrolHost            = "app.kardinal.dev"
-	kloudKontrolAPIHost         = kloudKontrolHost + "/api"
+	//kloudKontrolHost    = "prod.kardinal.dev"
+	kloudKontrolAPIHost = kloudKontrolHost + "/api"
 
 	httpSchme   = "http"
 	httpsScheme = httpSchme + "s"
@@ -642,11 +643,15 @@ func createDevFlow(tenantUuid api_types.Uuid, pairsMap map[string]string, templa
 	devSpec := api_types.FlowSpec{}
 	for serviceName, imageLocator := range pairsMap {
 		devSpec = append(devSpec, struct {
-			ImageLocator string `json:"image-locator"`
-			ServiceName  string `json:"service-name"`
+			EnvVarOverrides       *map[string]string `json:"env-var-overrides,omitempty"`
+			ImageLocator          string             `json:"image-locator"`
+			SecretEnvVarOverrides *map[string]string `json:"secret-env-var-overrides,omitempty"`
+			ServiceName           string             `json:"service-name"`
 		}{
-			ImageLocator: imageLocator,
-			ServiceName:  serviceName,
+			EnvVarOverrides:       nil,
+			ImageLocator:          imageLocator,
+			ServiceName:           serviceName,
+			SecretEnvVarOverrides: nil,
 		})
 	}
 

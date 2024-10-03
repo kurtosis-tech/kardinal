@@ -43,8 +43,10 @@ type Flow struct {
 
 // FlowSpec defines model for FlowSpec.
 type FlowSpec = []struct {
-	ImageLocator string `json:"image-locator"`
-	ServiceName  string `json:"service-name"`
+	EnvVarOverrides       *map[string]string `json:"env-var-overrides,omitempty"`
+	ImageLocator          string             `json:"image-locator"`
+	SecretEnvVarOverrides *map[string]string `json:"secret-env-var-overrides,omitempty"`
+	ServiceName           string             `json:"service-name"`
 }
 
 // IngressConfig defines model for IngressConfig.
