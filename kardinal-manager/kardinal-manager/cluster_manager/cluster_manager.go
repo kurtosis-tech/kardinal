@@ -34,6 +34,8 @@ const (
 	// TODO move these values to a shared library between Kardinal Manager, Kontrol and Kardinal CLI
 	kardinalLabelKey = "kardinal.dev"
 	enabledKardinal  = "enabled"
+
+	defaultNamespace = "default"
 )
 
 var (
@@ -428,6 +430,11 @@ func (manager *ClusterManager) removeKardinalNamespaces(ctx context.Context) err
 	}
 
 	for _, namespace := range kardinalNamespaces.Items {
+
+		if namespace.GetName() == defaultNamespace {
+			continue
+		}
+
 		if err := manager.removeNamespace(ctx, &namespace); err != nil {
 			return stacktrace.Propagate(err, "an error occurred while removing Kardinal namespace '%s'", namespace.GetName())
 		}
