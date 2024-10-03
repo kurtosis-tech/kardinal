@@ -2,6 +2,10 @@ package cluster_manager
 
 import (
 	"context"
+	"encoding/json"
+	"k8s.io/apimachinery/pkg/labels"
+	"strings"
+
 	"github.com/kurtosis-tech/kardinal/libs/manager-kontrol-api/api/golang/types"
 	"github.com/kurtosis-tech/stacktrace"
 	"github.com/samber/lo"
@@ -11,16 +15,25 @@ import (
 	securityv1beta1 "istio.io/client-go/pkg/apis/security/v1beta1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	net "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"kardinal.kontrol/kardinal-manager/topology"
+	gateway "sigs.k8s.io/gateway-api/apis/v1"
+	gatewayclientset "sigs.k8s.io/gateway-api/pkg/client/clientset/versioned"
 )
 
 const (
-	listOptionsTimeoutSeconds       int64 = 10
-	fieldManager                          = "kardinal-manager"
-	deleteOptionsGracePeriodSeconds int64 = 0
-	istioLabel                            = "istio-injection"
-	enabledIstioValue                     = "enabled"
+	listOptionsTimeoutSeconds         int64 = 10
+	fieldManager                            = "kardinal-manager"
+	deleteOptionsGracePeriodSeconds   int64 = 0
+	istioLabel                              = "istio-injection"
+	enabledIstioValue                       = "enabled"
+	telepresenceRestartedAtAnnotation       = "telepresence.getambassador.io/restartedAt"
+	istioSystemNamespace                    = "istio-system"
+
+	// TODO move these values to a shared library between Kardinal Manager, Kontrol and Kardinal CLI
+	kardinalLabelKey = "kardinal.dev"
+	enabledKardinal  = "enabled"
 )
 
 var (
@@ -89,10 +102,11 @@ var (
 type ClusterManager struct {
 	kubernetesClient *kubernetesClient
 	istioClient      *istioClient
+	gatewayClient    *gatewayclientset.Clientset
 }
 
-func NewClusterManager(kubernetesClient *kubernetesClient, istioClient *istioClient) *ClusterManager {
-	return &ClusterManager{kubernetesClient: kubernetesClient, istioClient: istioClient}
+func NewClusterManager(kubernetesClient *kubernetesClient, istioClient *istioClient, gatewayClient *gatewayclientset.Clientset) *ClusterManager {
+	return &ClusterManager{kubernetesClient: kubernetesClient, istioClient: istioClient, gatewayClient: gatewayClient}
 }
 
 func (manager *ClusterManager) GetVirtualServices(ctx context.Context, namespace string) ([]*v1alpha3.VirtualService, error) {
@@ -182,7 +196,6 @@ func (manager *ClusterManager) GetTopologyForNameSpace(namespace string) (map[st
 }
 
 func (manager *ClusterManager) ApplyClusterResources(ctx context.Context, clusterResources *types.ClusterResources) error {
-
 	if !isValid(clusterResources) {
 		logrus.Debugf("the received cluster resources is not valid, nothing to apply.")
 		return nil
@@ -193,7 +206,8 @@ func (manager *ClusterManager) ApplyClusterResources(ctx context.Context, cluste
 		lo.Uniq(lo.Map(*clusterResources.Deployments, func(item appsv1.Deployment, _ int) string { return item.Namespace })),
 		lo.Uniq(lo.Map(*clusterResources.VirtualServices, func(item v1alpha3.VirtualService, _ int) string { return item.Namespace })),
 		lo.Uniq(lo.Map(*clusterResources.DestinationRules, func(item v1alpha3.DestinationRule, _ int) string { return item.Namespace })),
-		{clusterResources.Gateway.Namespace},
+		lo.Uniq(lo.Map(*clusterResources.Gateways, func(item gateway.Gateway, _ int) string { return item.Namespace })),
+		lo.Uniq(lo.Map(*clusterResources.HttpRoutes, func(item gateway.HTTPRoute, _ int) string { return item.Namespace })),
 	}
 
 	if clusterResources.EnvoyFilters != nil {
@@ -206,7 +220,7 @@ func (manager *ClusterManager) ApplyClusterResources(ctx context.Context, cluste
 		allNSs = append(allNSs, [][]string{authPoliciesNS}...)
 	}
 
-	uniqueNamespaces := lo.Uniq(lo.Flatten(allNSs))
+	uniqueNamespaces := lo.ReplaceAll(lo.Uniq(lo.Flatten(allNSs)), "", "default")
 
 	for _, namespace := range uniqueNamespaces {
 		if err := manager.ensureNamespace(ctx, namespace); err != nil {
@@ -265,36 +279,38 @@ func (manager *ClusterManager) ApplyClusterResources(ctx context.Context, cluste
 		}
 	}
 
-	if err := manager.createOrUpdateGateway(ctx, clusterResources.Gateway); err != nil {
-		return stacktrace.Propagate(err, "An error occurred while creating or updating the cluster gateway")
+	for _, gateway := range *clusterResources.Gateways {
+		if err := manager.createOrUpdateGateway(ctx, &gateway); err != nil {
+			return stacktrace.Propagate(err, "An error occurred while creating or updating the cluster gateway")
+		}
+	}
+
+	for _, httpRoute := range *clusterResources.HttpRoutes {
+		if err := manager.createOrUpdateHttpRoute(ctx, &httpRoute); err != nil {
+			return stacktrace.Propagate(err, "An error occurred while creating or updating the http route")
+		}
+	}
+
+	for _, ingress := range *clusterResources.Ingresses {
+		if err := manager.createOrUpdateIngress(ctx, &ingress); err != nil {
+			return stacktrace.Propagate(err, "An error occurred while creating or updating the ingress")
+		}
 	}
 
 	return nil
 }
 
 func (manager *ClusterManager) CleanUpClusterResources(ctx context.Context, clusterResources *types.ClusterResources) error {
-
 	if !isValid(clusterResources) {
 		logrus.Debugf("the received cluster resources is not valid, nothing to clean up.")
 		return nil
 	}
 
-	// Clean up services
-	servicesByNS := lo.GroupBy(*clusterResources.Services, func(item corev1.Service) string {
-		return item.Namespace
-	})
-	for namespace, services := range servicesByNS {
-		if err := manager.cleanUpServicesInNamespace(ctx, namespace, services); err != nil {
-			return stacktrace.Propagate(err, "An error occurred cleaning up services '%+v' in namespace '%s'", services, namespace)
+	if isEmpty(clusterResources) {
+		if err := manager.removeKardinalNamespaces(ctx); err != nil {
+			return stacktrace.Propagate(err, "an error occurred removing the Kardinal namespaces")
 		}
-	}
-
-	// Clean up deployments
-	deploymentsByNS := lo.GroupBy(*clusterResources.Deployments, func(item appsv1.Deployment) string { return item.Namespace })
-	for namespace, deployments := range deploymentsByNS {
-		if err := manager.cleanUpDeploymentsInNamespace(ctx, namespace, deployments); err != nil {
-			return stacktrace.Propagate(err, "An error occurred cleaning up deployments '%+v' in namespace '%s'", deployments, namespace)
-		}
+		return nil
 	}
 
 	// Clean up virtual services
@@ -315,10 +331,30 @@ func (manager *ClusterManager) CleanUpClusterResources(ctx context.Context, clus
 		}
 	}
 
-	// Clean up gateway
-	gatewaysByNs := map[string][]v1alpha3.Gateway{
-		clusterResources.Gateway.GetNamespace(): {*clusterResources.Gateway},
+	// Clean up Ingresses
+	ingressesByNs := lo.GroupBy(*clusterResources.Ingresses, func(item net.Ingress) string {
+		return item.Namespace
+	})
+	for namespace, ingresses := range ingressesByNs {
+		if err := manager.cleanUpIngressesInNamespace(ctx, namespace, ingresses); err != nil {
+			return stacktrace.Propagate(err, "An error occurred cleaning up ingresses '%+v' in namespace '%s'", ingresses, namespace)
+		}
 	}
+
+	// Clean up http routes
+	routesByNs := lo.GroupBy(*clusterResources.HttpRoutes, func(item gateway.HTTPRoute) string {
+		return item.Namespace
+	})
+	for namespace, routes := range routesByNs {
+		if err := manager.cleanUpHttpRoutesInNamespace(ctx, namespace, routes); err != nil {
+			return stacktrace.Propagate(err, "An error occurred cleaning up http routes '%+v' in namespace '%s'", routes, namespace)
+		}
+	}
+
+	// Clean up gateway
+	gatewaysByNs := lo.GroupBy(*clusterResources.Gateways, func(item gateway.Gateway) string {
+		return item.Namespace
+	})
 	for namespace, gateways := range gatewaysByNs {
 		if err := manager.cleanUpGatewaysInNamespace(ctx, namespace, gateways); err != nil {
 			return stacktrace.Propagate(err, "An error occurred cleaning up gateways '%+v' in namespace '%s'", gateways, namespace)
@@ -337,6 +373,25 @@ func (manager *ClusterManager) CleanUpClusterResources(ctx context.Context, clus
 		}
 	}
 
+	// Clean up services
+	servicesByNS := lo.GroupBy(*clusterResources.Services, func(item corev1.Service) string {
+		return item.Namespace
+	})
+	for namespace, services := range servicesByNS {
+		gateways := gatewaysByNs[namespace]
+		if err := manager.cleanUpServicesInNamespace(ctx, namespace, services, gateways); err != nil {
+			return stacktrace.Propagate(err, "An error occurred cleaning up services '%+v' in namespace '%s'", services, namespace)
+		}
+	}
+
+	// Clean up deployments
+	deploymentsByNS := lo.GroupBy(*clusterResources.Deployments, func(item appsv1.Deployment) string { return item.Namespace })
+	for namespace, deployments := range deploymentsByNS {
+		if err := manager.cleanUpDeploymentsInNamespace(ctx, namespace, deployments); err != nil {
+			return stacktrace.Propagate(err, "An error occurred cleaning up deployments '%+v' in namespace '%s'", deployments, namespace)
+		}
+	}
+
 	// Cleanup authorization policies
 	if clusterResources.AuthorizationPolicies != nil {
 		authorizationPoliciesByNS := lo.GroupBy(*clusterResources.AuthorizationPolicies, func(item securityv1beta1.AuthorizationPolicy) string {
@@ -352,21 +407,99 @@ func (manager *ClusterManager) CleanUpClusterResources(ctx context.Context, clus
 	return nil
 }
 
+func (manager *ClusterManager) getKardinalNamespaces(ctx context.Context) (*corev1.NamespaceList, error) {
+	labels := map[string]string{
+		istioLabel:       enabledIstioValue,
+		kardinalLabelKey: enabledKardinal,
+	}
+
+	kardinalNamespaces, err := manager.getNamespacesByLabels(ctx, labels)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "an error occurred getting Kardinal namespaces using labels '%+v'", labels)
+	}
+
+	return kardinalNamespaces, nil
+}
+
+func (manager *ClusterManager) removeKardinalNamespaces(ctx context.Context) error {
+	kardinalNamespaces, err := manager.getKardinalNamespaces(ctx)
+	if err != nil {
+		return stacktrace.Propagate(err, "an error occurred getting Kardinal namespaces")
+	}
+
+	for _, namespace := range kardinalNamespaces.Items {
+		if err := manager.removeNamespace(ctx, &namespace); err != nil {
+			return stacktrace.Propagate(err, "an error occurred while removing Kardinal namespace '%s'", namespace.GetName())
+		}
+	}
+	return nil
+}
+
+func (manager *ClusterManager) getNamespacesByLabels(ctx context.Context, namespaceLabels map[string]string) (*corev1.NamespaceList, error) {
+	namespaceClient := manager.kubernetesClient.clientSet.CoreV1().Namespaces()
+
+	listOptions := buildListOptionsFromLabels(namespaceLabels)
+	namespaces, err := namespaceClient.List(ctx, listOptions)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "Failed to list namespaces with labels '%+v'", namespaceLabels)
+	}
+
+	// Only return objects not tombstoned by Kubernetes
+	var namespacesNotMarkedForDeletionList []corev1.Namespace
+	for _, namespace := range namespaces.Items {
+		deletionTimestamp := namespace.GetObjectMeta().GetDeletionTimestamp()
+		if deletionTimestamp == nil {
+			namespacesNotMarkedForDeletionList = append(namespacesNotMarkedForDeletionList, namespace)
+		}
+	}
+	namespacesNotMarkedForDeletionnamespaceList := corev1.NamespaceList{
+		Items:    namespacesNotMarkedForDeletionList,
+		TypeMeta: namespaces.TypeMeta,
+		ListMeta: namespaces.ListMeta,
+	}
+	return &namespacesNotMarkedForDeletionnamespaceList, nil
+}
+
+func (manager *ClusterManager) removeNamespace(ctx context.Context, namespace *corev1.Namespace) error {
+	name := namespace.Name
+	namespaceClient := manager.kubernetesClient.clientSet.CoreV1().Namespaces()
+
+	if err := namespaceClient.Delete(ctx, name, globalDeleteOptions); err != nil {
+		return stacktrace.Propagate(err, "Failed to delete namespace with name '%s' with delete options '%+v'", name, globalDeleteOptions)
+	}
+
+	return nil
+}
+
 func (manager *ClusterManager) ensureNamespace(ctx context.Context, name string) error {
+
+	if name == istioSystemNamespace {
+		// Some resources might be under the istio system namespace but we don't want to alter
+		// this namespace because it is managed by Istio
+		return nil
+	}
 
 	existingNamespace, err := manager.kubernetesClient.clientSet.CoreV1().Namespaces().Get(ctx, name, metav1.GetOptions{})
 	if err == nil && existingNamespace != nil {
 		value, found := existingNamespace.Labels[istioLabel]
 		if !found || value != enabledIstioValue {
 			existingNamespace.Labels[istioLabel] = enabledIstioValue
-			manager.kubernetesClient.clientSet.CoreV1().Namespaces().Update(ctx, existingNamespace, globalUpdateOptions)
+		}
+		value, found = existingNamespace.Labels[kardinalLabelKey]
+		if !found || value != enabledKardinal {
+			existingNamespace.Labels[kardinalLabelKey] = enabledKardinal
+		}
+		_, err = manager.kubernetesClient.clientSet.CoreV1().Namespaces().Update(ctx, existingNamespace, globalUpdateOptions)
+		if err != nil {
+			return stacktrace.Propagate(err, "Failed to update Namespace: %s", name)
 		}
 	} else {
 		newNamespace := corev1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: name,
 				Labels: map[string]string{
-					istioLabel: enabledIstioValue,
+					istioLabel:       enabledIstioValue,
+					kardinalLabelKey: enabledKardinal,
 				},
 			},
 		}
@@ -383,17 +516,17 @@ func (manager *ClusterManager) createOrUpdateService(ctx context.Context, servic
 	serviceClient := manager.kubernetesClient.clientSet.CoreV1().Services(service.Namespace)
 	existingService, err := serviceClient.Get(ctx, service.Name, metav1.GetOptions{})
 	if err != nil {
-		// Resource does not exist, create new one
 		_, err = serviceClient.Create(ctx, service, globalCreateOptions)
 		if err != nil {
 			return stacktrace.Propagate(err, "Failed to create service: %s", service.GetName())
 		}
 	} else {
-		// Update the resource version to the latest before updating
-		service.ResourceVersion = existingService.ResourceVersion
-		_, err = serviceClient.Update(ctx, service, globalUpdateOptions)
-		if err != nil {
-			return stacktrace.Propagate(err, "Failed to update service: %s", service.GetName())
+		if !deepCheckEqual(existingService.Spec, service.Spec) {
+			service.ResourceVersion = existingService.ResourceVersion
+			_, err = serviceClient.Update(ctx, service, globalUpdateOptions)
+			if err != nil {
+				return stacktrace.Propagate(err, "Failed to update service: %s", service.GetName())
+			}
 		}
 	}
 
@@ -409,18 +542,35 @@ func (manager *ClusterManager) createOrUpdateDeployment(ctx context.Context, dep
 			return stacktrace.Propagate(err, "Failed to create deployment: %s", deployment.GetName())
 		}
 	} else {
-		deployment.ResourceVersion = existingDeployment.ResourceVersion
-		_, err = deploymentClient.Update(ctx, deployment, globalUpdateOptions)
-		if err != nil {
-			return stacktrace.Propagate(err, "Failed to update deployment: %s", deployment.GetName())
+		if !deepCheckEqual(existingDeployment.Spec, deployment.Spec) {
+			updateDeploymentWithRelevantValuesFromCurrentDeployment(deployment, existingDeployment)
+			_, err = deploymentClient.Update(ctx, deployment, globalUpdateOptions)
+			if err != nil {
+				return stacktrace.Propagate(err, "Failed to update deployment: %s", deployment.GetName())
+			}
 		}
 	}
 
 	return nil
 }
 
-func (manager *ClusterManager) createOrUpdateVirtualService(ctx context.Context, virtualService *v1alpha3.VirtualService) error {
+func updateDeploymentWithRelevantValuesFromCurrentDeployment(newDeployment *appsv1.Deployment, currentDeployment *appsv1.Deployment) {
+	newDeployment.ResourceVersion = currentDeployment.ResourceVersion
+	// merge annotations
+	newAnnotations := newDeployment.Spec.Template.GetAnnotations()
+	currentAnnotations := currentDeployment.Spec.Template.GetAnnotations()
 
+	for annotationKey, annotationValue := range currentAnnotations {
+		if annotationKey == telepresenceRestartedAtAnnotation {
+			// This key is necessary for Kardinal/Telepresence (https://www.telepresence.io/) integration
+			// keeping this annotation because otherwise the telepresence traffic-agent container will be removed from the pod
+			newAnnotations[annotationKey] = annotationValue
+		}
+	}
+	newDeployment.Spec.Template.Annotations = newAnnotations
+}
+
+func (manager *ClusterManager) createOrUpdateVirtualService(ctx context.Context, virtualService *v1alpha3.VirtualService) error {
 	virtServiceClient := manager.istioClient.clientSet.NetworkingV1alpha3().VirtualServices(virtualService.GetNamespace())
 
 	existingVirtService, err := virtServiceClient.Get(ctx, virtualService.Name, metav1.GetOptions{})
@@ -430,10 +580,12 @@ func (manager *ClusterManager) createOrUpdateVirtualService(ctx context.Context,
 			return stacktrace.Propagate(err, "Failed to create virtual service: %s", virtualService.GetName())
 		}
 	} else {
-		virtualService.ResourceVersion = existingVirtService.ResourceVersion
-		_, err = virtServiceClient.Update(ctx, virtualService, globalUpdateOptions)
-		if err != nil {
-			return stacktrace.Propagate(err, "Failed to update virtual service: %s", virtualService.GetName())
+		if !deepCheckEqual(existingVirtService.Spec, virtualService.Spec) {
+			virtualService.ResourceVersion = existingVirtService.ResourceVersion
+			_, err = virtServiceClient.Update(ctx, virtualService, globalUpdateOptions)
+			if err != nil {
+				return stacktrace.Propagate(err, "Failed to update virtual service: %s", virtualService.GetName())
+			}
 		}
 	}
 
@@ -441,7 +593,6 @@ func (manager *ClusterManager) createOrUpdateVirtualService(ctx context.Context,
 }
 
 func (manager *ClusterManager) createOrUpdateDestinationRule(ctx context.Context, destinationRule *v1alpha3.DestinationRule) error {
-
 	destRuleClient := manager.istioClient.clientSet.NetworkingV1alpha3().DestinationRules(destinationRule.GetNamespace())
 
 	existingDestRule, err := destRuleClient.Get(ctx, destinationRule.Name, metav1.GetOptions{})
@@ -451,19 +602,20 @@ func (manager *ClusterManager) createOrUpdateDestinationRule(ctx context.Context
 			return stacktrace.Propagate(err, "Failed to create destination rule: %s", destinationRule.GetName())
 		}
 	} else {
-		destinationRule.ResourceVersion = existingDestRule.ResourceVersion
-		_, err = destRuleClient.Update(ctx, destinationRule, globalUpdateOptions)
-		if err != nil {
-			return stacktrace.Propagate(err, "Failed to update destination rule: %s", destinationRule.GetName())
+		if !deepCheckEqual(existingDestRule.Spec, destinationRule.Spec) {
+			destinationRule.ResourceVersion = existingDestRule.ResourceVersion
+			_, err = destRuleClient.Update(ctx, destinationRule, globalUpdateOptions)
+			if err != nil {
+				return stacktrace.Propagate(err, "Failed to update destination rule: %s", destinationRule.GetName())
+			}
 		}
 	}
 
 	return nil
 }
 
-func (manager *ClusterManager) createOrUpdateGateway(ctx context.Context, gateway *v1alpha3.Gateway) error {
-
-	gatewayClient := manager.istioClient.clientSet.NetworkingV1alpha3().Gateways(gateway.GetNamespace())
+func (manager *ClusterManager) createOrUpdateGateway(ctx context.Context, gateway *gateway.Gateway) error {
+	gatewayClient := manager.gatewayClient.GatewayV1().Gateways(gateway.GetNamespace())
 	existingGateway, err := gatewayClient.Get(ctx, gateway.Name, metav1.GetOptions{})
 	if err != nil {
 		_, err = gatewayClient.Create(ctx, gateway, globalCreateOptions)
@@ -471,10 +623,54 @@ func (manager *ClusterManager) createOrUpdateGateway(ctx context.Context, gatewa
 			return stacktrace.Propagate(err, "Failed to create gateway: %s", gateway.GetName())
 		}
 	} else {
-		gateway.ResourceVersion = existingGateway.ResourceVersion
-		_, err = gatewayClient.Update(ctx, gateway, globalUpdateOptions)
+		if !deepCheckEqual(existingGateway.Spec, gateway.Spec) {
+			gateway.ResourceVersion = existingGateway.ResourceVersion
+			_, err = gatewayClient.Update(ctx, gateway, globalUpdateOptions)
+			if err != nil {
+				return stacktrace.Propagate(err, "Failed to update gateway: %s", gateway.GetName())
+			}
+		}
+	}
+
+	return nil
+}
+
+func (manager *ClusterManager) createOrUpdateHttpRoute(ctx context.Context, route *gateway.HTTPRoute) error {
+	routeClient := manager.gatewayClient.GatewayV1().HTTPRoutes(route.GetNamespace())
+	existingRoute, err := routeClient.Get(ctx, route.Name, metav1.GetOptions{})
+	if err != nil {
+		_, err = routeClient.Create(ctx, route, globalCreateOptions)
 		if err != nil {
-			return stacktrace.Propagate(err, "Failed to update gateway: %s", gateway.GetName())
+			return stacktrace.Propagate(err, "Failed to create route: %s", route.GetName())
+		}
+	} else {
+		if !deepCheckEqual(existingRoute.Spec, route.Spec) {
+			route.ResourceVersion = existingRoute.ResourceVersion
+			_, err = routeClient.Update(ctx, route, globalUpdateOptions)
+			if err != nil {
+				return stacktrace.Propagate(err, "Failed to update route: %s", route.GetName())
+			}
+		}
+	}
+
+	return nil
+}
+
+func (manager *ClusterManager) createOrUpdateIngress(ctx context.Context, ingress *net.Ingress) error {
+	routeClient := manager.kubernetesClient.clientSet.NetworkingV1().Ingresses(ingress.GetNamespace())
+	existingRoute, err := routeClient.Get(ctx, ingress.Name, metav1.GetOptions{})
+	if err != nil {
+		_, err = routeClient.Create(ctx, ingress, globalCreateOptions)
+		if err != nil {
+			return stacktrace.Propagate(err, "Failed to create ingress: %s", ingress.GetName())
+		}
+	} else {
+		if !deepCheckEqual(existingRoute.Spec, ingress.Spec) {
+			ingress.ResourceVersion = existingRoute.ResourceVersion
+			_, err = routeClient.Update(ctx, ingress, globalUpdateOptions)
+			if err != nil {
+				return stacktrace.Propagate(err, "Failed to update ingress: %s", ingress.GetName())
+			}
 		}
 	}
 
@@ -490,10 +686,12 @@ func (manager *ClusterManager) createOrUpdateEnvoyFilter(ctx context.Context, fi
 			return stacktrace.Propagate(err, "Failed to create envoy filter: %s", filter.GetName())
 		}
 	} else {
-		filter.ResourceVersion = existingFilter.ResourceVersion
-		_, err = envoyFilterClient.Update(ctx, filter, globalUpdateOptions)
-		if err != nil {
-			return stacktrace.Propagate(err, "Failed to update filter: %s", filter.GetName())
+		if !deepCheckEqual(existingFilter.Spec, filter.Spec) {
+			filter.ResourceVersion = existingFilter.ResourceVersion
+			_, err = envoyFilterClient.Update(ctx, filter, globalUpdateOptions)
+			if err != nil {
+				return stacktrace.Propagate(err, "Failed to update filter: %s", filter.GetName())
+			}
 		}
 	}
 	return nil
@@ -508,24 +706,36 @@ func (manager *ClusterManager) createOrUpdateAuthorizationPolicies(ctx context.C
 			return stacktrace.Propagate(err, "Failed to create policy: %s", policy.GetName())
 		}
 	} else {
-		policy.ResourceVersion = existingPolicy.ResourceVersion
-		_, err = authorizationPolicyClient.Update(ctx, policy, globalUpdateOptions)
-		if err != nil {
-			return stacktrace.Propagate(err, "Failed to update policy: %s", policy.GetName())
+		if !deepCheckEqual(existingPolicy.Spec, policy.Spec) {
+			policy.ResourceVersion = existingPolicy.ResourceVersion
+			_, err = authorizationPolicyClient.Update(ctx, policy, globalUpdateOptions)
+			if err != nil {
+				return stacktrace.Propagate(err, "Failed to update policy: %s", policy.GetName())
+			}
 		}
 	}
 	return nil
 }
 
-func (manager *ClusterManager) cleanUpServicesInNamespace(ctx context.Context, namespace string, servicesToKeep []corev1.Service) error {
+func (manager *ClusterManager) cleanUpServicesInNamespace(ctx context.Context, namespace string, servicesToKeep []corev1.Service, gateways []gateway.Gateway) error {
 	serviceClient := manager.kubernetesClient.clientSet.CoreV1().Services(namespace)
+	gatewayNames := lo.Map(gateways, func(item gateway.Gateway, _ int) string { return item.Name })
 	allServices, err := serviceClient.List(ctx, globalListOptions)
 	if err != nil {
 		return stacktrace.Propagate(err, "Failed to list services in namespace %s", namespace)
 	}
-	for _, service := range allServices.Items {
+
+	allServicesSkippingGateways := lo.Filter(allServices.Items, func(item corev1.Service, _ int) bool {
+		_, found := lo.Find(gatewayNames, func(gatewayName string) bool { return strings.HasPrefix(item.Name, gatewayName) })
+		if found {
+			logrus.Infof("Skipping deletion service %s because it seems a service from one of the gateways %v", item.Name, gatewayNames)
+		}
+		return !found
+	})
+	for _, service := range allServicesSkippingGateways {
 		_, exists := lo.Find(servicesToKeep, func(item corev1.Service) bool { return item.Name == service.Name })
 		if !exists {
+			logrus.Infof("Deleting service %s", service.Name)
 			err = serviceClient.Delete(ctx, service.Name, globalDeleteOptions)
 			if err != nil {
 				return stacktrace.Propagate(err, "Failed to delete service %s", service.GetName())
@@ -554,7 +764,6 @@ func (manager *ClusterManager) cleanUpDeploymentsInNamespace(ctx context.Context
 }
 
 func (manager *ClusterManager) cleanUpVirtualServicesInNamespace(ctx context.Context, namespace string, virtualServicesToKeep []v1alpha3.VirtualService) error {
-
 	virtServiceClient := manager.istioClient.clientSet.NetworkingV1alpha3().VirtualServices(namespace)
 	allVirtServices, err := virtServiceClient.List(ctx, globalListOptions)
 	if err != nil {
@@ -574,7 +783,6 @@ func (manager *ClusterManager) cleanUpVirtualServicesInNamespace(ctx context.Con
 }
 
 func (manager *ClusterManager) cleanUpDestinationRulesInNamespace(ctx context.Context, namespace string, destinationRulesToKeep []v1alpha3.DestinationRule) error {
-
 	destRuleClient := manager.istioClient.clientSet.NetworkingV1alpha3().DestinationRules(namespace)
 	allDestRules, err := destRuleClient.List(ctx, globalListOptions)
 	if err != nil {
@@ -593,19 +801,56 @@ func (manager *ClusterManager) cleanUpDestinationRulesInNamespace(ctx context.Co
 	return nil
 }
 
-func (manager *ClusterManager) cleanUpGatewaysInNamespace(ctx context.Context, namespace string, gatewaysToKeep []v1alpha3.Gateway) error {
-
-	gatewayClient := manager.istioClient.clientSet.NetworkingV1alpha3().Gateways(namespace)
+func (manager *ClusterManager) cleanUpGatewaysInNamespace(ctx context.Context, namespace string, gatewaysToKeep []gateway.Gateway) error {
+	gatewayClient := manager.gatewayClient.GatewayV1().Gateways(namespace)
 	allGateways, err := gatewayClient.List(ctx, globalListOptions)
 	if err != nil {
 		return stacktrace.Propagate(err, "Failed to list gateways in namespace %s", namespace)
 	}
-	for _, gateway := range allGateways.Items {
-		_, exists := lo.Find(gatewaysToKeep, func(item v1alpha3.Gateway) bool { return item.Name == gateway.Name })
+	for _, gatewayItem := range allGateways.Items {
+		_, exists := lo.Find(gatewaysToKeep, func(item gateway.Gateway) bool { return item.Name == gatewayItem.Name })
 		if !exists {
-			err = gatewayClient.Delete(ctx, gateway.Name, globalDeleteOptions)
+			err = gatewayClient.Delete(ctx, gatewayItem.Name, globalDeleteOptions)
 			if err != nil {
-				return stacktrace.Propagate(err, "Failed to delete gateway %s", gateway.GetName())
+				return stacktrace.Propagate(err, "Failed to delete gateway %s", gatewayItem.GetName())
+			}
+		}
+	}
+
+	return nil
+}
+
+func (manager *ClusterManager) cleanUpIngressesInNamespace(ctx context.Context, namespace string, ingressesToKeep []net.Ingress) error {
+	ingressClient := manager.kubernetesClient.clientSet.NetworkingV1().Ingresses(namespace)
+	allingresss, err := ingressClient.List(ctx, globalListOptions)
+	if err != nil {
+		return stacktrace.Propagate(err, "Failed to list Ingress in namespace %s", namespace)
+	}
+	for _, ingressItem := range allingresss.Items {
+		_, exists := lo.Find(ingressesToKeep, func(item net.Ingress) bool { return item.Name == ingressItem.Name })
+		if !exists {
+			err = ingressClient.Delete(ctx, ingressItem.Name, globalDeleteOptions)
+			if err != nil {
+				return stacktrace.Propagate(err, "Failed to delete gateway %s", ingressItem.GetName())
+			}
+		}
+	}
+
+	return nil
+}
+
+func (manager *ClusterManager) cleanUpHttpRoutesInNamespace(ctx context.Context, namespace string, routesToKeep []gateway.HTTPRoute) error {
+	routeClient := manager.gatewayClient.GatewayV1().HTTPRoutes(namespace)
+	allRoutes, err := routeClient.List(ctx, globalListOptions)
+	if err != nil {
+		return stacktrace.Propagate(err, "Failed to list Routes in namespace %s", namespace)
+	}
+	for _, routeItem := range allRoutes.Items {
+		_, exists := lo.Find(routesToKeep, func(item gateway.HTTPRoute) bool { return item.Name == routeItem.Name })
+		if !exists {
+			err = routeClient.Delete(ctx, routeItem.Name, globalDeleteOptions)
+			if err != nil {
+				return stacktrace.Propagate(err, "Failed to delete gateway %s", routeItem.GetName())
 			}
 		}
 	}
@@ -659,14 +904,65 @@ func isValid(clusterResources *types.ClusterResources) bool {
 		return false
 	}
 
-	if clusterResources.Gateway == nil &&
+	if clusterResources.Gateways == nil &&
+		clusterResources.HttpRoutes == nil &&
 		clusterResources.Deployments == nil &&
 		clusterResources.DestinationRules == nil &&
 		clusterResources.Services == nil &&
-		clusterResources.VirtualServices == nil {
-		logrus.Debugf("cluster resources is empty.")
+		clusterResources.VirtualServices == nil &&
+		clusterResources.AuthorizationPolicies == nil &&
+		clusterResources.EnvoyFilters == nil &&
+		clusterResources.Ingresses == nil {
+		logrus.Debugf("cluster resources is invalid because all the internal fields are nil.")
 		return false
 	}
 
 	return true
+}
+
+func isEmpty(clusterResources *types.ClusterResources) bool {
+	if clusterResources != nil &&
+		len(*clusterResources.Gateways) == 0 &&
+		len(*clusterResources.HttpRoutes) == 0 &&
+		len(*clusterResources.Deployments) == 0 &&
+		len(*clusterResources.DestinationRules) == 0 &&
+		len(*clusterResources.Services) == 0 &&
+		len(*clusterResources.VirtualServices) == 0 &&
+		len(*clusterResources.AuthorizationPolicies) == 0 &&
+		len(*clusterResources.EnvoyFilters) == 0 &&
+		len(*clusterResources.Ingresses) == 0 {
+		return true
+	}
+	return false
+}
+
+func deepCheckEqual(a, b interface{}) bool {
+	aj, err := json.Marshal(a)
+	if err != nil {
+		return false
+	}
+	bj, err := json.Marshal(b)
+	if err != nil {
+		return false
+	}
+	return string(aj) == string(bj)
+}
+
+func buildListOptionsFromLabels(labelsMap map[string]string) metav1.ListOptions {
+	return metav1.ListOptions{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "",
+			APIVersion: "",
+		},
+		LabelSelector:        labels.SelectorFromSet(labelsMap).String(),
+		FieldSelector:        "",
+		Watch:                false,
+		AllowWatchBookmarks:  false,
+		ResourceVersion:      "",
+		ResourceVersionMatch: "",
+		TimeoutSeconds:       int64Ptr(listOptionsTimeoutSeconds),
+		Limit:                0,
+		Continue:             "",
+		SendInitialEvents:    nil,
+	}
 }

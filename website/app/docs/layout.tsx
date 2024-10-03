@@ -1,4 +1,4 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { PropsWithChildren } from "react";
 
 import DocsLayout from "@/components/DocsLayout";

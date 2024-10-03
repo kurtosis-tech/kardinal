@@ -3,9 +3,12 @@ import Collapsible from '@/components/Collapsible';
 # Installation
 
 In this guide, you'll:
+
 1. Install the Kardinal CLI on your laptop
-2. Set up a development Kubernetes cluster
+2. Set up a development Kubernetes cluster with Istio installed
 3. Install the Kardinal Manager on your cluster, using the CLI
+4. Deploy the baseline version of your application
+5. Create a lightweight dev environment (aka dev [flow](/concepts/flows))
 
 ### Step 1: Install Kardinal
 
@@ -17,7 +20,7 @@ curl get.kardinal.dev -sL | sh
 
 ### Step 2: Set up a development Kubernetes cluster
 
-All you need is a Kubernetes cluster with Istio enabled, and `kubectl` installed on your machine, pointing to your cluster.
+All you need is a Kubernetes cluster with Istio installed, and `kubectl` installed on your machine, pointing to your cluster.
 
 For instructions on how to set up a local cluster that meets these requirements, see below:
 
@@ -48,5 +51,48 @@ istioctl install --set profile=default -y
 Make sure that `kubectl` is pointing to your cluster, and then run the following command:
 
 ```bash
-kardinal manager deploy kloud-kontrol
+kardinal manager deploy kloud-kardinal-kontrol
 ```
+
+Now the Kardinal Manager is deployed in your cluster, you're ready to set up your baseline application and start creating flows.
+
+### Step 4: Deploy the baseline version of your application
+
+To deploy your baseline application, run the following command:
+
+```bash
+kardinal deploy -k <path-to-k8s-manifest-annotated-for-Kardinal>
+```
+
+where `<path-to-k8s-manifest-annotated-for-Kardinal>` is the path to the Kubernetes manifest file for your application, annotated according to our guide on [deploying Kardinal on your own app](/getting-started/own-app).
+
+To try out a demo application, you can use the following command:
+
+```bash
+curl -O https://raw.githubusercontent.com/kurtosis-tech/kardinal-playground/main/obd-demo.yaml
+kardinal deploy -k obd-demo.yaml
+```
+
+Then, run 
+
+```bash
+kardinal dashboard
+```
+
+to see the dashboard for your demo application.
+
+### Step 5: Create a flow
+
+To create a flow, run:
+
+```bash
+kardinal flow create <service-name> <image> -s <additional-service-name-1>=<additional-image-name-1> <additional-service-name-2>=<additional-image-name-2> ...
+```
+
+To create a flow on the demo application, run:
+
+```bash
+kardinal flow create frontend kurtosistech/frontend:demo-on-sale -s productcatalogservice=kurtosistech/productcatalogservice:demo-on-sale
+```
+
+For a more in-depth guide to deploying your own application and creating a flow, see our guide on [deploying Kardinal on your own app](/getting-started/own-app).

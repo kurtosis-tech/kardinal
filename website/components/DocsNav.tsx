@@ -22,7 +22,7 @@ const navItems: NavItem[] = [
     children: [
       { path: "install", title: "Installation" },
       { path: "fundamentals", title: "Fundamentals" },
-      { path: "own-app", title: "Create your first flow" },
+      { path: "own-app", title: "Use Kardinal with your own app" },
     ],
   },
   {
@@ -35,7 +35,7 @@ const navItems: NavItem[] = [
     title: "Concepts",
     children: [
       { path: "flows", title: "Flows" },
-      { path: "plugins", title: "Plugins for State Isolation" },
+      { path: "plugins", title: "Plugins" },
       { path: "templates", title: "Flow Templates" },
     ],
   },

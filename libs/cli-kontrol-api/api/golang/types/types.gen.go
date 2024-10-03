@@ -7,14 +7,14 @@ import (
 	appv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
+	gateway "sigs.k8s.io/gateway-api/apis/v1"
 )
 
 // Defines values for NodeType.
 const (
-	Gateway        NodeType = "gateway"
-	Redis          NodeType = "redis"
-	Service        NodeType = "service"
-	ServiceVersion NodeType = "service-version"
+	External NodeType = "external"
+	Gateway  NodeType = "gateway"
+	Service  NodeType = "service"
 )
 
 // ClusterTopology defines model for ClusterTopology.
@@ -37,8 +37,9 @@ type Edge struct {
 
 // Flow defines model for Flow.
 type Flow struct {
-	FlowId   string   `json:"flow-id"`
-	FlowUrls []string `json:"flow-urls"`
+	AccessEntry []IngressAccessEntry `json:"access-entry"`
+	FlowId      string               `json:"flow-id"`
+	IsBaseline  *bool                `json:"is-baseline,omitempty"`
 }
 
 // FlowSpec defines model for FlowSpec.
@@ -49,6 +50,21 @@ type FlowSpec = []struct {
 	ServiceName           string             `json:"service-name"`
 }
 
+// GatewayConfig defines model for GatewayConfig.
+type GatewayConfig struct {
+	Gateway gateway.Gateway `json:"gateway"`
+}
+
+// IngressAccessEntry defines model for IngressAccessEntry.
+type IngressAccessEntry struct {
+	FlowId        string `json:"flow-id"`
+	FlowNamespace string `json:"flow-namespace"`
+	Hostname      string `json:"hostname"`
+	Namespace     string `json:"namespace"`
+	Service       string `json:"service"`
+	Type          string `json:"type"`
+}
+
 // IngressConfig defines model for IngressConfig.
 type IngressConfig struct {
 	Ingress networkingv1.Ingress `json:"ingress"`
@@ -56,8 +72,10 @@ type IngressConfig struct {
 
 // MainClusterConfig defines model for MainClusterConfig.
 type MainClusterConfig struct {
+	GatewayConfigs *[]GatewayConfig `json:"gateway-configs,omitempty"`
 	IngressConfigs *[]IngressConfig `json:"ingress-configs,omitempty"`
 	Namespace      *string          `json:"namespace,omitempty"`
+	RouteConfigs   *[]RouteConfig   `json:"route-configs,omitempty"`
 	ServiceConfigs *[]ServiceConfig `json:"service-configs,omitempty"`
 }
 
@@ -67,20 +85,29 @@ type Node struct {
 	Id string `json:"id"`
 
 	// Label Label for the node.
-	Label *string `json:"label,omitempty"`
-
-	// Parent Parent node
-	Parent *string `json:"parent,omitempty"`
+	Label string `json:"label"`
 
 	// Type Type of the node
 	Type NodeType `json:"type"`
 
 	// Versions Node versions
-	Versions *[]string `json:"versions,omitempty"`
+	Versions *[]NodeVersion `json:"versions,omitempty"`
 }
 
 // NodeType Type of the node
 type NodeType string
+
+// NodeVersion defines model for NodeVersion.
+type NodeVersion struct {
+	FlowId     string  `json:"flowId"`
+	ImageTag   *string `json:"imageTag,omitempty"`
+	IsBaseline bool    `json:"isBaseline"`
+}
+
+// RouteConfig defines model for RouteConfig.
+type RouteConfig struct {
+	HttpRoute gateway.HTTPRoute `json:"httpRoute"`
+}
 
 // ServiceConfig defines model for ServiceConfig.
 type ServiceConfig struct {
@@ -140,8 +167,18 @@ type NotFound struct {
 	ResourceType string `json:"resource-type"`
 }
 
+// RequestError defines model for RequestError.
+type RequestError struct {
+	// Error Error type
+	Error string `json:"error"`
+
+	// Msg Error message
+	Msg *string `json:"msg,omitempty"`
+}
+
 // PostTenantUuidFlowCreateJSONBody defines parameters for PostTenantUuidFlowCreate.
 type PostTenantUuidFlowCreateJSONBody struct {
+	FlowId       *string       `json:"flow-id,omitempty"`
 	FlowSpec     FlowSpec      `json:"flow_spec"`
 	TemplateSpec *TemplateSpec `json:"template_spec,omitempty"`
 }

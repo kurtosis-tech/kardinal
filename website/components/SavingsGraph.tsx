@@ -1,0 +1,70 @@
+"use client";
+
+import Image from "next/image";
+import { FiArrowRight } from "react-icons/fi";
+import styled from "styled-components";
+
+import { ButtonPrimary } from "@/components/Button";
+import Heading from "@/components/Heading";
+import Section from "@/components/Section";
+import Text from "@/components/Text";
+import { tablet } from "@/constants/breakpoints";
+import savingsGraphImg from "@/public/illustrations/savings-graph.svg";
+
+const SavingsGraph = () => {
+  return (
+    <Section>
+      <S.SavingsGraph>
+        <Image
+          src={savingsGraphImg}
+          alt="Savings graph"
+          style={{ maxWidth: "100%", height: "auto" }}
+        />
+        <S.Content>
+          <Heading.H2>
+            Savings that <em>scale up</em> alongside your team.
+          </Heading.H2>
+          <Text.Base>
+            Kardinal dev sandboxes improve both your <br data-desktop />
+            team’s DX and your infra savings as you grow.
+          </Text.Base>
+          <div>
+            <ButtonPrimary
+              analyticsId={"button_calculator_get_started"}
+              href="/docs"
+              iconRight={<FiArrowRight />}
+            >
+              Get started
+            </ButtonPrimary>
+          </div>
+        </S.Content>
+        <small>
+          * Graph values are approximate. Based on use case with 20
+          microservices.
+        </small>
+      </S.SavingsGraph>
+    </Section>
+  );
+};
+
+namespace S {
+  export const SavingsGraph = styled.div`
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 64px;
+    padding: 100px 0;
+
+    @media ${tablet} {
+      grid-template-columns: 1fr;
+      padding: 64px 0;
+    }
+  `;
+
+  export const Content = styled.div`
+    display: flex;
+    gap: 24px;
+    flex-direction: column;
+  `;
+}
+
+export default SavingsGraph;

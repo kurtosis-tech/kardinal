@@ -12,9 +12,51 @@ import { mobile, tablet } from "@/constants/breakpoints";
 // assets
 import continuityImg from "@/public/illustrations/continuity-3.svg";
 import continuityImgMobile from "@/public/illustrations/continuity-3-mobile.svg";
-import combinedVideo from "@/public/videos/combined.mp4";
+import video from "@/public/videos/animation.mp4";
 
 import type { VideoStep } from ".";
+
+const SECOND = 1000;
+const TOTAL_VIDEO_DURATION = 45 * SECOND;
+
+const steps: VideoStep[] = [
+  {
+    title: "Staging at a glance",
+    content:
+      "Imagine you're on the cartservice team. \
+            Your shared staging environment looks like this.",
+    duration: 8 * SECOND,
+  },
+  {
+    title: "Spin up a dev flow",
+    content:
+      "Create an isolated, logical dev environment containing only the services you need to change.",
+    duration: 12 * SECOND,
+  },
+  {
+    title: "Spin up a second dev flow",
+    content:
+      "Test another change in a second isolated dev environment, spinning up a different set of services.",
+    duration: 10 * SECOND,
+  },
+  {
+    title: "Develop with confidence",
+    content:
+      "Your entire team develops on a single cluster with stability and environment isolation.",
+    duration: 15 * SECOND,
+  },
+];
+
+// throw an error if the total video duration does not match the sum of the
+// video durations this check is just to ensure future updates to this
+// component are consistent and result in a working animation
+if (
+  steps.reduce((acc, step) => acc + step.duration, 0) !== TOTAL_VIDEO_DURATION
+) {
+  throw new Error(
+    "VideoStepperV2: Sum of step durations do not match the total video duration",
+  );
+}
 
 interface Props {
   children: ReactNode;
@@ -24,28 +66,6 @@ interface Props {
   onPause: () => void;
   activeStep: number;
 }
-
-const videos: VideoStep[] = [
-  {
-    title: "Staging at a glance",
-    content:
-      "Imagine you're on the voting-app team. \
-            Your shared staging environment looks like this.",
-    duration: 7000,
-  },
-  {
-    title: "Spin up a dev flow",
-    content:
-      "Create an isolated, logical dev environment with just one command.",
-    duration: 6000,
-  },
-  {
-    title: "Develop with confidence",
-    content:
-      "Test new features on staging in an isolated traffic flow. Access to application state is isolated by a stateful service sidecar.",
-    duration: 7000,
-  },
-];
 
 const VideoStepper = ({
   children,
@@ -61,37 +81,53 @@ const VideoStepper = ({
   const onTimeUpdate = (e: SyntheticEvent<HTMLVideoElement, Event>) => {
     const { currentTime, duration } = e.currentTarget;
     const percentComplete = Math.floor(100 * (currentTime / duration));
-    // +5% lag adjustment as the css animation delays the progress indicator
+    // +8% lag adjustment as the css animation delays the progress indicator
     // slightly compared to the true video progress
-    const lagAdjustment = 5;
-    const part1end = 33;
-    const part2end = 64;
+    const lagAdjustment = 8;
     setProgress(percentComplete + lagAdjustment);
+
     // video segments are not evenly distributed, these timings are to make the
     // progress indicator visually align with the video transitions
-    if (activeStep !== 0 && percentComplete <= part1end) {
+    const part0end = Math.floor(
+      (steps[0].duration / TOTAL_VIDEO_DURATION) * 100,
+    );
+    if (activeStep !== 0 && percentComplete < part0end) {
       onStepChange(0);
       setShouldAnimateProgress(false);
 
       setTimeout(() => {
         setShouldAnimateProgress(true);
       }, 100);
+      return;
     }
+    const part1end =
+      part0end + (steps[1].duration / TOTAL_VIDEO_DURATION) * 100;
     if (
       activeStep !== 1 &&
-      percentComplete >= part1end &&
-      percentComplete <= part2end
+      percentComplete > part0end &&
+      percentComplete < part1end
     ) {
       onStepChange(1);
+      return;
     }
-    if (activeStep !== 2 && percentComplete >= part2end) {
+    const part2end =
+      part1end + (steps[2].duration / TOTAL_VIDEO_DURATION) * 100;
+    if (
+      activeStep !== 2 &&
+      percentComplete > part1end &&
+      percentComplete < part2end
+    ) {
       onStepChange(2);
+      return;
+    }
+    if (activeStep !== 3 && percentComplete > part2end) {
+      onStepChange(3);
     }
   };
 
   const handleStepChange = (index: number) => {
     if (videoRef.current) {
-      const jumpTo = videoRef.current.duration * (index / videos.length);
+      const jumpTo = videoRef.current.duration * (index / steps.length);
       videoRef.current.currentTime = jumpTo;
     }
     onStepChange(index);
@@ -140,7 +176,7 @@ const VideoStepper = ({
               onTimeUpdate={onTimeUpdate}
               preload="auto"
             >
-              <source src={combinedVideo} type="video/mp4" />
+              <source src={video} type="video/mp4" />
             </S.Video>
           </S.VideoWrapper>
           <S.Steps>
@@ -163,7 +199,7 @@ const VideoStepper = ({
                 />
               </S.ProgressOverflow>
             </S.LineWrapper>
-            {videos.map((video, index) => (
+            {steps.map((video, index) => (
               <S.Step
                 key={video.title}
                 $isActive={activeStep === index}
@@ -232,7 +268,7 @@ export namespace S {
   export const Steps = styled.div`
     margin-top: 20px;
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
     grid-column-gap: 16px;
     align-self: stretch;
     width: 100%;

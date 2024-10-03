@@ -1,0 +1,301 @@
+name: E2E tests
+
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*.*.*"
+    paths-ignore:
+      - "website/**"
+      - "**/README.md"
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - "website/**"
+      - "**/README.md"
+
+jobs:
+  e2e_tests:
+    name: E2E tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+      
+      - name: Install Nix
+        uses: cachix/install-nix-action@v27
+
+      - name: Magic cache
+        uses: DeterminateSystems/magic-nix-cache-action@v7
+
+      - name: Start Kardinal Kontrol service and Postgres 
+        run: |
+          docker version
+          docker compose -f ci/docker-compose.yml up -d
+          docker ps
+
+      - name: Wait for docker network to be ready
+        run: sleep 10s
+        shell: bash
+
+      - name: Start minikube
+        uses: manusa/actions-setup-minikube@v2.11.0
+        id: minikube
+        with:
+          minikube version: "v1.33.0"
+          kubernetes version: "v1.30.0"
+          driver: docker
+          start args: --embed-certs --addons=ingress,metrics-server
+      
+      - name: Install Istio
+        run: |
+          ISTIO_VERSION="1.23.0"
+          echo "Installing Istio ..."
+          mkdir istio_tmp
+          pushd istio_tmp >/dev/null
+              curl -L https://istio.io/downloadIstio | ISTIO_VERSION=${ISTIO_VERSION} sh -
+              cd istio-${ISTIO_VERSION}
+              export PATH=$PWD/bin:$PATH
+              istioctl install --set profile=demo -y
+          popd
+ 
+      - name: Build Kardinal manager and load image
+        run: |
+          eval $(minikube docker-env)
+          docker load < $(nix build ./#containers.x86_64-linux.kardinal-manager.amd64 --no-link --print-out-paths)
+          docker tag kurtosistech/kardinal-manager:latest-amd64 kurtosistech/kardinal-manager:latest     
+          docker image ls
+
+      - name: Build Kardinal CLI
+        run: |
+          result=$(nix build ./#kardinal-cli --no-link --print-out-paths)
+          path=$(find $result -name 'kardinal.cli*' -type f | head -n 1)
+          binout="/tmp/kardinal-cli"
+          ln -s $path $binout
+          if /tmp/kardinal-cli | grep -q "Kardinal CLI"; then exit 0; else exit 1; fi
+
+      - name: Retrieve the tenant UUID
+        id: tenant
+        run: |
+          tenant_id=$(/tmp/kardinal-cli tenant show)
+          echo "id=${tenant_id}" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy Kardinal manager
+        run: |
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli manager deploy local-kardinal-kontrol
+
+          # Check that the three kardinal manager service pods are running and ready
+          while [ $(kubectl get pods -n default --no-headers -o custom-columns=NAMESPACE:metadata.namespace,POD:metadata.name,PodIP:status.podIP,READY-true:status.containerStatuses[*].ready | grep "true" | wc -l) -ne 3 ]
+          do
+              echo "Waiting for kardinal manager pods to run..."
+              kubectl get pods -n default -o custom-columns=NAMESPACE:metadata.namespace,POD:metadata.name,PodIP:status.podIP,READY-true:status.containerStatuses[*].ready
+              ((c++)) && ((c==12)) && exit 1
+              sleep 10
+          done
+          apps=$(kubectl get pods -n default -o custom-columns=:metadata.labels.app | tr " " "\n" | sort -g | tr "\n" " " | xargs)
+          echo ${apps}
+          if [ "${apps}" != "kardinal-manager trace-router trace-router-redis" ]; then exit 1; fi
+          
+          # Check for errors in the kardinal manager logs
+          if kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep -q "ERRO"
+          then
+            echo "Errors found in the kardinal manager logs"
+            kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep "ERRO"
+          fi
+ 
+      - name: Deploy boutique demo manifest
+        run: |
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli deploy -k ci/obd-demo.yaml
+      
+      - name: Validate that Kardinal manager applied the changes
+        run: |
+          # Check that the four baseline service pods are running and ready
+          while [ $(kubectl get pods -n baseline --no-headers -o custom-columns=NAMESPACE:metadata.namespace,POD:metadata.name,PodIP:status.podIP,READY-true:status.containerStatuses[*].ready | grep "true,true" | wc -l) -ne 4 ]
+          do
+              echo "Waiting for baseline pods to run..."
+              kubectl get pods -n baseline -o custom-columns=NAMESPACE:metadata.namespace,POD:metadata.name,PodIP:status.podIP,READY-true:status.containerStatuses[*].ready
+              ((c++)) && ((c==12)) && exit 1
+              sleep 10
+          done
+          apps=$(kubectl get pods -n baseline -o custom-columns=:metadata.labels.app | tr " " "\n" | sort -g | tr "\n" " " | xargs)
+          echo ${apps}
+          if [ "${apps}" != "cartservice frontend postgres productcatalogservice" ]; then exit 1; fi
+        
+          # Check for errors in the kardinal manager logs
+          if kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep -q "ERRO"
+          then
+            echo "Errors found in the kardinal manager logs"
+            kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep "ERRO"
+          fi
+
+      - name: Start gateway to the baseline flow and validate access
+        run: |
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli gateway baseline > kardinal.out &
+          cli_pid=$!
+          while ! grep "Proxy server for host" kardinal.out
+          do
+              echo "Waiting for gateway to start..."
+              cat kardinal.out
+              ((c++)) && ((c==12)) && exit 1
+              sleep 10
+          done
+          flow_url=$(grep "http" kardinal.out | awk '{print $NF}')
+          status_code=$(curl -s -o /dev/null -w "%{http_code}" ${flow_url})
+          echo "${flow_url} returned status code ${status_code}"
+          if [ "${status_code}" != "200" ]; then exit 1; fi
+          kill ${cli_pid}
+
+          # Check for errors in the trace router logs
+          if kubectl logs -n default -l app=trace-router | grep -q "ERRO"
+          then
+            echo "Errors found in the trace router logs"
+            kubectl logs -n default -l app=trace-router | grep "ERRO"
+          fi
+
+      - name: Create, validate and delete flow
+        run: |
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow create frontend kurtosistech/frontend:demo-frontend > kardinal.out
+          cat kardinal.out
+          flow_id=$(grep "Flow.*created" kardinal.out | cut -d ' ' -f2 | tr -d "\"")
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow ls | grep ${flow_id}
+          
+          # Check that the dev service pod is running and ready
+          while ! kubectl get pods -n baseline --no-headers -o custom-columns=NAMESPACE:metadata.namespace,POD:metadata.name,PodIP:status.podIP,READY-true:status.containerStatuses[*].ready | grep true | grep "frontend-${flow_id}"
+          do
+              echo "Waiting for dev frontend pod to run..."
+              kubectl get pods -n baseline -o custom-columns=NAMESPACE:metadata.namespace,POD:metadata.name,PodIP:status.podIP,READY-true:status.containerStatuses[*].ready
+              ((c++)) && ((c==12)) && exit 1
+              sleep 10
+          done
+          kubectl get pods -n baseline
+         
+          # Start gateway to the flow and validate access
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli gateway ${flow_id} > kardinal.out &
+          cli_pid=$!
+          while ! grep "Proxy server for host" kardinal.out
+          do
+              echo "Waiting for gateway to start..."
+              cat kardinal.out
+              ((c++)) && ((c==12)) && exit 1
+              sleep 10
+          done
+          flow_url=$(grep "http" kardinal.out | awk '{print $NF}')
+          status_code=$(curl -s -o /dev/null -w "%{http_code}" ${flow_url})
+          echo "${flow_url} returned status code ${status_code}"
+          if [ "${status_code}" != "200" ]; then exit 1; fi
+          kill ${cli_pid}
+          
+          # Check for errors in the trace router logs
+          if kubectl logs -n default -l app=trace-router | grep -q "ERRO"
+          then
+            echo "Errors found in the trace router logs"
+            kubectl logs -n default -l app=trace-router | grep "ERRO"
+          fi
+ 
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow delete ${flow_id}
+       
+          # Check that the dev service pod is not running anymore
+          while kubectl get pods -n baseline | grep "frontend-${flow_id}"
+          do
+              echo "Waiting for dev frontend pod to terminate..."
+              kubectl get pods -n baseline
+              ((c++)) && ((c==12)) && exit 1
+              sleep 10
+          done
+          kubectl get pods -n baseline
+ 
+          # Check for errors in the kardinal manager logs
+          if kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep -q "ERRO"
+          then
+            echo "Errors found in the kardinal manager logs"
+            kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep "ERRO"
+          fi
+
+      - name: Create template
+        run: |
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli template create extra-item-shared --template-yaml ci/template.yaml --description "Extra item and postgres is shared"
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli template ls | grep "extra-item-shared"
+
+      - name: Create flow with template and delete flow
+        run: |
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow create frontend kurtosistech/frontend:demo-frontend  --template-args ci/template_args.yaml --template extra-item-shared > kardinal.out
+          cat kardinal.out
+          flow_id=$(grep "Flow.*created" kardinal.out | cut -d ' ' -f2 | tr -d "\"")
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow ls | grep ${flow_id}
+          
+          # Check that the dev service pod is running and ready
+          while ! kubectl get pods -n baseline --no-headers -o custom-columns=NAMESPACE:metadata.namespace,POD:metadata.name,PodIP:status.podIP,READY-true:status.containerStatuses[*].ready | grep true | grep "frontend-${flow_id}"
+          do
+              echo "Waiting for dev frontend pod to run..."
+              kubectl get pods -n baseline -o custom-columns=NAMESPACE:metadata.namespace,POD:metadata.name,PodIP:status.podIP,READY-true:status.containerStatuses[*].ready
+              ((c++)) && ((c==12)) && exit 1
+              sleep 10
+          done
+          kubectl get pods -n baseline
+
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow delete ${flow_id}
+
+          # Check that the dev service pod is not running anymore
+          while kubectl get pods -n baseline | grep "frontend-${flow_id}"
+          do
+              echo "Waiting for dev frontend pod to terminate..."
+              kubectl get pods -n baseline
+              ((c++)) && ((c==12)) && exit 1
+              sleep 10
+          done
+          kubectl get pods -n baseline
+
+          # Check for errors in the kardinal manager logs
+          if kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep -q "ERRO"
+          then
+            echo "Errors found in the kardinal manager logs"
+            kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep "ERRO"
+          fi
+      
+      - name: Delete template
+        run: |
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli template delete extra-item-shared
+
+      - name: Delete base topology and dev flows
+        run: |
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow delete baseline > kardinal.out
+          cat kardinal.out
+          if KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli flow ls | grep baseline; then echo "Topologies not deleted"; exit 1; fi
+          
+          # Check that the services have been terminated
+          while [ "$(kubectl get pods -n baseline 2>&1 >/dev/null)" != "No resources found in baseline namespace." ]
+          do
+              echo "Waiting for the services to terminate..."
+              kubectl get pods -n baseline
+              ((c++)) && ((c==12)) && exit 1
+              sleep 10
+          done
+          kubectl get pods -n baseline
+          
+          # Check for errors in the kardinal manager logs
+          if kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep -q "ERRO"
+          then
+            echo "Errors found in the kardinal manager logs"
+            kubectl logs -n default -l dev.kardinal.app-id=kardinal-manager | grep "ERRO"
+          fi
+      
+      - name: Remove kardinal manager
+        run: |
+          KARDINAL_CLI_DEV_MODE=TRUE /tmp/kardinal-cli manager remove > kardinal.out
+
+          # Check that the services have been terminated
+          while [ "$(kubectl get pods -n default 2>&1 >/dev/null)" != "No resources found in default namespace." ]
+          do
+              echo "Waiting for the services to terminate..."
+              kubectl get pods -n default
+              ((c++)) && ((c==12)) && exit 1
+              sleep 10
+          done
+          kubectl get pods -n default
+ 

@@ -3,10 +3,17 @@ package deployment
 import (
 	"bytes"
 	"context"
-	"kardinal.cli/kontrol"
+	"fmt"
+	"io"
+	"net/http"
 	"text/template"
 
+	"kardinal.cli/kubernetes"
+
+	"kardinal.cli/kontrol"
+
 	"github.com/kurtosis-tech/stacktrace"
+	"github.com/sirupsen/logrus"
 	"kardinal.cli/consts"
 )
 
@@ -14,6 +21,7 @@ const (
 	kardinalNamespace                   = "default"
 	kardinalManagerDeploymentTmplName   = "kardinal-manager-deployment"
 	kardinalTraceRouterManifestTmplName = "kardinal-trace-router-manifest"
+	gatewayAPIInstallYamlURL            = "https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.1.0/standard-install.yaml"
 
 	kardinalManagerAuthTmpl = `
 apiVersion: v1
@@ -33,7 +41,7 @@ metadata:
     {{.KardinalAppIDLabelKey}}: {{.KardinalManagerAppIDLabelValue}}
 rules:
   - apiGroups: ["*"]
-    resources: ["namespaces", "pods", "services", "deployments", "virtualservices", "workloadgroups", "workloadentries", "sidecars", "serviceentries", "gateways", "envoyfilters", "destinationrules", "authorizationpolicies"]
+    resources: ["namespaces", "pods", "services", "deployments", "virtualservices", "workloadgroups", "workloadentries", "sidecars", "serviceentries", "gateways", "envoyfilters", "destinationrules", "authorizationpolicies", "ingresses", "httproutes"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 
 ---
@@ -71,6 +79,7 @@ spec:
     metadata:
       labels:
         {{.KardinalAppIDLabelKey}}: {{.KardinalManagerAppIDLabelValue}}
+        app: kardinal-manager
     spec:
       serviceAccountName: kardinal-manager
       containers:
@@ -169,7 +178,7 @@ spec:
       serviceAccountName: kardinal-manager
       containers:
         - name: redis
-          image: bitnami/redis:6.0.8
+          image: bitnami/redis:6.2
           ports:
             - containerPort: 6379
           env:
@@ -192,7 +201,11 @@ type templateData struct {
 }
 
 func DeployKardinalManagerInCluster(ctx context.Context, clusterResourcesURL string, kontrolLocation string) error {
-	kubernetesClientObj, err := createKubernetesClient()
+	k8sConfig, err := kubernetes.GetConfig()
+	if err != nil {
+		return stacktrace.Propagate(err, "An error occurred while creating the Kubernetes client")
+	}
+	kubernetesClientObj, err := kubernetes.CreateKubernetesClient(k8sConfig)
 	if err != nil {
 		return stacktrace.Propagate(err, "An error occurred while creating the Kubernetes client")
 	}
@@ -205,9 +218,9 @@ func DeployKardinalManagerInCluster(ctx context.Context, clusterResourcesURL str
 	var imagePullPolicy string
 
 	switch kontrolLocation {
-	case kontrol.KontrolLocationLocalMinikube:
+	case kontrol.KontrolLocationLocal:
 		imagePullPolicy = "IfNotPresent"
-	case kontrol.KontrolLocationKloudKontrol:
+	case kontrol.KontrolLocationKloud:
 		imagePullPolicy = "Always"
 	default:
 		stacktrace.NewError("invalid Kontrol location: %s", kontrolLocation)
@@ -232,11 +245,44 @@ func DeployKardinalManagerInCluster(ctx context.Context, clusterResourcesURL str
 		return stacktrace.Propagate(err, "An error occurred while applying the kardinal-manager deployment")
 	}
 
+	if err := installGatewayAPI(ctx, kubernetesClientObj); err != nil {
+		return stacktrace.Propagate(err, "An error occurred while installing the Gateway API")
+	}
+
+	return nil
+}
+
+func installGatewayAPI(ctx context.Context, kubernetesClientObj *kubernetes.KubernetesClient) error {
+	resp, err := http.Get(gatewayAPIInstallYamlURL)
+	if err != nil {
+		return stacktrace.Propagate(err, "An error occurred while downloading the gateway API YAML")
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return stacktrace.NewError("Failed to download file, status code: %d", resp.StatusCode)
+	}
+
+	var buf bytes.Buffer
+
+	_, err = io.Copy(&buf, resp.Body)
+	if err != nil {
+		return stacktrace.Propagate(err, "An error occurred while reading the response body")
+	}
+
+	logrus.Info("ℹ️  Installing the Gateway API (https://gateway-api.sigs.k8s.io/) in the cluster.")
+	if err := kubernetesClientObj.ApplyYamlFileContentInNamespace(ctx, kardinalNamespace, buf.Bytes()); err != nil {
+		return stacktrace.Propagate(err, "An error occurred while applying the gateway API YAML")
+	}
 	return nil
 }
 
 func RemoveKardinalManagerFromCluster(ctx context.Context) error {
-	kubernetesClientObj, err := createKubernetesClient()
+	k8sConfig, err := kubernetes.GetConfig()
+	if err != nil {
+		return stacktrace.Propagate(err, "An error occurred while creating the Kubernetes client")
+	}
+	kubernetesClientObj, err := kubernetes.CreateKubernetesClient(k8sConfig)
 	if err != nil {
 		return stacktrace.Propagate(err, "An error occurred while creating the Kubernetes client")
 	}
@@ -248,6 +294,7 @@ func RemoveKardinalManagerFromCluster(ctx context.Context) error {
 	if err = kubernetesClientObj.RemoveNamespaceResourcesByLabels(ctx, kardinalNamespace, labels); err != nil {
 		return stacktrace.Propagate(err, "An error occurred while removing the kardinal-manager from the cluster using labels '%+v'", labels)
 	}
+	fmt.Printf("⚠️  If you also want to unistall the Gateway API, run the following command:\nkubectl delete -f %s\n\n", gatewayAPIInstallYamlURL)
 
 	return nil
 }

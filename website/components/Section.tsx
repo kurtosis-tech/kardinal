@@ -11,6 +11,7 @@ const Section = ({
   padBottom,
   flexDirection,
   style,
+  noPadBottomMobile,
 }: PropsWithChildren<{
   flexDirection?: string;
   id?: string;
@@ -18,6 +19,7 @@ const Section = ({
   padBottom?: boolean;
   contrast?: boolean;
   style?: CSSProperties;
+  noPadBottomMobile?: boolean;
 }>) => {
   return (
     <S.Section $contrast={contrast} style={style}>
@@ -25,6 +27,7 @@ const Section = ({
         $flexDirection={flexDirection}
         $padTop={padTop}
         $padBottom={padBottom}
+        $noPadBottomMobile={noPadBottomMobile}
       >
         {children}
       </S.Content>
@@ -37,6 +40,7 @@ namespace S {
     $flexDirection?: string;
     $padTop?: boolean;
     $padBottom?: boolean;
+    $noPadBottomMobile?: boolean;
   }>`
     display: flex;
     flex-direction: ${(props) => props.$flexDirection ?? "column"};
@@ -48,7 +52,11 @@ namespace S {
 
     @media ${mobile} {
       padding: ${(props) =>
-        props.$padTop ? "48px 16px 32px 16px" : "0px 16px 32px 16px"};
+        props.$padTop
+          ? "48px 16px 32px 16px"
+          : props.$noPadBottomMobile
+            ? "0px 16px 0px 16px"
+            : "0px 16px 32px 16px"};
     }
   `;
 
@@ -59,10 +67,11 @@ namespace S {
     display: flex;
     justify-content: center;
     position: relative;
-    min-height: ${(props) => (props.$contrast ? "992px" : "unset")};
+    min-height: ${(props) => (props.$contrast ? "593px" : "unset")};
 
     background-image: ${(props) =>
       props.$contrast ? "url('/dotted-bg.svg')" : "transparent"};
+    background-repeat: no-repeat;
 
     @media ${mobile} {
       min-height: unset;

@@ -1,25 +1,34 @@
 "use client";
-import { FiGithub } from "react-icons/fi";
+import { FiCalendar, FiTerminal } from "react-icons/fi";
 import styled from "styled-components";
 
-import { ButtonTertiary } from "@/components/Button";
-import EmailCapture from "@/components/EmailCapture";
+import { ButtonPrimary, ButtonTertiary } from "@/components/Button";
 import { mobile } from "@/constants/breakpoints";
+import { calendlyDemoUrl } from "@/constants/urls";
+import { scrollToId } from "@/utils";
 
 const CTAButtons = () => {
   return (
     <S.CTAButtons>
-      <ButtonTertiary 
-        analyticsId="button_hero_github"
-        href="https://github.com/kurtosis-tech/kardinal"
+      <ButtonPrimary
+        analyticsId="button_hero_get_started"
+        onClick={() => scrollToId("get-started")}
         rel="noopener noreferrer"
         target="_blank"
-        iconLeft={<FiGithub size={18} />}
+        iconLeft={<FiTerminal size={18} />}
         size="lg"
       >
-        View on GitHub
-      </ButtonTertiary >
-      <EmailCapture buttonAnalyticsId="button_footer_join_waitlist" />
+        Get Started
+      </ButtonPrimary>
+      <ButtonTertiary
+        analyticsId="button_hero_schedule_demo"
+        href={calendlyDemoUrl}
+        rel="noopener noreferrer"
+        target="_blank"
+        iconLeft={<FiCalendar size={18} />}
+      >
+        Schedule a Demo
+      </ButtonTertiary>
     </S.CTAButtons>
   );
 };
@@ -28,9 +37,9 @@ namespace S {
   export const CTAButtons = styled.div`
     margin-top: 16px;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    gap: 16px;
+    gap: 24px;
     @media ${mobile} {
       flex-direction: column;
     }

@@ -16,7 +16,8 @@
     "simple-import-sort/exports": "error",
     "react/react-in-jsx-scope": "off",
     "react/jsx-uses-react": "off",
-    "no-irregular-whitespace": "off"
+    "no-irregular-whitespace": "off",
+    "no-unused-vars": "off"
   },
   "plugins": ["simple-import-sort"],
   "ignorePatterns": ["public/", ".next/", "out/"]

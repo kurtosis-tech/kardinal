@@ -43,7 +43,9 @@ export interface components {
       deployments?: unknown[];
       virtual_services?: unknown[];
       destination_rules?: unknown[];
-      gateway?: unknown;
+      gateways?: unknown[];
+      http_routes?: unknown[];
+      ingresses?: unknown[];
       envoy_filters?: unknown[];
       authorization_policies?: unknown[];
     };

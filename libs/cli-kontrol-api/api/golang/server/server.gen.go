@@ -288,6 +288,14 @@ type NotFoundJSONResponse struct {
 	ResourceType string `json:"resource-type"`
 }
 
+type RequestErrorJSONResponse struct {
+	// Error Error type
+	Error string `json:"error"`
+
+	// Msg Error message
+	Msg *string `json:"msg,omitempty"`
+}
+
 type GetHealthRequestObject struct {
 }
 
@@ -300,6 +308,24 @@ type GetHealth200JSONResponse string
 func (response GetHealth200JSONResponse) VisitGetHealthResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetHealth400JSONResponse struct{ RequestErrorJSONResponse }
+
+func (response GetHealth400JSONResponse) VisitGetHealthResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetHealth500JSONResponse struct{ ErrorJSONResponse }
+
+func (response GetHealth500JSONResponse) VisitGetHealthResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -318,6 +344,15 @@ type PostTenantUuidDeploy200JSONResponse Flow
 func (response PostTenantUuidDeploy200JSONResponse) VisitPostTenantUuidDeployResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostTenantUuidDeploy400JSONResponse struct{ RequestErrorJSONResponse }
+
+func (response PostTenantUuidDeploy400JSONResponse) VisitPostTenantUuidDeployResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -358,6 +393,15 @@ func (response PostTenantUuidFlowCreate200JSONResponse) VisitPostTenantUuidFlowC
 	return json.NewEncoder(w).Encode(response)
 }
 
+type PostTenantUuidFlowCreate400JSONResponse struct{ RequestErrorJSONResponse }
+
+func (response PostTenantUuidFlowCreate400JSONResponse) VisitPostTenantUuidFlowCreateResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type PostTenantUuidFlowCreate404JSONResponse struct{ NotFoundJSONResponse }
 
 func (response PostTenantUuidFlowCreate404JSONResponse) VisitPostTenantUuidFlowCreateResponse(w http.ResponseWriter) error {
@@ -394,6 +438,15 @@ func (response DeleteTenantUuidFlowFlowId2xxResponse) VisitDeleteTenantUuidFlowF
 	return nil
 }
 
+type DeleteTenantUuidFlowFlowId400JSONResponse struct{ RequestErrorJSONResponse }
+
+func (response DeleteTenantUuidFlowFlowId400JSONResponse) VisitDeleteTenantUuidFlowFlowIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type DeleteTenantUuidFlowFlowId404JSONResponse struct{ NotFoundJSONResponse }
 
 func (response DeleteTenantUuidFlowFlowId404JSONResponse) VisitDeleteTenantUuidFlowFlowIdResponse(w http.ResponseWriter) error {
@@ -425,6 +478,15 @@ type GetTenantUuidFlows200JSONResponse []Flow
 func (response GetTenantUuidFlows200JSONResponse) VisitGetTenantUuidFlowsResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetTenantUuidFlows400JSONResponse struct{ RequestErrorJSONResponse }
+
+func (response GetTenantUuidFlows400JSONResponse) VisitGetTenantUuidFlowsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -474,6 +536,15 @@ func (response GetTenantUuidManifest200ApplicationxYamlResponse) VisitGetTenantU
 	return err
 }
 
+type GetTenantUuidManifest400JSONResponse struct{ RequestErrorJSONResponse }
+
+func (response GetTenantUuidManifest400JSONResponse) VisitGetTenantUuidManifestResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type GetTenantUuidManifest404JSONResponse struct{ NotFoundJSONResponse }
 
 func (response GetTenantUuidManifest404JSONResponse) VisitGetTenantUuidManifestResponse(w http.ResponseWriter) error {
@@ -505,6 +576,15 @@ type GetTenantUuidTemplates200JSONResponse []Template
 func (response GetTenantUuidTemplates200JSONResponse) VisitGetTenantUuidTemplatesResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetTenantUuidTemplates400JSONResponse struct{ RequestErrorJSONResponse }
+
+func (response GetTenantUuidTemplates400JSONResponse) VisitGetTenantUuidTemplatesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -545,6 +625,15 @@ func (response PostTenantUuidTemplatesCreate200JSONResponse) VisitPostTenantUuid
 	return json.NewEncoder(w).Encode(response)
 }
 
+type PostTenantUuidTemplatesCreate400JSONResponse struct{ RequestErrorJSONResponse }
+
+func (response PostTenantUuidTemplatesCreate400JSONResponse) VisitPostTenantUuidTemplatesCreateResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type PostTenantUuidTemplatesCreate404JSONResponse struct{ NotFoundJSONResponse }
 
 func (response PostTenantUuidTemplatesCreate404JSONResponse) VisitPostTenantUuidTemplatesCreateResponse(w http.ResponseWriter) error {
@@ -581,6 +670,15 @@ func (response DeleteTenantUuidTemplatesTemplateName2xxResponse) VisitDeleteTena
 	return nil
 }
 
+type DeleteTenantUuidTemplatesTemplateName400JSONResponse struct{ RequestErrorJSONResponse }
+
+func (response DeleteTenantUuidTemplatesTemplateName400JSONResponse) VisitDeleteTenantUuidTemplatesTemplateNameResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type DeleteTenantUuidTemplatesTemplateName404JSONResponse struct{ NotFoundJSONResponse }
 
 func (response DeleteTenantUuidTemplatesTemplateName404JSONResponse) VisitDeleteTenantUuidTemplatesTemplateNameResponse(w http.ResponseWriter) error {
@@ -612,6 +710,15 @@ type GetTenantUuidTopology200JSONResponse ClusterTopology
 func (response GetTenantUuidTopology200JSONResponse) VisitGetTenantUuidTopologyResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetTenantUuidTopology400JSONResponse struct{ RequestErrorJSONResponse }
+
+func (response GetTenantUuidTopology400JSONResponse) VisitGetTenantUuidTopologyResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -951,33 +1058,36 @@ func (sh *strictHandler) GetTenantUuidTopology(ctx echo.Context, uuid Uuid) erro
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

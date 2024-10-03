@@ -2,10 +2,26 @@ export const metadata = {
   title: "Kardinal Docs | Plugins",
 };
 
-# Plugins for State Isolation
+# Plugins
 
 Kardinal leverages a plugin system that allows developers to encode logic of how dev versions of stateful services (databases, queues, APIs) and external services (Stripe API, Mailchimp, managed database like Amazon RDS or Neon DB) should be handled.
 Plugins work by offering developers an api to write Python-based scripts that can dynamically alter Kubernetes deployment specs, providing a way to handle stateful and external services in a safer manner.
+
+Kardinal supports a number of plugins already, with more currently in development or planned for future development. If there is a particular plugin you are interested in that is not on this list, please open a [github issue](https://github.com/kurtosis-tech/kardinal/issues) with more details.
+
+| Plugin | Description | Status |
+| ------------- | ------------- | ------------- |
+| [Redis Sidecar Plugin](https://github.com/kurtosis-tech/redis-sidecar-plugin) | Adds a thin layer over redis that allows for shared reads and isolated writes| ✅ Live |
+| [Neon DB Plugin](https://github.com/kurtosis-tech/neondb-plugin) | Creates a new branch for the database you are using | ✅ Live |
+| [Postgres Seed Plugin](https://github.com/kurtosis-tech/postgres-seed-plugin) | Allows you to spin up a postgres database with seeded data | ✅ Live |
+| [AWS RDS Plugin](https://github.com/kurtosis-tech/aws-rds-plugin) | Manage the AWS RDS service creation and deletion for dev flows | ✅ Live |
+| [Dummy Plugin](https://github.com/kurtosis-tech/dummy-plugin) | Example Kardinal plugin, useful as a template | ✅ Live |
+| [AWS SQS Plugin](concepts/plugins#plugins) | Manage dev flow interactions with AWS SQS | 🚧 In development |
+| [AWS S3 Plugin](concepts/plugins#plugins) | Manage dev flow interactions with AWS S3 | 🕑 Planned |
+| [MySQL Plugin](concepts/plugins#plugins) | Manage dev flow interactions with MySQL | 🕑 Planned |
+| [Cloud SQL Plugin](concepts/plugins#plugins) | Manage dev flow interactions with Google Cloud SQL | 🕑 Planned |
+| [Azure SQL Plugin](concepts/plugins#plugins) | Manage dev flow interactions with Azure SQL | 🕑 Planned |
+| [Stripe Plugin](concepts/plugins#plugins) | Manage dev flow interactions with Stripe | 🕑 Planned |
 
 ## How It Works
 
@@ -167,7 +183,7 @@ In order for Kardinal to guarantee data isolation and safety, Kardinal needs to 
 The level of data isolation and semantics of "dev" version will be highly dependent on your service, application, and development needs.
 This is where we can leverage a plugin to encode this information.
 
-For example, say we have a `postgres` database in our cluster. When creating dev flows, we'll avoid touching the "prod" postgres database by using the [`postgres-seed-plugin`](https://github.com/kurtosis-tech/postgres-seed-plugin) like so:
+For example, say we have a `postgres` database in our cluster. When creating dev flows, we'll avoid touching the "baseline" postgres database by using the [`postgres-seed-plugin`](https://github.com/kurtosis-tech/postgres-seed-plugin) like so:
 
 ```
 ...
@@ -266,7 +282,7 @@ Using plugins to handle dev versions of external services works very similarly.
 
 The difference is that the plugin annotation gets added to the service spec of the service that depends on the external service. Accordingly, when writing the plugin, the plugin will be modifying the deployment spec of the dependent service.
 
-For example, say we have a `cartservice` in our app that depends on an external [Neon](neon.tech) DB. When creating dev flows, we'll avoid touching the "prod" Neon database by using the [`neondb-plugin`](https://github.com/kurtosis-tech/neondb-plugin) like so:
+For example, say we have a `cartservice` in our app that depends on an external [Neon](neon.tech) DB. When creating dev flows, we'll avoid touching the "baseline" Neon database by using the [`neondb-plugin`](https://github.com/kurtosis-tech/neondb-plugin) like so:
 
 ```
 ...
@@ -370,9 +386,3 @@ spec:
 Anytime a dev version of `cartservice` is called, the `neondb-plugin` is called. The plugin will create a dev database branch, forked off of main. It will then return a modified deployment spec starting a dev version of the cartservice that points to the dev database branch.
 Notice how here, the plugin annotation goes on the service depending on the external service and this is the deployment spec being modified, in this case, the `cartservice`.
 Also, notice we add `type:external` and `serviceName:neon-postgres-db` to tell Kardinal this service is external and how to refer to it.
-
-## Existing plugins
-
-1. [Redis Sidecar Plugin](https://github.com/kurtosis-tech/redis-sidecar-plugin) - Adds a thin layer over redis that allows for shared reads and isolated writes
-1. [Neon DB Plugin](https://github.com/kurtosis-tech/neondb-plugin) - Creates a new branch for the database you are using
-1. [Postgres Seed Plugin](https://github.com/kurtosis-tech/postgres-seed-plugin) - Allows you to spin up a postgres database with seeded data

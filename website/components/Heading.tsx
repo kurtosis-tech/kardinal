@@ -26,11 +26,11 @@ const H1 = styled.h1`
 
 const H2 = styled.h2`
   ${commonStyles}
-  font-size: 32px;
+  font-size: 42px;
   line-height: normal;
 
   @media ${mobile} {
-    font-size: 20px;
+    font-size: 24px;
     line-height: normal;
   }
 `;

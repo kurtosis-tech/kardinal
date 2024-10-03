@@ -14,6 +14,8 @@ export interface paths {
             "application/json": string;
           };
         };
+        400: components["responses"]["RequestError"];
+        500: components["responses"]["Error"];
       };
     };
   };
@@ -28,6 +30,7 @@ export interface paths {
       requestBody: {
         content: {
           "application/json": {
+            "flow-id"?: string;
             flow_spec: components["schemas"]["FlowSpec"];
             template_spec?: components["schemas"]["TemplateSpec"];
           };
@@ -40,6 +43,7 @@ export interface paths {
             "application/json": components["schemas"]["Flow"];
           };
         };
+        400: components["responses"]["RequestError"];
         404: components["responses"]["NotFound"];
         500: components["responses"]["Error"];
       };
@@ -59,6 +63,7 @@ export interface paths {
             "application/json": components["schemas"]["Flow"][];
           };
         };
+        400: components["responses"]["RequestError"];
         404: components["responses"]["NotFound"];
         500: components["responses"]["Error"];
       };
@@ -73,6 +78,7 @@ export interface paths {
         };
       };
       responses: {
+        400: components["responses"]["RequestError"];
         404: components["responses"]["NotFound"];
         500: components["responses"]["Error"];
         /** @description Dev flow deletion status */
@@ -102,6 +108,7 @@ export interface paths {
             "application/json": components["schemas"]["Flow"];
           };
         };
+        400: components["responses"]["RequestError"];
         404: components["responses"]["NotFound"];
         500: components["responses"]["Error"];
       };
@@ -121,6 +128,7 @@ export interface paths {
             "application/json": components["schemas"]["ClusterTopology"];
           };
         };
+        400: components["responses"]["RequestError"];
         404: components["responses"]["NotFound"];
         500: components["responses"]["Error"];
       };
@@ -146,6 +154,7 @@ export interface paths {
             "application/json": components["schemas"]["Template"];
           };
         };
+        400: components["responses"]["RequestError"];
         404: components["responses"]["NotFound"];
         500: components["responses"]["Error"];
       };
@@ -165,6 +174,7 @@ export interface paths {
             "application/json": components["schemas"]["Template"][];
           };
         };
+        400: components["responses"]["RequestError"];
         404: components["responses"]["NotFound"];
         500: components["responses"]["Error"];
       };
@@ -179,6 +189,7 @@ export interface paths {
         };
       };
       responses: {
+        400: components["responses"]["RequestError"];
         404: components["responses"]["NotFound"];
         500: components["responses"]["Error"];
         /** @description Template deletion status */
@@ -206,6 +217,7 @@ export interface paths {
             "application/x-yaml": string;
           };
         };
+        400: components["responses"]["RequestError"];
         404: components["responses"]["NotFound"];
         500: components["responses"]["Error"];
       };
@@ -220,11 +232,22 @@ export interface components {
     MainClusterConfig: {
       "service-configs"?: components["schemas"]["ServiceConfig"][];
       "ingress-configs"?: components["schemas"]["IngressConfig"][];
+      "gateway-configs"?: components["schemas"]["GatewayConfig"][];
+      "route-configs"?: components["schemas"]["RouteConfig"][];
       namespace?: string;
     };
     Flow: {
       "flow-id": string;
-      "flow-urls": string[];
+      "access-entry": components["schemas"]["IngressAccessEntry"][];
+      "is-baseline"?: boolean;
+    };
+    IngressAccessEntry: {
+      "flow-id": string;
+      "flow-namespace": string;
+      hostname: string;
+      service: string;
+      namespace: string;
+      type: string;
     };
     FlowSpec: {
         /** @example backend-a:latest */
@@ -249,16 +272,19 @@ export interface components {
       /** @description Unique identifier for the node. */
       id: string;
       /** @description Label for the node. */
-      label?: string;
+      label: string;
       /**
        * @description Type of the node
        * @enum {string}
        */
-      type: "gateway" | "service" | "service-version" | "redis";
-      /** @description Parent node */
-      parent?: string;
+      type: "gateway" | "service" | "external";
       /** @description Node versions */
-      versions?: string[];
+      versions?: components["schemas"]["NodeVersion"][];
+    };
+    NodeVersion: {
+      flowId: string;
+      imageTag?: string;
+      isBaseline: boolean;
     };
     Edge: {
       /** @description The identifier of the source node of the edge. */
@@ -291,10 +317,27 @@ export interface components {
     IngressConfig: {
       ingress: unknown;
     };
+    GatewayConfig: {
+      gateway: unknown;
+    };
+    RouteConfig: {
+      httpRoute: unknown;
+    };
   };
   responses: {
     /** @description Error */
     Error: {
+      content: {
+        "application/json": {
+          /** @description Error type */
+          error: string;
+          /** @description Error message */
+          msg?: string;
+        };
+      };
+    };
+    /** @description Request error */
+    RequestError: {
       content: {
         "application/json": {
           /** @description Error type */

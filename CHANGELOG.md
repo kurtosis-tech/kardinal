@@ -1,5 +1,125 @@
 # Changelog
 
+## [0.3.3](https://github.com/kurtosis-tech/kardinal/compare/0.3.2...0.3.3) (2024-10-02)
+
+
+### Features
+
+* add the `id` flag in the kardinal flow create cmd ([#261](https://github.com/kurtosis-tech/kardinal/issues/261)) ([09309f1](https://github.com/kurtosis-tech/kardinal/commit/09309f173e11c6d4d2b7b8a80f55df759fb98406))
+
+## [0.3.2](https://github.com/kurtosis-tech/kardinal/compare/0.3.1...0.3.2) (2024-09-28)
+
+
+### Bug Fixes
+
+* add the --service flag in the kardinal flow telepresence intercept command ([#259](https://github.com/kurtosis-tech/kardinal/issues/259)) ([5d22282](https://github.com/kurtosis-tech/kardinal/commit/5d222824139e0b9597f94cb0b4cd0663e948e413))
+* fix broken website CSS by refactoring styled-components SSR logic ([#257](https://github.com/kurtosis-tech/kardinal/issues/257)) ([505e885](https://github.com/kurtosis-tech/kardinal/commit/505e88504d020ed1c53ae6f4d018db85b86d1e1c))
+
+## [0.3.1](https://github.com/kurtosis-tech/kardinal/compare/0.3.0...0.3.1) (2024-09-27)
+
+
+### Bug Fixes
+
+* fix race condition with docs voting feature ([#256](https://github.com/kurtosis-tech/kardinal/issues/256)) ([2d3f769](https://github.com/kurtosis-tech/kardinal/commit/2d3f769e39d5ae008f6b6b6ca25819cccd6847d2))
+* remove all Kardinal namespaces when cluster resources is empty during cleanup ([#255](https://github.com/kurtosis-tech/kardinal/issues/255)) ([43c4ac2](https://github.com/kurtosis-tech/kardinal/commit/43c4ac25468f1284fb53b36bc20458af5e7b9409))
+* telepresence http server check ([#251](https://github.com/kurtosis-tech/kardinal/issues/251)) ([c26f135](https://github.com/kurtosis-tech/kardinal/commit/c26f135f0656959a0b9d2dd823094fda4d652537))
+* try making some changes to change the asset hashes ([#254](https://github.com/kurtosis-tech/kardinal/issues/254)) ([668be13](https://github.com/kurtosis-tech/kardinal/commit/668be13bf4d31dabfe4fe5fc95dc3014794b54c7))
+* Update the manager deploy kontrol service location command argument ([#252](https://github.com/kurtosis-tech/kardinal/issues/252)) ([08be35c](https://github.com/kurtosis-tech/kardinal/commit/08be35c92e14178b833af2197fc0032764cb7703))
+
+## [0.3.0](https://github.com/kurtosis-tech/kardinal/compare/0.2.7...0.3.0) (2024-09-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* new gateway management ([#238](https://github.com/kurtosis-tech/kardinal/issues/238))
+
+### Features
+
+* E2E tests iteration [#2](https://github.com/kurtosis-tech/kardinal/issues/2) ([#237](https://github.com/kurtosis-tech/kardinal/issues/237)) ([c4f6b67](https://github.com/kurtosis-tech/kardinal/commit/c4f6b679b4b1169d22b5aa3fb6b5c716348df433))
+* new gateway management ([#238](https://github.com/kurtosis-tech/kardinal/issues/238)) ([b5a9916](https://github.com/kurtosis-tech/kardinal/commit/b5a991623aebf5a49cbd96e740d873e493564f34))
+
+
+### Bug Fixes
+
+* add missing resources to policy ([#249](https://github.com/kurtosis-tech/kardinal/issues/249)) ([0ade319](https://github.com/kurtosis-tech/kardinal/commit/0ade31954906ff97b200e9e9a0f61382f31d0a3b))
+* Clarify the manager CLI command deploy kontrol service location argument ([#247](https://github.com/kurtosis-tech/kardinal/issues/247)) ([54bdc21](https://github.com/kurtosis-tech/kardinal/commit/54bdc2144d7cacab7687d0ede777dd955db10df4))
+* Do not alter the istio-system namespace ([#246](https://github.com/kurtosis-tech/kardinal/issues/246)) ([1c98304](https://github.com/kurtosis-tech/kardinal/commit/1c98304e93fcdd5c1db3d87ab0fe060ebbf5bfe7))
+* Exit with code 1 upon errors in the CLI ([#243](https://github.com/kurtosis-tech/kardinal/issues/243)) ([63c640e](https://github.com/kurtosis-tech/kardinal/commit/63c640e8529dd6f8231ca01ee570695307782fbb))
+* Handle gateway case where the baseline is missing or not labelled ([#245](https://github.com/kurtosis-tech/kardinal/issues/245)) ([b0b6bb2](https://github.com/kurtosis-tech/kardinal/commit/b0b6bb2f60f058528a51e31dc7b7cd9a146b84cc))
+
+## [0.2.7](https://github.com/kurtosis-tech/kardinal/compare/0.2.6...0.2.7) (2024-09-20)
+
+
+### Features
+
+* Topology node list of versions containing flow id, image tag and baseline flag ([#228](https://github.com/kurtosis-tech/kardinal/issues/228)) ([b42fad2](https://github.com/kurtosis-tech/kardinal/commit/b42fad213b93d26ab93b8f31104f5ab4ac994aa9))
+
+
+### Bug Fixes
+
+* Display JSON 500 error message ([#235](https://github.com/kurtosis-tech/kardinal/issues/235)) ([1073cb5](https://github.com/kurtosis-tech/kardinal/commit/1073cb55c1fc5eff77d1b41028a5e95ec16b01df))
+* using dynamic namespace for the gateway cmd ([#239](https://github.com/kurtosis-tech/kardinal/issues/239)) ([7615ce3](https://github.com/kurtosis-tech/kardinal/commit/7615ce35251484cace736a42cf53b4f18a4890f7))
+
+## [0.2.6](https://github.com/kurtosis-tech/kardinal/compare/0.2.5...0.2.6) (2024-09-17)
+
+
+### Features
+
+* add flow telepresence-intercept CLI command ([#213](https://github.com/kurtosis-tech/kardinal/issues/213)) ([d5a75f6](https://github.com/kurtosis-tech/kardinal/commit/d5a75f64bec64551fff53ee852de6b8cfe29496b))
+* Add health error response ([#224](https://github.com/kurtosis-tech/kardinal/issues/224)) ([d86eaa7](https://github.com/kurtosis-tech/kardinal/commit/d86eaa704e51de33c7cd82dd4ca802c5737c7b0d))
+* add the `baseline` column in the `flow ls` CLI command ([#217](https://github.com/kurtosis-tech/kardinal/issues/217)) ([9360ef3](https://github.com/kurtosis-tech/kardinal/commit/9360ef3ad01305c05770e5637837b55dcbd6fc21))
+* calculator track events when values change ([#215](https://github.com/kurtosis-tech/kardinal/issues/215)) ([7a16e40](https://github.com/kurtosis-tech/kardinal/commit/7a16e40141d02065033fcc71326e68468ad0e9f6))
+* docs anchor links for headings ([#214](https://github.com/kurtosis-tech/kardinal/issues/214)) ([7fbb139](https://github.com/kurtosis-tech/kardinal/commit/7fbb13996c24edf4e75a525f61f189b62573fcd5))
+* variant of calculator page with share section ([#207](https://github.com/kurtosis-tech/kardinal/issues/207)) ([f4242f2](https://github.com/kurtosis-tech/kardinal/commit/f4242f2f122c565fec55b67d592c39b826e8387f))
+* website get started section ([#220](https://github.com/kurtosis-tech/kardinal/issues/220)) ([805189b](https://github.com/kurtosis-tech/kardinal/commit/805189b6a1ff2d4263c6682cad5fa9517a3c51c5))
+
+
+### Bug Fixes
+
+* calculator mobile styles ([#216](https://github.com/kurtosis-tech/kardinal/issues/216)) ([9aa6af7](https://github.com/kurtosis-tech/kardinal/commit/9aa6af7bfcfe6c340405924a27583f2268fb4418))
+* fix some confusing copy ([#221](https://github.com/kurtosis-tech/kardinal/issues/221)) ([e831db5](https://github.com/kurtosis-tech/kardinal/commit/e831db545217ae7d9a969ccc7652fd98282a3c97))
+* replace 'prod' default namespace with 'baseline' in the ci-e2e-tests.yml ([#227](https://github.com/kurtosis-tech/kardinal/issues/227)) ([c81b2d4](https://github.com/kurtosis-tech/kardinal/commit/c81b2d4d67d5abb19c4d7f7c039cb7fe24863846))
+
+## [0.2.5](https://github.com/kurtosis-tech/kardinal/compare/0.2.4...0.2.5) (2024-09-11)
+
+
+### Features
+
+* calculator fixups and polish ([#200](https://github.com/kurtosis-tech/kardinal/issues/200)) ([a773cd9](https://github.com/kurtosis-tech/kardinal/commit/a773cd98c214d029ec0dbe06893de88451c5c881))
+* cost calculator ([#191](https://github.com/kurtosis-tech/kardinal/issues/191)) ([45807a3](https://github.com/kurtosis-tech/kardinal/commit/45807a3431a27d64ebb5b1a4990c57dc66a36aff))
+* E2E tests - iteration [#1](https://github.com/kurtosis-tech/kardinal/issues/1) ([#180](https://github.com/kurtosis-tech/kardinal/issues/180)) ([b65a916](https://github.com/kurtosis-tech/kardinal/commit/b65a916a3cac41737f8ceb78ef98f6616564c1fe))
+* Support for tenant with no base cluster topology ([#199](https://github.com/kurtosis-tech/kardinal/issues/199)) ([9c91a82](https://github.com/kurtosis-tech/kardinal/commit/9c91a824fd534e4cc9d2f87fc95f9c59f450a23d))
+
+
+### Bug Fixes
+
+* typo in calculator ([#201](https://github.com/kurtosis-tech/kardinal/issues/201)) ([0f0cf9b](https://github.com/kurtosis-tech/kardinal/commit/0f0cf9b943d7ec29995d381d08019720a1d8726b))
+
+## [0.2.4](https://github.com/kurtosis-tech/kardinal/compare/0.2.3...0.2.4) (2024-09-06)
+
+
+### Features
+
+* allow concurrent proxies ([#193](https://github.com/kurtosis-tech/kardinal/issues/193)) ([1e9e8ad](https://github.com/kurtosis-tech/kardinal/commit/1e9e8ad61469e7d979aa81484007e512ab5c0c01))
+
+## [0.2.3](https://github.com/kurtosis-tech/kardinal/compare/0.2.2...0.2.3) (2024-09-05)
+
+
+### Features
+
+* accept json as template args ([#188](https://github.com/kurtosis-tech/kardinal/issues/188)) ([3890abf](https://github.com/kurtosis-tech/kardinal/commit/3890abf9aad9ec7f719b09ca5e2bc4f189e9c5f3))
+* adding the `flow delete --all` cmd flag ([#175](https://github.com/kurtosis-tech/kardinal/issues/175)) ([96b1cca](https://github.com/kurtosis-tech/kardinal/commit/96b1cca947ef4e6c1a20d67e8110b202b7b48cad))
+* print cluster topology manifest CLI cmd ([#172](https://github.com/kurtosis-tech/kardinal/issues/172)) ([83e6dc2](https://github.com/kurtosis-tech/kardinal/commit/83e6dc2a83feb489ebb5dc266857ba6e0d06c71b))
+* replace email form with demo link ([#184](https://github.com/kurtosis-tech/kardinal/issues/184)) ([cd84864](https://github.com/kurtosis-tech/kardinal/commit/cd8486497d94e2f940e5a5dc1e826ea112c31553))
+* update video animation on homepage ([#187](https://github.com/kurtosis-tech/kardinal/issues/187)) ([b0eb232](https://github.com/kurtosis-tech/kardinal/commit/b0eb232516ec8e82a6774b47b61dc5dc04d6bd36))
+
+
+### Bug Fixes
+
+* clean shell name ([#183](https://github.com/kurtosis-tech/kardinal/issues/183)) ([c07ceeb](https://github.com/kurtosis-tech/kardinal/commit/c07ceebfbbd2771bf05596ef742d5cc86d90cb89))
+* Karninal manager manifest tmpl ([#178](https://github.com/kurtosis-tech/kardinal/issues/178)) ([3a81875](https://github.com/kurtosis-tech/kardinal/commit/3a81875fa7ad829207bfa9f19d28bec2844c54d5))
+* keeping telepresence annotation ([#182](https://github.com/kurtosis-tech/kardinal/issues/182)) ([b997afc](https://github.com/kurtosis-tech/kardinal/commit/b997afc8b8e35e8c203aa4d01fb80585e43f31fe))
+
 ## [0.2.2](https://github.com/kurtosis-tech/kardinal/compare/0.2.1...0.2.2) (2024-08-27)
 
 

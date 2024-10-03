@@ -9,6 +9,10 @@ paths:
     description: For health check control
     get:
       responses:
+        "500":
+          $ref: "#/components/responses/Error"
+        "400":
+          $ref: "#/components/responses/RequestError"
         "200":
           description: Successful response
           content:
@@ -28,6 +32,8 @@ paths:
             schema:
               type: object
               properties:
+                flow-id:
+                  type: string
                 flow_spec:
                   $ref: "#/components/schemas/FlowSpec"
                 template_spec:
@@ -37,6 +43,8 @@ paths:
       responses:
         "500":
           $ref: "#/components/responses/Error"
+        "400":
+          $ref: "#/components/responses/RequestError"
         "404":
           $ref: "#/components/responses/NotFound"
         "200":
@@ -53,6 +61,8 @@ paths:
       responses:
         "500":
           $ref: "#/components/responses/Error"
+        "400":
+          $ref: "#/components/responses/RequestError"
         "404":
           $ref: "#/components/responses/NotFound"
         "200":
@@ -72,6 +82,8 @@ paths:
       responses:
         "500":
           $ref: "#/components/responses/Error"
+        "400":
+          $ref: "#/components/responses/RequestError"
         "404":
           $ref: "#/components/responses/NotFound"
         "2xx":
@@ -91,6 +103,8 @@ paths:
       responses:
         "500":
           $ref: "#/components/responses/Error"
+        "400":
+          $ref: "#/components/responses/RequestError"
         "404":
           $ref: "#/components/responses/NotFound"
         "200":
@@ -107,6 +121,8 @@ paths:
       responses:
         "500":
           $ref: "#/components/responses/Error"
+        "400":
+          $ref: "#/components/responses/RequestError"
         "404":
           $ref: "#/components/responses/NotFound"
         "200":
@@ -130,6 +146,8 @@ paths:
       responses:
         "500":
           $ref: "#/components/responses/Error"
+        "400":
+          $ref: "#/components/responses/RequestError"
         "404":
           $ref: "#/components/responses/NotFound"
         "200":
@@ -146,6 +164,8 @@ paths:
       responses:
         "500":
           $ref: "#/components/responses/Error"
+        "400":
+          $ref: "#/components/responses/RequestError"
         "404":
           $ref: "#/components/responses/NotFound"
         "200":
@@ -165,6 +185,8 @@ paths:
       responses:
         "500":
           $ref: "#/components/responses/Error"
+        "400":
+          $ref: "#/components/responses/RequestError"
         "404":
           $ref: "#/components/responses/NotFound"
         "2xx":
@@ -180,11 +202,13 @@ paths:
       parameters:
         - $ref: "#/components/parameters/uuid"
       responses:
-        '500':
+        "500":
           $ref: "#/components/responses/Error"
-        '404':
+        "400":
+          $ref: "#/components/responses/RequestError"
+        "404":
           $ref: "#/components/responses/NotFound"
-        '200':
+        "200":
           description: Successful response
           content:
             application/x-yaml:
@@ -195,6 +219,22 @@ components:
   responses:
     Error:
       description: Error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                description: Error type
+              msg:
+                type: string
+                description: Error message
+            required:
+              - error
+
+    RequestError:
+      description: Request error
       content:
         application/json:
           schema:
@@ -242,7 +282,6 @@ components:
       schema:
         type: string
 
-
     template-name:
       name: template-name
       in: path
@@ -263,6 +302,14 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/IngressConfig"
+        gateway-configs:
+          type: array
+          items:
+            $ref: "#/components/schemas/GatewayConfig"
+        route-configs:
+          type: array
+          items:
+            $ref: "#/components/schemas/RouteConfig"
         namespace:
           type: string
 
@@ -271,13 +318,38 @@ components:
       properties:
         flow-id:
           type: string
-        flow-urls:
+        access-entry:
           type: array
           items:
-            type: string
+            $ref: "#/components/schemas/IngressAccessEntry"
+        is-baseline:
+          type: boolean
       required:
         - flow-id
-        - flow-urls
+        - access-entry
+
+    IngressAccessEntry:
+      type: object
+      properties:
+        flow-id:
+          type: string
+        flow-namespace:
+          type: string
+        hostname:
+          type: string
+        service:
+          type: string
+        namespace:
+          type: string
+        type:
+          type: string
+      required:
+        - flow-id
+        - flow-namespace
+        - hostname
+        - service
+        - namespace
+        - type
 
     FlowSpec:
       type: array
@@ -323,19 +395,30 @@ components:
           description: Label for the node.
         type:
           type: string
-          enum: [gateway, service, service-version, redis]
+          enum: [gateway, service, external]
           description: Type of the node
-        parent:
-          type: string
-          description: Parent node
         versions:
           type: array
           description: Node versions
           items:
-            type: string
+            $ref: "#/components/schemas/NodeVersion"
       required:
         - id
         - type
+        - label
+
+    NodeVersion:
+      type: object
+      properties:
+        flowId:
+          type: string
+        imageTag:
+          type: string
+        isBaseline:
+          type: boolean
+      required:
+        - flowId
+        - isBaseline
 
     Edge:
       type: object
@@ -429,3 +512,25 @@ components:
             name: networkingv1
       required:
         - ingress
+
+    GatewayConfig:
+      type: object
+      properties:
+        gateway:
+          x-go-type: gateway.Gateway
+          x-go-type-import:
+            path: sigs.k8s.io/gateway-api/apis/v1
+            name: gateway
+      required:
+        - gateway
+
+    RouteConfig:
+      type: object
+      properties:
+        httpRoute:
+          x-go-type: gateway.HTTPRoute
+          x-go-type-import:
+            path: sigs.k8s.io/gateway-api/apis/v1
+            name: gateway
+      required:
+        - httpRoute
