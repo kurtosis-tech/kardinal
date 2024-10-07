@@ -223,6 +223,8 @@ func DeserializeFlowSpec(filePath string) (*FlowSpec, error) {
 		return nil, fmt.Errorf("error unmarshaling YAML: %w", err)
 	}
 
+	logrus.Infof("UNSMASRHED FLOW SPEC: %v", config)
+
 	return &config, nil
 }
 
