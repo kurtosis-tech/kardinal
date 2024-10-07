@@ -1,0 +1,11 @@
+kontrol-frontend:
+  containers:
+    - image: nginx:latest
+      env:
+        - name: REGULAR_ENV_VAR
+          value: "regular-value"
+        - name: SECRET_ENV_VAR
+          valueFrom:
+            secretKeyRef:
+              name: my-secret
+              key: secret-key
