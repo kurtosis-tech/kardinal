@@ -55,8 +55,8 @@ const (
 	kloudKontrolAPIHost         = kloudKontrolHost + "/api"
 
 	tcpProtocol = "tcp"
-	httpSchme   = "http"
-	httpsScheme = httpSchme + "s"
+	httpScheme  = "http"
+	httpsScheme = httpScheme + "s"
 
 	deleteAllDevFlowsFlagName = "all"
 
@@ -456,7 +456,7 @@ func isPortOpenAndHTTP(localPortStr string) error {
 	}
 
 	// Check if there is an HTTP server running on the port
-	httpServerAddr := fmt.Sprintf("%s://%s", httpSchme, localServiceAddress)
+	httpServerAddr := fmt.Sprintf("%s://%s", httpScheme, localServiceAddress)
 	resp, err := client.Get(httpServerAddr)
 	if err != nil {
 		return stacktrace.Propagate(err, "failing to call an HTTP server on '%s'", httpServerAddr)
@@ -1150,7 +1150,7 @@ func getKontrolBaseURLForUI() (string, error) {
 	)
 
 	if devMode {
-		scheme = httpSchme
+		scheme = httpScheme
 		host = localFrontendHost
 	} else {
 		scheme = httpsScheme
@@ -1169,7 +1169,7 @@ func getKontrolBaseURLForCLI() (string, error) {
 	)
 
 	if devMode {
-		scheme = httpSchme
+		scheme = httpScheme
 		host = localKontrolAPIHost
 	} else {
 		scheme = httpsScheme
@@ -1194,7 +1194,7 @@ func getKontrolBaseURLForManager() (string, error) {
 
 	switch kontrolLocation {
 	case kontrol.KontrolLocationLocal:
-		scheme = httpSchme
+		scheme = httpScheme
 		host = localMinikubeKontrolAPIHost
 	case kontrol.KontrolLocationKloud:
 		scheme = httpsScheme
