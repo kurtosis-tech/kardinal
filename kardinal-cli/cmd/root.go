@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"k8s.io/apimachinery/pkg/runtime"
 	"log"
 	"net"
 	"net/http"
@@ -120,7 +121,9 @@ var deployCmd = &cobra.Command{
 	Short: "Deploy services",
 	Args:  cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
-		services, deployments, statefulSets, ingresses, gateways, routes, namespace, err := parseKubernetesManifestFile(kubernetesManifestFile)
+		ctx := context.Background()
+
+		services, deployments, statefulSets, ingresses, gateways, routes, noSupportedResourcesSpecs, namespace, err := parseKubernetesManifestFile(kubernetesManifestFile)
 		if err != nil {
 			log.Fatalf("Error loading k8s manifest file: %v", err)
 		}
@@ -129,7 +132,9 @@ var deployCmd = &cobra.Command{
 			log.Fatal("Error getting or creating user tenant UUID", err)
 		}
 
-		deploy(tenantUuid.String(), services, deployments, statefulSets, ingresses, gateways, routes, namespace)
+		if err := deploy(ctx, tenantUuid.String(), services, deployments, statefulSets, ingresses, gateways, routes, noSupportedResourcesSpecs, namespace); err != nil {
+			log.Fatalf("Error deploying k8s manifest file: %v", err)
+		}
 	},
 }
 
@@ -145,7 +150,7 @@ var templateCreateCmd = &cobra.Command{
 		// A valid template only modifies services
 		// A valid template has metadata.name
 		// A valid template modifies at least one service
-		serviceConfigs, _, _, _, _, _, _, err := parseKubernetesManifestFile(templateYamlFile)
+		serviceConfigs, _, _, _, _, _, _, _, err := parseKubernetesManifestFile(templateYamlFile)
 		if err != nil {
 			log.Fatalf("Error loading template file: %v", err)
 		}
@@ -685,12 +690,15 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) (
 	[]api_types.StatefulSetConfig,
 	[]api_types.IngressConfig,
 	[]api_types.GatewayConfig,
-	[]api_types.RouteConfig, string, error,
+	[]api_types.RouteConfig,
+	[]string,
+	string,
+	error,
 ) {
 	fileBytes, err := loadKubernetesManifestFile(kubernetesManifestFile)
 	if err != nil {
 		log.Fatalf("Error loading kubernetest manifest file: %v", err)
-		return nil, nil, nil, nil, nil, nil, "", err
+		return nil, nil, nil, nil, nil, nil, nil, "", err
 	}
 
 	manifest := string(fileBytes)
@@ -701,6 +709,7 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) (
 	ingressConfigs := map[string]api_types.IngressConfig{}
 	gatewayConfigs := map[string]api_types.GatewayConfig{}
 	routeConfigs := map[string]api_types.RouteConfig{}
+	noSupportedResourcesSpecs := []string{}
 
 	// Register the gateway scheme to parse the Gateway CRD
 	gatewayscheme.AddToScheme(scheme.Scheme)
@@ -709,9 +718,14 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) (
 		if len(spec) == 0 {
 			continue
 		}
+
 		obj, _, err := decode([]byte(spec), nil, nil)
 		if err != nil {
-			return nil, nil, nil, nil, nil, nil, "", stacktrace.Propagate(err, "An error occurred parsing the spec: %s", spec)
+			if runtime.IsNotRegisteredError(err) {
+				noSupportedResourcesSpecs = append(noSupportedResourcesSpecs, spec)
+				continue
+			}
+			return nil, nil, nil, nil, nil, nil, nil, "", stacktrace.Propagate(err, "An error occurred parsing the spec: %s", spec)
 		}
 		switch obj := obj.(type) {
 		case *corev1.Service:
@@ -764,11 +778,11 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) (
 			routeName := getObjectName(routeObj.GetObjectMeta().(*metav1.ObjectMeta))
 			routeConfigs[routeName] = api_types.RouteConfig{HttpRoute: *routeObj}
 		default:
-			return nil, nil, nil, nil, nil, nil, "", stacktrace.NewError("An error occurred parsing the manifest because of an unsupported kubernetes type")
+			noSupportedResourcesSpecs = append(noSupportedResourcesSpecs, spec)
 		}
 	}
 
-	return lo.Values(serviceConfigs), lo.Values(deploymentConfigs), lo.Values(statefulSetConfigs), lo.Values(ingressConfigs), lo.Values(gatewayConfigs), lo.Values(routeConfigs), namespace, nil
+	return lo.Values(serviceConfigs), lo.Values(deploymentConfigs), lo.Values(statefulSetConfigs), lo.Values(ingressConfigs), lo.Values(gatewayConfigs), lo.Values(routeConfigs), noSupportedResourcesSpecs, namespace, nil
 }
 
 func parseTemplateArgs(filepathOrJson string) (map[string]interface{}, error) {
@@ -888,6 +902,28 @@ func createDevFlow(tenantUuid api_types.Uuid, pairsMap map[string]string, templa
 }
 
 func deploy(
+	ctx context.Context,
+	tenantUuid api_types.Uuid,
+	serviceConfigs []api_types.ServiceConfig,
+	deploymentConfigs []api_types.DeploymentConfig,
+	statefulSetConfigs []api_types.StatefulSetConfig,
+	ingressConfigs []api_types.IngressConfig,
+	gatewayConfigs []api_types.GatewayConfig,
+	routeConfigs []api_types.RouteConfig,
+	noSupportedResourcesSpecs []string,
+	namespace string,
+) error {
+
+	if err := deployment.DeployResourceSpecs(ctx, noSupportedResourcesSpecs); err != nil {
+		return stacktrace.Propagate(err, "an error occurred deploying not supported resources")
+	}
+
+	deploySupportedResources(tenantUuid, serviceConfigs, deploymentConfigs, statefulSetConfigs, ingressConfigs, gatewayConfigs, routeConfigs, namespace)
+
+	return nil
+}
+
+func deploySupportedResources(
 	tenantUuid api_types.Uuid,
 	serviceConfigs []api_types.ServiceConfig,
 	deploymentConfigs []api_types.DeploymentConfig,

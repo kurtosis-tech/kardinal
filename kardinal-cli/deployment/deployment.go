@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"gopkg.in/yaml.v3"
 	"io"
 	"net/http"
 	"text/template"
@@ -247,6 +248,49 @@ func DeployKardinalManagerInCluster(ctx context.Context, clusterResourcesURL str
 
 	if err := installGatewayAPI(ctx, kubernetesClientObj); err != nil {
 		return stacktrace.Propagate(err, "An error occurred while installing the Gateway API")
+	}
+
+	return nil
+}
+
+type k8sResourceKindAndMetadata struct {
+	Kind     string `yaml:"kind"`
+	Metadata struct {
+		Name      string `yaml:"name"`
+		Namespace string `yaml:"namespace"`
+	}
+}
+
+func DeployResourceSpecs(ctx context.Context, resourceSpecs []string) error {
+	k8sConfig, err := kubernetes.GetConfig()
+	if err != nil {
+		return stacktrace.Propagate(err, "An error occurred while creating the Kubernetes client")
+	}
+	kubernetesClientObj, err := kubernetes.CreateKubernetesClient(k8sConfig)
+	if err != nil {
+		return stacktrace.Propagate(err, "An error occurred while creating the Kubernetes client")
+	}
+
+	for _, resourceSpec := range resourceSpecs {
+		resourceSpecBytes := []byte(resourceSpec)
+
+		var k8sResourceMetadataObj k8sResourceKindAndMetadata
+		err := yaml.Unmarshal([]byte(resourceSpec), &k8sResourceMetadataObj)
+		if err != nil {
+			return stacktrace.Propagate(err, "An error occurred while unmarshalling a resource spec")
+		}
+		namespaceName := k8sResourceMetadataObj.Metadata.Namespace
+
+		if namespaceName != "" {
+			if err := kubernetesClientObj.EnsureNamespace(ctx, namespaceName); err != nil {
+				return stacktrace.Propagate(err, "An error occurred while creating '%s' namespace", namespaceName)
+			}
+		}
+
+		logrus.Debugf("Deploying resource '%s' kind '%s' in namespace '%s'", k8sResourceMetadataObj.Metadata.Name, k8sResourceMetadataObj.Kind, namespaceName)
+		if err := kubernetesClientObj.ApplyYamlFileContentInNamespace(ctx, namespaceName, resourceSpecBytes); err != nil {
+			return stacktrace.Propagate(err, "An error occurred while applying resource '%s' kind '%s' in namespace '%s'", k8sResourceMetadataObj.Metadata.Name, k8sResourceMetadataObj.Kind, namespaceName)
+		}
 	}
 
 	return nil

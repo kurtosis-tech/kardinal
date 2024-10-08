@@ -24,6 +24,37 @@ const (
 
 	listOptionsTimeoutSeconds       int64 = 10
 	deleteOptionsGracePeriodSeconds int64 = 0
+
+	// TODO move these values to a shared library between Kardinal Manager, Kontrol and Kardinal CLI
+	kardinalLabelKey     = "kardinal.dev"
+	istioSystemNamespace = "istio-system"
+	enabledIstioValue    = "enabled"
+	enabledKardinal      = "enabled"
+	istioLabel           = "istio-injection"
+)
+
+var (
+	globalCreateOptions = metav1.CreateOptions{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "",
+			APIVersion: "",
+		},
+		DryRun: nil,
+		// We need every object to have this field manager so that the Kurtosis objects can all seamlessly modify Kubernetes resources
+		FieldManager:    fieldManager,
+		FieldValidation: "",
+	}
+
+	globalUpdateOptions = metav1.UpdateOptions{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "",
+			APIVersion: "",
+		},
+		DryRun: nil,
+		// We need every object to have this field manager so that the Kurtosis objects can all seamlessly modify Kubernetes resources
+		FieldManager:    fieldManager,
+		FieldValidation: "",
+	}
 )
 
 type KubernetesClient struct {
@@ -196,6 +227,47 @@ func (client *KubernetesClient) GetNamespacesByLabels(ctx context.Context, names
 		ListMeta: namespaces.ListMeta,
 	}
 	return &namespacesNotMarkedForDeletionnamespaceList, nil
+}
+
+// TODO merge kardinal-cli.kubernetes-client with kardinal-manager.cluster-manager, this method is in both objects
+func (client *KubernetesClient) EnsureNamespace(ctx context.Context, name string) error {
+	if name == istioSystemNamespace {
+		// Some resources might be under the istio system namespace but we don't want to alter
+		// this namespace because it is managed by Istio
+		return nil
+	}
+
+	existingNamespace, err := client.clientSet.CoreV1().Namespaces().Get(ctx, name, metav1.GetOptions{})
+	if err == nil && existingNamespace != nil {
+		value, found := existingNamespace.Labels[istioLabel]
+		if !found || value != enabledIstioValue {
+			existingNamespace.Labels[istioLabel] = enabledIstioValue
+		}
+		value, found = existingNamespace.Labels[kardinalLabelKey]
+		if !found || value != enabledKardinal {
+			existingNamespace.Labels[kardinalLabelKey] = enabledKardinal
+		}
+		_, err = client.clientSet.CoreV1().Namespaces().Update(ctx, existingNamespace, globalUpdateOptions)
+		if err != nil {
+			return stacktrace.Propagate(err, "Failed to update Namespace: %s", name)
+		}
+	} else {
+		newNamespace := corev1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: name,
+				Labels: map[string]string{
+					istioLabel:       enabledIstioValue,
+					kardinalLabelKey: enabledKardinal,
+				},
+			},
+		}
+		_, err = client.clientSet.CoreV1().Namespaces().Create(ctx, &newNamespace, globalCreateOptions)
+		if err != nil {
+			return stacktrace.Propagate(err, "Failed to create Namespace: %s", name)
+		}
+	}
+
+	return nil
 }
 
 func buildListOptionsFromLabels(labelsMap map[string]string) metav1.ListOptions {
