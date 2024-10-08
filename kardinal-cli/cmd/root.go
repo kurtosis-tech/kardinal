@@ -218,12 +218,10 @@ func DeserializeFlowSpec(filePath string) (*FlowSpec, error) {
 	}
 
 	var config FlowSpec
-	err = yaml.Unmarshal(data, &config)
+	err = json.Unmarshal(data, &config)
 	if err != nil {
 		return nil, fmt.Errorf("error unmarshaling YAML: %w", err)
 	}
-
-	logrus.Infof("UNSMASRHED FLOW SPEC: %v", config)
 
 	return &config, nil
 }
@@ -231,17 +229,26 @@ func DeserializeFlowSpec(filePath string) (*FlowSpec, error) {
 var createCmd = &cobra.Command{
 	Use:   "create [service name] [image name]",
 	Short: "Create a new service in development mode",
-	Args:  cobra.ExactArgs(2),
+	Args: func(cmd *cobra.Command, args []string) error {
+		if len(args) > 0 && flowSpecFilepath != "" {
+			return errors.New("Please provide either args or flow config file, but not both.")
+		}
+		if len(args) > 0 && len(args) != 2 {
+			return fmt.Errorf("accepts %d arg(s), received %d", 2, len(args))
+		}
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
-		serviceName, imageName := args[0], args[1]
-
 		var flowSpec *FlowSpec
+		var serviceName, imageName string
 		if flowSpecFilepath != "" {
 			fs, err := DeserializeFlowSpec(flowSpecFilepath)
 			if err != nil {
 				log.Fatalf("An error occurred deserializing flow spec: %v", err)
 			}
 			flowSpec = fs
+		} else {
+			serviceName, imageName = args[0], args[1]
 		}
 
 		pairsMap := parsePairs(serviceImagePairs)
