@@ -52,8 +52,7 @@ const (
 	localKontrolAPIHost         = localhost + ":8080"
 	localFrontendHost           = localhost + ":5173"
 	kloudKontrolHost            = "app.kardinal.dev"
-	//kloudKontrolHost    = "prod.kardinal.dev"
-	kloudKontrolAPIHost = kloudKontrolHost + "/api"
+	kloudKontrolAPIHost         = kloudKontrolHost + "/api"
 
 	tcpProtocol = "tcp"
 	httpSchme   = "http"
