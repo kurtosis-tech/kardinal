@@ -281,12 +281,6 @@ func DeployResourceSpecs(ctx context.Context, resourceSpecs []string) error {
 		}
 		namespaceName := k8sResourceMetadataObj.Metadata.Namespace
 
-		if namespaceName != "" {
-			if err := kubernetesClientObj.EnsureNamespace(ctx, namespaceName); err != nil {
-				return stacktrace.Propagate(err, "An error occurred while creating '%s' namespace", namespaceName)
-			}
-		}
-
 		logrus.Debugf("Deploying resource '%s' kind '%s' in namespace '%s'", k8sResourceMetadataObj.Metadata.Name, k8sResourceMetadataObj.Kind, namespaceName)
 		if err := kubernetesClientObj.ApplyYamlFileContentInNamespace(ctx, namespaceName, resourceSpecBytes); err != nil {
 			return stacktrace.Propagate(err, "An error occurred while applying resource '%s' kind '%s' in namespace '%s'", k8sResourceMetadataObj.Metadata.Name, k8sResourceMetadataObj.Kind, namespaceName)
