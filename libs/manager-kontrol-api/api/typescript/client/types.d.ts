@@ -41,6 +41,7 @@ export interface components {
     ClusterResources: {
       services?: unknown[];
       deployments?: unknown[];
+      "stateful-sets"?: unknown[];
       virtual_services?: unknown[];
       destination_rules?: unknown[];
       gateways?: unknown[];

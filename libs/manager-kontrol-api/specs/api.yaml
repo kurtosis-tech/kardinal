@@ -78,6 +78,13 @@ components:
             x-go-type-import:
               path: k8s.io/api/apps/v1
               name: appsv1
+        stateful-sets:
+          type: array
+          items:
+            x-go-type: appv1.StatefulSet
+            x-go-type-import:
+              path: k8s.io/api/apps/v1
+              name: appv1
         virtual_services:
           type: array
           items:
