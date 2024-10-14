@@ -261,7 +261,11 @@ type k8sResourceKindAndMetadata struct {
 	}
 }
 
-func DeployResourceSpecs(ctx context.Context, resourceSpecs []string) error {
+func DeployResourceSpecs(ctx context.Context, namespace string, resourceSpecs []string) error {
+	if len(resourceSpecs) == 0 {
+		return nil
+	}
+
 	k8sConfig, err := kubernetes.GetConfig()
 	if err != nil {
 		return stacktrace.Propagate(err, "An error occurred while creating the Kubernetes client")
@@ -269,6 +273,10 @@ func DeployResourceSpecs(ctx context.Context, resourceSpecs []string) error {
 	kubernetesClientObj, err := kubernetes.CreateKubernetesClient(k8sConfig)
 	if err != nil {
 		return stacktrace.Propagate(err, "An error occurred while creating the Kubernetes client")
+	}
+
+	if err := kubernetesClientObj.EnsureNamespace(ctx, namespace); err != nil {
+		return stacktrace.Propagate(err, "An error occurred while ensuring the namespace '%s'", namespace)
 	}
 
 	for _, resourceSpec := range resourceSpecs {
