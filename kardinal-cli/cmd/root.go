@@ -914,7 +914,7 @@ func deploy(
 	namespace string,
 ) error {
 
-	if err := deployment.DeployResourceSpecs(ctx, noSupportedResourcesSpecs); err != nil {
+	if err := deployment.DeployResourceSpecs(ctx, namespace, noSupportedResourcesSpecs); err != nil {
 		return stacktrace.Propagate(err, "an error occurred deploying not supported resources")
 	}
 
