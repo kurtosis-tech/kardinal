@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.2](https://github.com/kurtosis-tech/kardinal/compare/0.4.1...0.4.2) (2024-10-14)
+
+
+### Features
+
+* deploy unsupported Kubernetes resources ([#272](https://github.com/kurtosis-tech/kardinal/issues/272)) ([6c034d6](https://github.com/kurtosis-tech/kardinal/commit/6c034d694338d338b823da744f91c1b65b134f8d))
+
 ## [0.4.1](https://github.com/kurtosis-tech/kardinal/compare/0.4.0...0.4.1) (2024-10-03)
 
 
