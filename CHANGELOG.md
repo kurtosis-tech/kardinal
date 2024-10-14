@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.3](https://github.com/kurtosis-tech/kardinal/compare/0.4.2...0.4.3) (2024-10-14)
+
+
+### Bug Fixes
+
+* fix unsupported resources deployment ([#278](https://github.com/kurtosis-tech/kardinal/issues/278)) ([f278c09](https://github.com/kurtosis-tech/kardinal/commit/f278c09089ab0f37cdeb529839e5805f96655ac4))
+
 ## [0.4.2](https://github.com/kurtosis-tech/kardinal/compare/0.4.1...0.4.2) (2024-10-14)
 
 
