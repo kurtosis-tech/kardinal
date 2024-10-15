@@ -630,7 +630,7 @@ var versionCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		resp, err := http.Get(rawVersionUrl)
 		if err != nil {
-			log.Fatalf("Error getting or creating user tenant UUID: %v", err)
+			log.Fatalf("Error making request for version id: %v", err)
 		}
 		defer resp.Body.Close()
 		version, err := io.ReadAll(resp.Body)
