@@ -73,6 +73,7 @@ const (
 	appLabelKey      = "app"
 	versionLabelKey  = "version"
 	portCheckTimeout = 5 * time.Second
+	rawVersionUrl    = "https://raw.githubusercontent.com/kurtosis-tech/kardinal/refs/heads/main/version.txt"
 )
 
 var (
@@ -622,6 +623,24 @@ var tenantShowCmd = &cobra.Command{
 	},
 }
 
+var versionCmd = &cobra.Command{
+	Use:   "version",
+	Short: "Show version of Kardinal CLI running",
+	Args:  cobra.ExactArgs(0),
+	Run: func(cmd *cobra.Command, args []string) {
+		resp, err := http.Get(rawVersionUrl)
+		if err != nil {
+			log.Fatalf("Error getting or creating user tenant UUID: %v", err)
+		}
+		defer resp.Body.Close()
+		version, err := io.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatalf("Error reading response body: %v", err)
+		}
+		fmt.Printf("%s\n", string(version))
+	},
+}
+
 func init() {
 	devMode = false
 	if os.Getenv("KARDINAL_CLI_DEV_MODE") == "TRUE" {
@@ -637,6 +656,7 @@ func init() {
 	rootCmd.AddCommand(reportInstall)
 	rootCmd.AddCommand(topologyCmd)
 	rootCmd.AddCommand(tenantCmd)
+	rootCmd.AddCommand(versionCmd)
 
 	flowCmd.AddCommand(listCmd, createCmd, deleteCmd, telepresenceInterceptCmd)
 	managerCmd.AddCommand(deployManagerCmd, removeManagerCmd)
