@@ -12,7 +12,7 @@
   '';
 
   go-tidy-all = import ./scripts/go-tidy-all.nix {inherit pkgs;};
-  generate-kardinal-version = import ./scripts/generate_kardinal_version.nix {inherit pkgs;};
+  generate-kardinal-version = import ./kardinal-cli/scripts/generate_kardinal_version.nix {inherit pkgs;};
   manager_shell = pkgs.callPackage ./kardinal-manager/shell.nix {inherit pkgs;};
   cli_shell = pkgs.callPackage ./kardinal-cli/shell.nix {inherit pkgs;};
   cli_kontrol_api_shell = pkgs.callPackage ./libs/cli-kontrol-api/shell.nix {inherit pkgs;};
