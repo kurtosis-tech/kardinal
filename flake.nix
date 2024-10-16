@@ -87,6 +87,19 @@
               };
           };
 
+        generateKardinalVersion = pkgs.callPackage ./scripts/generate_kardinal_version.nix {
+          inherit pkgs;
+        };
+
+        runGenerateVersion = pkgs.stdenv.mkDerivation {
+          name = "run-generate-kardinal-version";
+          buildInputs = [ generateKardinalVersion ];
+          installPhase = ''
+            echo "Generating kardinal_version.go..."
+            ${generateKardinalVersion}/bin/generate-kardinal-version
+          '';
+        };
+
         systemOutput = rec {
           devShells.default = pkgs.callPackage ./shell.nix {
             inherit pkgs;
@@ -110,9 +123,7 @@
           packages.go-tidy-all = pkgs.callPackage ./scripts/go-tidy-all.nix {
             inherit pkgs;
           };
-          packages.generate-kardinal-version = pkgs.callPackage ./scripts/generate_kardinal_version.nix {
-            inherit pkgs;
-          };
+          packages.generate-kardinal-version = runGenerateVersion;
 
           containers = let
             os = "linux";
