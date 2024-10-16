@@ -12,6 +12,8 @@
   '';
 
   go-tidy-all = import ./scripts/go-tidy-all.nix {inherit pkgs;};
+  get-docker-tag = import ./scripts/get-docker-tag.nix {inherit pkgs;};
+  generate-kurtosis-version = import ./scripts/generate_kurtosis_version.nix {inherit pkgs;};
 
   manager_shell = pkgs.callPackage ./kardinal-manager/shell.nix {inherit pkgs;};
   cli_shell = pkgs.callPackage ./kardinal-cli/shell.nix {inherit pkgs;};
@@ -25,6 +27,8 @@
       buildInputs = [
         kardinal
         go-tidy-all
+        get-docker-tag
+        generate-kurtosis-version
         kubectl
         kustomize
         kubernetes-helm
