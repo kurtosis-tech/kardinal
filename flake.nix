@@ -87,7 +87,7 @@
               };
           };
 
-        generateKardinalVersion = pkgs.callPackage ./scripts/generate_kardinal_version.nix {
+        generateKardinalVersion = pkgs.callPackage ./kardinal-cli/scripts/generate_kardinal_version.nix {
           inherit pkgs;
         };
 
