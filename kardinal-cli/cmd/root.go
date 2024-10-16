@@ -32,6 +32,7 @@ import (
 	"kardinal.cli/kontrol"
 	"kardinal.cli/tenant"
 
+	"github.com/kurtosis-tech/kardinal/kardinal_version"
 	api "github.com/kurtosis-tech/kardinal/libs/cli-kontrol-api/api/golang/client"
 	api_types "github.com/kurtosis-tech/kardinal/libs/cli-kontrol-api/api/golang/types"
 	appv1 "k8s.io/api/apps/v1"
@@ -73,7 +74,6 @@ const (
 	appLabelKey      = "app"
 	versionLabelKey  = "version"
 	portCheckTimeout = 5 * time.Second
-	rawVersionUrl    = "https://raw.githubusercontent.com/kurtosis-tech/kardinal/refs/heads/main/version.txt"
 )
 
 var (
@@ -628,16 +628,7 @@ var versionCmd = &cobra.Command{
 	Short: "Show version of Kardinal CLI running",
 	Args:  cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
-		resp, err := http.Get(rawVersionUrl)
-		if err != nil {
-			log.Fatalf("Error making request for version id: %v", err)
-		}
-		defer resp.Body.Close()
-		version, err := io.ReadAll(resp.Body)
-		if err != nil {
-			log.Fatalf("Error reading response body: %v", err)
-		}
-		fmt.Printf("%s\n", string(version))
+		fmt.Printf("%s\n", kardinal_version.KardinalVersion)
 	},
 }
 
