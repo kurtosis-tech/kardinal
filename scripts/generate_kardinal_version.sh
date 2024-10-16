@@ -6,16 +6,19 @@ root_dirpath=$(git rev-parse --show-toplevel)
 KARDINAL_VERSION_PACKAGE_DIR="kardinal_version"
 KARDINAL_VERSION_GO_FILE="kardinal_version.go"
 
-if ! git status > /dev/null; then
-  echo "Error: This command was run from outside a git repo" >&2
-  exit 1
+# Check if the current commit has a tag
+if git describe --tags --exact-match > /dev/null 2>&1; then
+    # If there's an exact match to a tag, use the tag as the version
+    new_version="$(git describe --tags --exact-match)"
+else
+    # Otherwise, use the short commit SHA
+    commit_sha="$(git rev-parse --short=6 HEAD)"
+    # Check if the working directory is dirty
+    suffix="$(git diff --quiet || echo '-dirty')"
+    new_version="$commit_sha$suffix"
 fi
-
-commit_sha="$(git rev-parse --short=6 HEAD)"
-suffix="$(git diff --quiet || echo '-dirty')"
-new_version="$commit_sha$suffix"
-
 kardinal_version_go_file_abs_path="$root_dirpath/$KARDINAL_VERSION_PACKAGE_DIR/$KARDINAL_VERSION_GO_FILE"
+
 
 cat << EOF > "$kardinal_version_go_file_abs_path"
 package $KARDINAL_VERSION_PACKAGE_DIR
