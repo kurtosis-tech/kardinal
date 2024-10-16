@@ -5,21 +5,20 @@ pkgs.writeShellApplication {
 
   text = ''
     set -euo pipefail
-    script_dirpath="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    script_dirpath="$(cd "$(dirname "$0")" && pwd)"
     root_dirpath="$(dirname "$script_dirpath")"
 
     KARDINAL_VERSION_PACKAGE_DIR="kardinal_version"
     KARDINAL_VERSION_GO_FILE="kardinal_version.go"
-    KARDINAL_VERSION_PACKAGE_NAME="github.com/kurtosis-tech/kardinal/kardinal_version"
-    KARDINAL_VERSION_PACKAGE_GOSUM_PATH="go.sum"
 
-    show_helptext_and_exit() {
-        echo "Usage: $(basename "$0") new_version"
-        echo ""
-        echo "  new_version     The version to generate the version constants with, otherwise uses 'get-docker-tag.sh'"
-        echo ""
-        exit 1
-    }
+    if ! git status > /dev/null; then
+      echo "Error: This command was run from outside a git repo" >&2
+      exit 1
+    fi
+
+    commit_sha="$(git rev-parse --short=6 HEAD)"
+    suffix="$(git diff --quiet || echo '-dirty')"
+    echo "$commit_sha$suffix"
 
     new_version=""
 
