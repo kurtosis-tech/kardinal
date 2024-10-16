@@ -5,8 +5,7 @@ pkgs.writeShellApplication {
 
   text = ''
     set -euo pipefail
-    script_dirpath="$(cd "$(dirname "$0")" && pwd)"
-    root_dirpath="$(dirname "$script_dirpath")"
+    root_dirpath=$(git rev-parse --show-toplevel)
 
     KARDINAL_VERSION_PACKAGE_DIR="kardinal_version"
     KARDINAL_VERSION_GO_FILE="kardinal_version.go"
