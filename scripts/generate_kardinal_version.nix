@@ -18,20 +18,7 @@ pkgs.writeShellApplication {
 
     commit_sha="$(git rev-parse --short=6 HEAD)"
     suffix="$(git diff --quiet || echo '-dirty')"
-    echo "$commit_sha$suffix"
-
-    new_version=""
-
-    if [ -z "$new_version" ]; then
-        if ! cd "$root_dirpath"; then
-            echo "Error: Couldn't cd to the root of this repo, '$root_dirpath', which is required to get the Git tag" >&2
-            show_helptext_and_exit
-        fi
-        if ! new_version="$(./scripts/get-docker-tag.sh)"; then
-            echo "Error: No new version provided and couldn't generate one" >&2
-            show_helptext_and_exit
-        fi
-    fi
+    new_version="$commit_sha$suffix"
 
     kardinal_version_go_file_abs_path="$root_dirpath/$KARDINAL_VERSION_PACKAGE_DIR/$KARDINAL_VERSION_GO_FILE"
 

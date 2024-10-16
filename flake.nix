@@ -110,9 +110,6 @@
           packages.go-tidy-all = pkgs.callPackage ./scripts/go-tidy-all.nix {
             inherit pkgs;
           };
-          packages.get-docker-tag = pkgs.callPackage ./scripts/get-docker-tag.nix {
-            inherit pkgs;
-          };
           packages.generate-kardinal-version = pkgs.callPackage ./scripts/generate_kardinal_version.nix {
             inherit pkgs;
           };
