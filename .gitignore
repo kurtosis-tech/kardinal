@@ -86,3 +86,6 @@ Temporary Items
 # local build folders
 istio-1.22.0/
 kontrol-service/Run_kontrol_service
+
+# Ignoring the file that gets generated with the repo's version
+/kardinal_version/kardinal_version.go
