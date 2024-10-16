@@ -1,7 +1,7 @@
 { pkgs, ... }:
 pkgs.writeShellApplication {
   name = "generate-kardinal-version";
-  runtimeInputs = with pkgs; [ git ];
+  runtimeInputs = with pkgs; [ git, get-docker-tag ];
 
   text = ''
     set -euo pipefail
@@ -23,8 +23,8 @@ pkgs.writeShellApplication {
 
     new_version="${1:-}"
 
-    if [ -z "${new_version}" ]; then
-        if ! cd "${root_dirpath}"; then
+    if [ -z "$new_version" ]; then
+        if ! cd "$root_dirpath"; then
             echo "Error: Couldn't cd to the root of this repo, '${root_dirpath}', which is required to get the Git tag" >&2
             show_helptext_and_exit
         fi
@@ -34,14 +34,14 @@ pkgs.writeShellApplication {
         fi
     fi
 
-    kardinal_version_go_file_abs_path="${root_dirpath}/${KARDINAL_VERSION_PACKAGE_DIR}/${KARDINAL_VERSION_GO_FILE}"
+    kardinal_version_go_file_abs_path="$root_dirpath/$KARDINAL_VERSION_PACKAGE_DIR/$KARDINAL_VERSION_GO_FILE"
 
-    cat << EOF > "${kardinal_version_go_file_abs_path}"
+    cat << EOF > "$kardinal_version_go_file_abs_path"
 package ${KARDINAL_VERSION_PACKAGE_DIR}
 
 const (
     // !!!!!!!!!!!!!!!!!! DO NOT MODIFY THIS! IT WILL BE UPDATED AUTOMATICALLY DURING THE BUILD PROCESS !!!!!!!!!!!!!!!
-    KardinalVersion = "${new_version}"
+    KardinalVersion = "$new_version"
     // !!!!!!!!!!!!!!!!!! DO NOT MODIFY THIS! IT WILL BE UPDATED AUTOMATICALLY DURING THE BUILD PROCESS !!!!!!!!!!!!!!!
 )
 EOF
