@@ -1,6 +1,8 @@
 module kardinal.cli
 
-go 1.22.3
+go 1.22.5
+
+toolchain go1.22.6
 
 replace (
 	github.com/kurtosis-tech/kardinal/kardinal_version => ../kardinal_version
