@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.4](https://github.com/kurtosis-tech/kardinal/compare/0.4.3...0.4.4) (2024-10-17)
+
+
+### Features
+
+* [pt1.] version cmd ([#281](https://github.com/kurtosis-tech/kardinal/issues/281)) ([563e0a3](https://github.com/kurtosis-tech/kardinal/commit/563e0a363ab50f8e5a922d4eb19a790e0254d8f9))
+
 ## [0.4.3](https://github.com/kurtosis-tech/kardinal/compare/0.4.2...0.4.3) (2024-10-14)
 
 
