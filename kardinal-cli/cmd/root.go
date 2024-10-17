@@ -32,6 +32,7 @@ import (
 	"kardinal.cli/kontrol"
 	"kardinal.cli/tenant"
 
+	"github.com/kurtosis-tech/kardinal/kardinal_version"
 	api "github.com/kurtosis-tech/kardinal/libs/cli-kontrol-api/api/golang/client"
 	api_types "github.com/kurtosis-tech/kardinal/libs/cli-kontrol-api/api/golang/types"
 	appv1 "k8s.io/api/apps/v1"
@@ -622,6 +623,15 @@ var tenantShowCmd = &cobra.Command{
 	},
 }
 
+var versionCmd = &cobra.Command{
+	Use:   "version",
+	Short: "Show version of Kardinal CLI running",
+	Args:  cobra.ExactArgs(0),
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Printf("%s\n", kardinal_version.KardinalVersion)
+	},
+}
+
 func init() {
 	devMode = false
 	if os.Getenv("KARDINAL_CLI_DEV_MODE") == "TRUE" {
@@ -637,6 +647,7 @@ func init() {
 	rootCmd.AddCommand(reportInstall)
 	rootCmd.AddCommand(topologyCmd)
 	rootCmd.AddCommand(tenantCmd)
+	rootCmd.AddCommand(versionCmd)
 
 	flowCmd.AddCommand(listCmd, createCmd, deleteCmd, telepresenceInterceptCmd)
 	managerCmd.AddCommand(deployManagerCmd, removeManagerCmd)
