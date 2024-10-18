@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.5](https://github.com/kurtosis-tech/kardinal/compare/0.4.4...0.4.5) (2024-10-18)
+
+
+### Bug Fixes
+
+* fix server gen go ([#283](https://github.com/kurtosis-tech/kardinal/issues/283)) ([5d52e7c](https://github.com/kurtosis-tech/kardinal/commit/5d52e7cf45303bda934cb9da9fecdf6f09160e64))
+
 ## [0.4.4](https://github.com/kurtosis-tech/kardinal/compare/0.4.3...0.4.4) (2024-10-18)
 
 
