@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"k8s.io/apimachinery/pkg/runtime"
 	"log"
 	"net"
 	"net/http"
@@ -23,6 +24,7 @@ import (
 	"kardinal.cli/multi_os_cmd_executor"
 
 	"github.com/kurtosis-tech/stacktrace"
+	"github.com/samber/lo"
 	"github.com/segmentio/analytics-go/v3"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -30,6 +32,7 @@ import (
 	"kardinal.cli/kontrol"
 	"kardinal.cli/tenant"
 
+	"github.com/kurtosis-tech/kardinal/kardinal_version"
 	api "github.com/kurtosis-tech/kardinal/libs/cli-kontrol-api/api/golang/client"
 	api_types "github.com/kurtosis-tech/kardinal/libs/cli-kontrol-api/api/golang/types"
 	appv1 "k8s.io/api/apps/v1"
@@ -120,7 +123,9 @@ var deployCmd = &cobra.Command{
 	Short: "Deploy services",
 	Args:  cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
-		serviceConfigs, ingressConfigs, gatewayConfigs, routeConfigs, namespace, err := parseKubernetesManifestFile(kubernetesManifestFile)
+		ctx := context.Background()
+
+		services, deployments, statefulSets, ingresses, gateways, routes, noSupportedResourcesSpecs, namespace, err := parseKubernetesManifestFile(kubernetesManifestFile)
 		if err != nil {
 			log.Fatalf("Error loading k8s manifest file: %v", err)
 		}
@@ -129,7 +134,9 @@ var deployCmd = &cobra.Command{
 			log.Fatal("Error getting or creating user tenant UUID", err)
 		}
 
-		deploy(tenantUuid.String(), serviceConfigs, ingressConfigs, gatewayConfigs, routeConfigs, namespace)
+		if err := deploy(ctx, tenantUuid.String(), services, deployments, statefulSets, ingresses, gateways, routes, noSupportedResourcesSpecs, namespace); err != nil {
+			log.Fatalf("Error deploying k8s manifest file: %v", err)
+		}
 	},
 }
 
@@ -145,7 +152,7 @@ var templateCreateCmd = &cobra.Command{
 		// A valid template only modifies services
 		// A valid template has metadata.name
 		// A valid template modifies at least one service
-		serviceConfigs, _, _, _, _, err := parseKubernetesManifestFile(templateYamlFile)
+		serviceConfigs, _, _, _, _, _, _, _, err := parseKubernetesManifestFile(templateYamlFile)
 		if err != nil {
 			log.Fatalf("Error loading template file: %v", err)
 		}
@@ -654,6 +661,15 @@ var tenantShowCmd = &cobra.Command{
 	},
 }
 
+var versionCmd = &cobra.Command{
+	Use:   "version",
+	Short: "Show version of Kardinal CLI running",
+	Args:  cobra.ExactArgs(0),
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Printf("%s\n", kardinal_version.KardinalVersion)
+	},
+}
+
 func init() {
 	devMode = false
 	if os.Getenv("KARDINAL_CLI_DEV_MODE") == "TRUE" {
@@ -669,6 +685,7 @@ func init() {
 	rootCmd.AddCommand(reportInstall)
 	rootCmd.AddCommand(topologyCmd)
 	rootCmd.AddCommand(tenantCmd)
+	rootCmd.AddCommand(versionCmd)
 
 	flowCmd.AddCommand(listCmd, createCmd, deleteCmd, telepresenceInterceptCmd)
 	managerCmd.AddCommand(deployManagerCmd, removeManagerCmd)
@@ -680,8 +697,8 @@ func init() {
 	createCmd.Flags().StringSliceVarP(&serviceImagePairs, "service-image", "s", []string{}, "Extra service and respective image to include in the same flow (can be used multiple times)")
 	createCmd.Flags().StringVarP(&templateName, "template", "t", "", "Template name to use for the flow creation")
 	createCmd.Flags().StringVarP(&templateArgsFile, "template-args", "a", "", "JSON with the template arguments or path to YAML file containing template arguments")
-	createCmd.Flags().StringVarP(&flowID, "ID", "i", "", "Set the flow id")
 	createCmd.Flags().StringVarP(&flowSpecFilepath, "flow-spec-config", "", "", "Path to the flow spec configuration file")
+	createCmd.Flags().StringVarP(&flowID, "id", "i", "", "Set the flow id")
 
 	deployCmd.PersistentFlags().StringVarP(&kubernetesManifestFile, "k8s-manifest", "k", "", "Path to the K8S manifest file")
 	deployCmd.MarkPersistentFlagRequired("k8s-manifest")
@@ -717,19 +734,32 @@ func parsePairs(pairs []string) map[string]string {
 	return pairsMap
 }
 
-func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.ServiceConfig, []api_types.IngressConfig, []api_types.GatewayConfig, []api_types.RouteConfig, string, error) {
+func parseKubernetesManifestFile(kubernetesManifestFile string) (
+	[]api_types.ServiceConfig,
+	[]api_types.DeploymentConfig,
+	[]api_types.StatefulSetConfig,
+	[]api_types.IngressConfig,
+	[]api_types.GatewayConfig,
+	[]api_types.RouteConfig,
+	[]string,
+	string,
+	error,
+) {
 	fileBytes, err := loadKubernetesManifestFile(kubernetesManifestFile)
 	if err != nil {
 		log.Fatalf("Error loading kubernetest manifest file: %v", err)
-		return nil, nil, nil, nil, "", err
+		return nil, nil, nil, nil, nil, nil, nil, "", err
 	}
 
 	manifest := string(fileBytes)
 	var namespace string
-	serviceConfigs := map[string]*api_types.ServiceConfig{}
-	ingressConfigs := map[string]*api_types.IngressConfig{}
-	gatewayConfigs := map[string]*api_types.GatewayConfig{}
-	routeConfigs := map[string]*api_types.RouteConfig{}
+	serviceConfigs := map[string]api_types.ServiceConfig{}
+	deploymentConfigs := map[string]api_types.DeploymentConfig{}
+	statefulSetConfigs := map[string]api_types.StatefulSetConfig{}
+	ingressConfigs := map[string]api_types.IngressConfig{}
+	gatewayConfigs := map[string]api_types.GatewayConfig{}
+	routeConfigs := map[string]api_types.RouteConfig{}
+	noSupportedResourcesSpecs := []string{}
 
 	// Register the gateway scheme to parse the Gateway CRD
 	gatewayscheme.AddToScheme(scheme.Scheme)
@@ -738,9 +768,14 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.Ser
 		if len(spec) == 0 {
 			continue
 		}
+
 		obj, _, err := decode([]byte(spec), nil, nil)
 		if err != nil {
-			return nil, nil, nil, nil, "", stacktrace.Propagate(err, "An error occurred parsing the spec: %s", spec)
+			if runtime.IsNotRegisteredError(err) {
+				noSupportedResourcesSpecs = append(noSupportedResourcesSpecs, spec)
+				continue
+			}
+			return nil, nil, nil, nil, nil, nil, nil, "", stacktrace.Propagate(err, "An error occurred parsing the spec: %s", spec)
 		}
 		switch obj := obj.(type) {
 		case *corev1.Service:
@@ -748,27 +783,38 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.Ser
 			serviceName := getObjectName(service.GetObjectMeta().(*metav1.ObjectMeta))
 			_, ok := serviceConfigs[serviceName]
 			if !ok {
-				serviceConfigs[serviceName] = &api_types.ServiceConfig{
+				serviceConfigs[serviceName] = api_types.ServiceConfig{
 					Service: *service,
 				}
 			} else {
-				serviceConfigs[serviceName].Service = *service
+				logrus.Warnf("Service %s already exists, skipping it", serviceName)
 			}
 		case *appv1.Deployment:
 			deployment := obj
 			deploymentName := getObjectName(deployment.GetObjectMeta().(*metav1.ObjectMeta))
-			_, ok := serviceConfigs[deploymentName]
+			_, ok := deploymentConfigs[deploymentName]
 			if !ok {
-				serviceConfigs[deploymentName] = &api_types.ServiceConfig{
+				deploymentConfigs[deploymentName] = api_types.DeploymentConfig{
 					Deployment: *deployment,
 				}
 			} else {
-				serviceConfigs[deploymentName].Deployment = *deployment
+				logrus.Warnf("Deployment %s already exists, skipping it", deploymentName)
+			}
+		case *appv1.StatefulSet:
+			statefulset := obj
+			statefulsetName := getObjectName(statefulset.GetObjectMeta().(*metav1.ObjectMeta))
+			_, ok := statefulSetConfigs[statefulsetName]
+			if !ok {
+				statefulSetConfigs[statefulsetName] = api_types.StatefulSetConfig{
+					StatefulSet: *statefulset,
+				}
+			} else {
+				logrus.Warnf("StatefulSet %s already exists, skipping it", statefulsetName)
 			}
 		case *k8snet.Ingress:
 			ingress := obj
 			ingressName := getObjectName(ingress.GetObjectMeta().(*metav1.ObjectMeta))
-			ingressConfigs[ingressName] = &api_types.IngressConfig{Ingress: *ingress}
+			ingressConfigs[ingressName] = api_types.IngressConfig{Ingress: *ingress}
 		case *corev1.Namespace:
 			namespaceObj := obj
 			namespaceName := getObjectName(namespaceObj.GetObjectMeta().(*metav1.ObjectMeta))
@@ -776,37 +822,17 @@ func parseKubernetesManifestFile(kubernetesManifestFile string) ([]api_types.Ser
 		case *gateway.Gateway:
 			gatewayObj := obj
 			gatewayName := getObjectName(gatewayObj.GetObjectMeta().(*metav1.ObjectMeta))
-			gatewayConfigs[gatewayName] = &api_types.GatewayConfig{Gateway: *gatewayObj}
+			gatewayConfigs[gatewayName] = api_types.GatewayConfig{Gateway: *gatewayObj}
 		case *gateway.HTTPRoute:
 			routeObj := obj
 			routeName := getObjectName(routeObj.GetObjectMeta().(*metav1.ObjectMeta))
-			routeConfigs[routeName] = &api_types.RouteConfig{HttpRoute: *routeObj}
+			routeConfigs[routeName] = api_types.RouteConfig{HttpRoute: *routeObj}
 		default:
-			return nil, nil, nil, nil, "", stacktrace.NewError("An error occurred parsing the manifest because of an unsupported kubernetes type")
+			noSupportedResourcesSpecs = append(noSupportedResourcesSpecs, spec)
 		}
 	}
 
-	finalServiceConfigs := []api_types.ServiceConfig{}
-	for _, serviceConfig := range serviceConfigs {
-		finalServiceConfigs = append(finalServiceConfigs, *serviceConfig)
-	}
-
-	finalIngressConfigs := []api_types.IngressConfig{}
-	for _, ingressConfig := range ingressConfigs {
-		finalIngressConfigs = append(finalIngressConfigs, *ingressConfig)
-	}
-
-	finalGatewayConfigs := []api_types.GatewayConfig{}
-	for _, gatewayConfig := range gatewayConfigs {
-		finalGatewayConfigs = append(finalGatewayConfigs, *gatewayConfig)
-	}
-
-	finalRouteConfigs := []api_types.RouteConfig{}
-	for _, routeConfig := range routeConfigs {
-		finalRouteConfigs = append(finalRouteConfigs, *routeConfig)
-	}
-
-	return finalServiceConfigs, finalIngressConfigs, finalGatewayConfigs, finalRouteConfigs, namespace, nil
+	return lo.Values(serviceConfigs), lo.Values(deploymentConfigs), lo.Values(statefulSetConfigs), lo.Values(ingressConfigs), lo.Values(gatewayConfigs), lo.Values(routeConfigs), noSupportedResourcesSpecs, namespace, nil
 }
 
 func parseTemplateArgs(filepathOrJson string) (map[string]interface{}, error) {
@@ -856,7 +882,6 @@ func listDevFlow(tenantUuid api_types.Uuid) {
 	}
 
 	printFlowTable(flows)
-	return
 }
 
 func getTenantUuidFlows(tenantUuid api_types.Uuid) ([]api_types.Flow, error) {
@@ -958,8 +983,32 @@ func createDevFlow(tenantUuid api_types.Uuid, pairsMap map[string]string, templa
 }
 
 func deploy(
+	ctx context.Context,
 	tenantUuid api_types.Uuid,
 	serviceConfigs []api_types.ServiceConfig,
+	deploymentConfigs []api_types.DeploymentConfig,
+	statefulSetConfigs []api_types.StatefulSetConfig,
+	ingressConfigs []api_types.IngressConfig,
+	gatewayConfigs []api_types.GatewayConfig,
+	routeConfigs []api_types.RouteConfig,
+	noSupportedResourcesSpecs []string,
+	namespace string,
+) error {
+
+	if err := deployment.DeployResourceSpecs(ctx, namespace, noSupportedResourcesSpecs); err != nil {
+		return stacktrace.Propagate(err, "an error occurred deploying not supported resources")
+	}
+
+	deploySupportedResources(tenantUuid, serviceConfigs, deploymentConfigs, statefulSetConfigs, ingressConfigs, gatewayConfigs, routeConfigs, namespace)
+
+	return nil
+}
+
+func deploySupportedResources(
+	tenantUuid api_types.Uuid,
+	serviceConfigs []api_types.ServiceConfig,
+	deploymentConfigs []api_types.DeploymentConfig,
+	statefulSetConfigs []api_types.StatefulSetConfig,
 	ingressConfigs []api_types.IngressConfig,
 	gatewayConfigs []api_types.GatewayConfig,
 	routeConfigs []api_types.RouteConfig,
@@ -968,11 +1017,13 @@ func deploy(
 	ctx := context.Background()
 
 	body := api_types.PostTenantUuidDeployJSONRequestBody{
-		ServiceConfigs: &serviceConfigs,
-		IngressConfigs: &ingressConfigs,
-		GatewayConfigs: &gatewayConfigs,
-		RouteConfigs:   &routeConfigs,
-		Namespace:      &namespace,
+		ServiceConfigs:     &serviceConfigs,
+		DeploymentConfigs:  &deploymentConfigs,
+		StatefulSetConfigs: &statefulSetConfigs,
+		IngressConfigs:     &ingressConfigs,
+		GatewayConfigs:     &gatewayConfigs,
+		RouteConfigs:       &routeConfigs,
+		Namespace:          &namespace,
 	}
 	client := getKontrolServiceClient()
 

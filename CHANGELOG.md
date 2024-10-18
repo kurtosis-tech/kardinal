@@ -1,5 +1,43 @@
 # Changelog
 
+## [0.4.3](https://github.com/kurtosis-tech/kardinal/compare/0.4.2...0.4.3) (2024-10-14)
+
+
+### Bug Fixes
+
+* fix unsupported resources deployment ([#278](https://github.com/kurtosis-tech/kardinal/issues/278)) ([f278c09](https://github.com/kurtosis-tech/kardinal/commit/f278c09089ab0f37cdeb529839e5805f96655ac4))
+
+## [0.4.2](https://github.com/kurtosis-tech/kardinal/compare/0.4.1...0.4.2) (2024-10-14)
+
+
+### Features
+
+* deploy unsupported Kubernetes resources ([#272](https://github.com/kurtosis-tech/kardinal/issues/272)) ([6c034d6](https://github.com/kurtosis-tech/kardinal/commit/6c034d694338d338b823da744f91c1b65b134f8d))
+
+## [0.4.1](https://github.com/kurtosis-tech/kardinal/compare/0.4.0...0.4.1) (2024-10-03)
+
+
+### Bug Fixes
+
+* add auth for statefulset during manager deployment ([#268](https://github.com/kurtosis-tech/kardinal/issues/268)) ([9c011c6](https://github.com/kurtosis-tech/kardinal/commit/9c011c66f8315a5ada9183ac0b5873a4156f7246))
+
+## [0.4.0](https://github.com/kurtosis-tech/kardinal/compare/0.3.3...0.4.0) (2024-10-03)
+
+
+### ⚠ BREAKING CHANGES
+
+* add support to StatefulSet ([#263](https://github.com/kurtosis-tech/kardinal/issues/263))
+
+### Features
+
+* add canonical tag to website pages ([#266](https://github.com/kurtosis-tech/kardinal/issues/266)) ([64bdab1](https://github.com/kurtosis-tech/kardinal/commit/64bdab125ed308ca5282f70f58b0d88949e3c124)), closes [#236](https://github.com/kurtosis-tech/kardinal/issues/236)
+* add support to StatefulSet ([#263](https://github.com/kurtosis-tech/kardinal/issues/263)) ([a1632d5](https://github.com/kurtosis-tech/kardinal/commit/a1632d5aecd857f8de5b77db342c39daff91bcb2))
+
+
+### Bug Fixes
+
+* avoid trying to delete default namespace ([#265](https://github.com/kurtosis-tech/kardinal/issues/265)) ([907ad38](https://github.com/kurtosis-tech/kardinal/commit/907ad38cde24d7a7baac2b3b900187685be92149))
+
 ## [0.3.3](https://github.com/kurtosis-tech/kardinal/compare/0.3.2...0.3.3) (2024-10-02)
 
 

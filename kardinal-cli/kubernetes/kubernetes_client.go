@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"io"
-
 	"github.com/kurtosis-tech/stacktrace"
 	"gopkg.in/yaml.v3"
+	"io"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	k8s_errors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/labels"
@@ -24,6 +24,20 @@ const (
 
 	listOptionsTimeoutSeconds       int64 = 10
 	deleteOptionsGracePeriodSeconds int64 = 0
+	istioSystemNamespace                  = "istio-system"
+)
+
+var (
+	globalCreateOptions = metav1.CreateOptions{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "",
+			APIVersion: "",
+		},
+		DryRun: nil,
+		// We need every object to have this field manager so that the Kurtosis objects can all seamlessly modify Kubernetes resources
+		FieldManager:    fieldManager,
+		FieldValidation: "",
+	}
 )
 
 type KubernetesClient struct {
@@ -196,6 +210,33 @@ func (client *KubernetesClient) GetNamespacesByLabels(ctx context.Context, names
 		ListMeta: namespaces.ListMeta,
 	}
 	return &namespacesNotMarkedForDeletionnamespaceList, nil
+}
+
+func (client *KubernetesClient) EnsureNamespace(ctx context.Context, name string) error {
+	if name == "" || name == istioSystemNamespace {
+		// Some resources might be under the istio system namespace, but we don't want to alter
+		// this namespace because it is managed by Istio
+		return nil
+	}
+
+	_, err := client.clientSet.CoreV1().Namespaces().Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		if k8s_errors.IsNotFound(err) {
+			newNamespace := corev1.Namespace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: name,
+				},
+			}
+			_, err = client.clientSet.CoreV1().Namespaces().Create(ctx, &newNamespace, globalCreateOptions)
+			if err != nil {
+				return stacktrace.Propagate(err, "Failed to create Namespace: %s", name)
+			}
+			return nil
+		}
+		return stacktrace.Propagate(err, "An error occurred getting '%s'", name)
+	}
+
+	return nil
 }
 
 func buildListOptionsFromLabels(labelsMap map[string]string) metav1.ListOptions {
