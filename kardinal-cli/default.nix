@@ -1,9 +1,9 @@
 {
   pkgs,
+  kardinal_version,
   commit_hash ? "dirty",
 }: let
   pname = "kardinal.cli";
-  kardinal_version = (builtins.readFile ../../kardinal_version .txt);
   ldflags = pkgs.lib.concatStringsSep "\n" [
     "-X github.com/kurtosis-tech/kurtosis/kardinal.AppName=${pname}"
     "-X github.com/kurtosis-tech/kurtosis/kardinal.Commit=${commit_hash}"
@@ -15,6 +15,7 @@ in
     # subPackges to specify the file (e.g. subPackages = ["some/folder/main.go"];)
     inherit pname ldflags;
     name = "${pname}";
+    version="${kardinal_version}";
     pwd = ./.;
     src = ./.;
     modules = ./gomod2nix.toml;

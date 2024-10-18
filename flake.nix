@@ -27,6 +27,8 @@
         architectures = ["amd64" "arm64"];
         imageRegistry = "kurtosistech";
 
+        kardinal_version = (builtins.readFile ./kardinal_version.txt);
+
         matchingContainerArch =
           if builtins.match "aarch64-.*" system != null
           then "arm64"
@@ -93,7 +95,7 @@
           };
 
           packages.kardinal-cli = pkgs.callPackage ./kardinal-cli/default.nix {
-            inherit pkgs;
+            inherit pkgs kardinal_version;
           };
 
           packages.kardinal-manager = pkgs.callPackage ./kardinal-manager/default.nix {
