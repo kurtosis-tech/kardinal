@@ -3,9 +3,11 @@
   commit_hash ? "dirty",
 }: let
   pname = "kardinal.cli";
+  kardinal_version = (builtins.readFile ../../kardinal_version .txt);
   ldflags = pkgs.lib.concatStringsSep "\n" [
     "-X github.com/kurtosis-tech/kurtosis/kardinal.AppName=${pname}"
     "-X github.com/kurtosis-tech/kurtosis/kardinal.Commit=${commit_hash}"
+    "-X github.com/kurtosis-tech/kurtosis/kardinal_version.KardinalVersion=${kar}"
   ];
 in
   pkgs.buildGoApplication {
