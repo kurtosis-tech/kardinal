@@ -7,7 +7,7 @@
   ldflags = pkgs.lib.concatStringsSep "\n" [
     "-X github.com/kurtosis-tech/kurtosis/kardinal.AppName=${pname}"
     "-X github.com/kurtosis-tech/kurtosis/kardinal.Commit=${commit_hash}"
-    "-X github.com/kurtosis-tech/kurtosis/kardinal_version.KardinalVersion=${kar}"
+    "-X github.com/kurtosis-tech/kurtosis/kardinal_version.KardinalVersion=${kardinal_version}"
   ];
 in
   pkgs.buildGoApplication {
