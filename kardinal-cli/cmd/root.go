@@ -58,8 +58,8 @@ const (
 	kloudKontrolAPIHost         = kloudKontrolHost + "/api"
 
 	tcpProtocol = "tcp"
-	httpSchme   = "http"
-	httpsScheme = httpSchme + "s"
+	httpScheme  = "http"
+	httpsScheme = httpScheme + "s"
 
 	deleteAllDevFlowsFlagName = "all"
 
@@ -85,6 +85,7 @@ var (
 	templateDescription    string
 	templateArgsFile       string
 	flowID                 string
+	flowSpecFilepath       string
 )
 
 var rootCmd = &cobra.Command{
@@ -212,12 +213,49 @@ var listCmd = &cobra.Command{
 	},
 }
 
+// FlowSpec represents a map of service names to their corresponding PodSpec
+type FlowSpec map[string]corev1.PodSpec
+
+// DeserializeConfig deserializes a YAML file into a ServiceConfig
+func DeserializeFlowSpec(filePath string) (*FlowSpec, error) {
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("error reading YAML file: %w", err)
+	}
+
+	var config FlowSpec
+	err = json.Unmarshal(data, &config)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshaling YAML: %w", err)
+	}
+
+	return &config, nil
+}
+
 var createCmd = &cobra.Command{
 	Use:   "create [service name] [image name]",
 	Short: "Create a new service in development mode",
-	Args:  cobra.ExactArgs(2),
+	Args: func(cmd *cobra.Command, args []string) error {
+		if len(args) > 0 && flowSpecFilepath != "" {
+			return errors.New("Please provide either args or flow config file, but not both.")
+		}
+		if len(args) > 0 && len(args) != 2 {
+			return fmt.Errorf("accepts %d arg(s), received %d", 2, len(args))
+		}
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
-		serviceName, imageName := args[0], args[1]
+		var flowSpec *FlowSpec
+		var serviceName, imageName string
+		if flowSpecFilepath != "" {
+			fs, err := DeserializeFlowSpec(flowSpecFilepath)
+			if err != nil {
+				log.Fatalf("An error occurred deserializing flow spec: %v", err)
+			}
+			flowSpec = fs
+		} else {
+			serviceName, imageName = args[0], args[1]
+		}
 
 		pairsMap := parsePairs(serviceImagePairs)
 		pairsMap[serviceName] = imageName
@@ -241,7 +279,7 @@ var createCmd = &cobra.Command{
 			log.Fatalf("Error parsing template arguments: %v", err)
 		}
 
-		createDevFlow(tenantUuid.String(), pairsMap, templateName, templateArgs)
+		createDevFlow(tenantUuid.String(), pairsMap, templateName, templateArgs, flowSpec)
 	},
 }
 
@@ -425,7 +463,7 @@ func isPortOpenAndHTTP(localPortStr string) error {
 	}
 
 	// Check if there is an HTTP server running on the port
-	httpServerAddr := fmt.Sprintf("%s://%s", httpSchme, localServiceAddress)
+	httpServerAddr := fmt.Sprintf("%s://%s", httpScheme, localServiceAddress)
 	resp, err := client.Get(httpServerAddr)
 	if err != nil {
 		return stacktrace.Propagate(err, "failing to call an HTTP server on '%s'", httpServerAddr)
@@ -659,6 +697,7 @@ func init() {
 	createCmd.Flags().StringSliceVarP(&serviceImagePairs, "service-image", "s", []string{}, "Extra service and respective image to include in the same flow (can be used multiple times)")
 	createCmd.Flags().StringVarP(&templateName, "template", "t", "", "Template name to use for the flow creation")
 	createCmd.Flags().StringVarP(&templateArgsFile, "template-args", "a", "", "JSON with the template arguments or path to YAML file containing template arguments")
+	createCmd.Flags().StringVarP(&flowSpecFilepath, "flow-spec-config", "", "", "Path to the flow spec configuration file")
 	createCmd.Flags().StringVarP(&flowID, "id", "i", "", "Set the flow id")
 
 	deployCmd.PersistentFlags().StringVarP(&kubernetesManifestFile, "k8s-manifest", "k", "", "Path to the K8S manifest file")
@@ -861,18 +900,49 @@ func getTenantUuidFlows(tenantUuid api_types.Uuid) ([]api_types.Flow, error) {
 	return nil, stacktrace.NewError("Failed to get tenant UUID '%s' dev flows, '%d' status code received", tenantUuid, resp.StatusCode())
 }
 
-func createDevFlow(tenantUuid api_types.Uuid, pairsMap map[string]string, templateName string, templateArgs map[string]interface{}) {
+func createDevFlow(tenantUuid api_types.Uuid, pairsMap map[string]string, templateName string, templateArgs map[string]interface{}, flowSpec *FlowSpec) {
 	ctx := context.Background()
 
 	devSpec := api_types.FlowSpec{}
-	for serviceName, imageLocator := range pairsMap {
-		devSpec = append(devSpec, struct {
-			ImageLocator string `json:"image-locator"`
-			ServiceName  string `json:"service-name"`
-		}{
-			ImageLocator: imageLocator,
-			ServiceName:  serviceName,
-		})
+
+	if flowSpec != nil {
+		for serviceName, podSpec := range *flowSpec {
+			envVarOverrides := map[string]string{}
+			secretEnvVarOverrides := map[string]string{}
+			for _, envVar := range podSpec.Containers[0].Env {
+				if envVar.ValueFrom != nil {
+					secretEnvVarOverrides[envVar.Name] = envVar.ValueFrom.SecretKeyRef.Name
+				} else {
+					envVarOverrides[envVar.Name] = envVar.Value
+				}
+			}
+
+			devSpec = append(devSpec, struct {
+				EnvVarOverrides       *map[string]string `json:"env-var-overrides,omitempty"`
+				ImageLocator          string             `json:"image-locator"`
+				SecretEnvVarOverrides *map[string]string `json:"secret-env-var-overrides,omitempty"`
+				ServiceName           string             `json:"service-name"`
+			}{
+				EnvVarOverrides:       &envVarOverrides,
+				ImageLocator:          podSpec.Containers[0].Image,
+				ServiceName:           serviceName,
+				SecretEnvVarOverrides: &secretEnvVarOverrides,
+			})
+		}
+	} else {
+		for serviceName, imageLocator := range pairsMap {
+			devSpec = append(devSpec, struct {
+				EnvVarOverrides       *map[string]string `json:"env-var-overrides,omitempty"`
+				ImageLocator          string             `json:"image-locator"`
+				SecretEnvVarOverrides *map[string]string `json:"secret-env-var-overrides,omitempty"`
+				ServiceName           string             `json:"service-name"`
+			}{
+				EnvVarOverrides:       nil,
+				ImageLocator:          imageLocator,
+				ServiceName:           serviceName,
+				SecretEnvVarOverrides: nil,
+			})
+		}
 	}
 
 	client := getKontrolServiceClient()
@@ -1131,7 +1201,7 @@ func getKontrolBaseURLForUI() (string, error) {
 	)
 
 	if devMode {
-		scheme = httpSchme
+		scheme = httpScheme
 		host = localFrontendHost
 	} else {
 		scheme = httpsScheme
@@ -1150,7 +1220,7 @@ func getKontrolBaseURLForCLI() (string, error) {
 	)
 
 	if devMode {
-		scheme = httpSchme
+		scheme = httpScheme
 		host = localKontrolAPIHost
 	} else {
 		scheme = httpsScheme
@@ -1175,7 +1245,7 @@ func getKontrolBaseURLForManager() (string, error) {
 
 	switch kontrolLocation {
 	case kontrol.KontrolLocationLocal:
-		scheme = httpSchme
+		scheme = httpScheme
 		host = localMinikubeKontrolAPIHost
 	case kontrol.KontrolLocationKloud:
 		scheme = httpsScheme
