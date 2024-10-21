@@ -95,7 +95,8 @@
           };
 
           packages.kardinal-cli = pkgs.callPackage ./kardinal-cli/default.nix {
-            inherit pkgs kardinal_version;
+            inherit pkgs;
+            kardinal_version="5.2.3";
           };
 
           packages.kardinal-manager = pkgs.callPackage ./kardinal-manager/default.nix {
