@@ -1,4 +1,4 @@
-go 1.22.3
+go 1.22.5
 
 use (
 	./kardinal-manager
@@ -6,4 +6,5 @@ use (
 	./libs/cli-kontrol-api
 	./kardinal-cli
 	./sidecars/redis-overlay-service
+	./kardinal_version
 )

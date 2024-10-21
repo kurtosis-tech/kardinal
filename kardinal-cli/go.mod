@@ -2,17 +2,15 @@ module kardinal.cli
 
 go 1.22.5
 
-toolchain go1.22.6
-
 replace (
-	github.com/kurtosis-tech/kardinal/kardinal_version => ../kardinal_version
 	github.com/kurtosis-tech/kardinal/libs/cli-kontrol-api => ../libs/cli-kontrol-api
+	github.com/kurtosis-tech/kardinal/kardinal_version => ../kardinal_version
 )
 
 require (
 	github.com/adrg/xdg v0.4.0
 	github.com/google/uuid v1.6.0
-	github.com/kurtosis-tech/kardinal/kardinal_version v0.0.0-00010101000000-000000000000
+	github.com/kurtosis-tech/kardinal/kardinal_version v0.0.0-20241018141142-4fcbab801cec
 	github.com/kurtosis-tech/stacktrace v0.0.0-20211028211901-1c67a77b5409
 	github.com/samber/lo v1.46.0
 	github.com/segmentio/analytics-go/v3 v3.3.0

@@ -4,7 +4,6 @@
   commit_hash ? "dirty",
 }: let
   pname = "kardinal.cli";
-  kardinal_version="1.0.0";
 
   # The CLI fails to compile as static using CGO_ENABLE (macOS and Linux). We need to manually use flags and add glibc
   # More info on: https://nixos.wiki/wiki/Go (also fails with musl!)
@@ -21,8 +20,8 @@
   else
     [ ];
 
-  ldflags = builtins.trace kardinal_version pkgs.lib.concatStringsSep "\n" (static_ldflag ++ [
-    "-X kardinal/kardinal_version.KardinalVersion=${kardinal_version}"
+  ldflags = kardinal_version pkgs.lib.concatStringsSep "\n" (static_ldflag ++ [
+    "-X github.com/kurtosis-tech/kardinal/kardinal_version.KardinalVersion=${kardinal_version}"
   ]);
 in
   pkgs.buildGoApplication ({
@@ -34,5 +33,4 @@ in
     pwd = ./.;
     src = ./.;
     modules = ./gomod2nix.toml;
-    CGO_ENABLED = 0;
   } // static_linking_config)

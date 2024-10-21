@@ -1,5 +1,5 @@
 package kardinal_version
 
-const (
+var (
 	KardinalVersion = ""
 )
