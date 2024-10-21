@@ -2,7 +2,7 @@
 
 # Kardinal
 
-## Disclaimer: This project is no longer maintained
+## Disclaimer: This project is no longer maintained.
 
 ## What is Kardinal?
 
