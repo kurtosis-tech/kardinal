@@ -282,10 +282,3 @@ kardinal flow telepresence-intercept {{flow-id}} {{service-name}} {{local-port}}
 7. Navigate the website in the browser to receive the request in the app running locally outside the cluster
 
 </details>
-
-## Helpful links
-
-- Explore our [docs](https://kardinal.dev/docs) to learn more about how Kardinal works.
-- Ask questions and get help in our community [forum](https://discuss.kardinal.dev).
-- Read our [blog](https://blog.kardinal.dev/) for tips from developers and creators.
-
