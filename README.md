@@ -2,6 +2,8 @@
 
 # Kardinal
 
+## Disclaimer: This project is no longer maintained
+
 ## What is Kardinal?
 
 Kardinal is an open-source framework for creating extremely lightweight ephemeral development environments within a shared Kubernetes cluster. Between dev environments, Kardinal shares every microservice or database that can be feasibly be shared, optimizing for cloud costs and fast spin-up/tear-down. To see how much you would save using Kardinal for your particular architecture, check out the [cost saving calculator](https://kardinal.dev/calculator).

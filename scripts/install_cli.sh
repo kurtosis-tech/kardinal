@@ -3,9 +3,15 @@ set -e
 
 # Install Kardinal CLI - supports bash, zsh, fish and assumes you have curl procps installed
 
+# Function to tell the user this project is no longer active
+not_active() {
+	echo "The Kardinal project is no longer active"
+	exit 1
+}
+
 # Function to handle errors
 handle_error() {
-	echo "Ops! Failed to setup integration with your shell. Please add the following lines to
+	echo "Oops! Failed to setup integration with your shell. Please add the following lines to
 your shell configuration manually (changes may not be persistent)
 export PATH=\$PATH:$BIN_FOLDER
 source <($BIN_FOLDER/$BINARY_NAME completion $PARENT_SHELL)"
@@ -13,6 +19,9 @@ source <($BIN_FOLDER/$BINARY_NAME completion $PARENT_SHELL)"
 }
 
 # Rest of your script goes here
+
+not_active
+
 REPO="kurtosis-tech/kardinal"
 BINARY_NAME="kardinal"
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
