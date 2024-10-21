@@ -22,12 +22,6 @@ In Kardinal, an environment is called a "[flow](https://kardinal.dev/docs/concep
 - **Cost Savings**: Kardinal can help you save big by avoiding unnecessary resource duplication. It’s a game-changer for teams looking to cut costs. Check out [this calculator](https://kardinal.dev/calculator) to run your own calculations.
 - **Open Source**: Kardinal is open source, so use it however fits best within your workflows
 
-### Want a demo?
-
-Sign-up for a free demo of Kardinal below 👇
-
-[![Get a demo](https://img.shields.io/badge/Get_a_demo-FC7444?style=for-the-badge)](https://calendly.com/d/cqhd-tgj-vmc/45-minute-meeting?month=2024-09)
-
 ## Installation
 
 ### **Step 1: Install Kardinal**
@@ -51,16 +45,6 @@ kardinal manager deploy kloud-kardinal-kontrol
 ```
 
 Once installed check out our docs on [creating your first flow](https://kardinal.dev/docs/getting-started/own-app).
-
-## Try it out in a Playground
-
-We have a playground that runs in Github Codespaces so you can try Kardinal right now without installing anything. Click below to open a Codespace with the playground. The default settings for the Codespace will work just fine.
-
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=818205437&skip_quickstart=true&machine=standardLinux32gb&devcontainer_path=.devcontainer%2Fdevcontainer.json)
-
-> [!WARNING]
-> Please keep in mind that Kardinal is still under active development
-> and therefore full backward compatibility is not guaranteed before reaching v1.0.0.
 
 ## Quick start with a demo application
 
