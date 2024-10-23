@@ -28,7 +28,8 @@ const Page = () => {
       }
       trafficFlowContent={
         <>
-        Run it all in a single cluster with Kardinal&apos;s <em>open-source</em>, hyper-lightweight multitenancy framework.
+          Run it all in a single cluster with Kardinal&apos;s{" "}
+          <em>open-source</em>, hyper-lightweight multitenancy framework.
         </>
       }
       videoStepperHeading={
