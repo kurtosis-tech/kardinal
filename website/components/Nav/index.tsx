@@ -4,6 +4,7 @@ import Link from "next/link";
 import { BiMenu, BiX } from "react-icons/bi";
 import styled from "styled-components";
 
+import Banner from "@/components/Banner";
 import { ButtonTertiary } from "@/components/Button";
 import Sparkles from "@/components/icons/Sparkles";
 import ResponsiveNav from "@/components/ResponsiveNav";
@@ -67,6 +68,7 @@ const Nav = () => {
   const { toggleNav, isNavOpen } = useModal();
   return (
     <S.Nav>
+      <Banner />
       <S.Container>
         <S.Wordmark href={"/"}>
           <S.LogoImage
