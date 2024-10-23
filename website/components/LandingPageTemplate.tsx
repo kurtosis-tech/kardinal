@@ -97,7 +97,7 @@ const LandingPageTemplate = ({
         </TextBase>
         <ButtonPrimary
           analyticsId="button_cta_get_demo"
-          href="https://calendly.com/d/cqhd-tgj-vmc/45-minute-meeting"
+          href=""
           rel="noopener noreferrer"
           target="_blank"
           iconLeft={<FiCalendar size={18} />}
