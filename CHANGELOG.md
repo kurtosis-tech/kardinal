@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.6](https://github.com/kurtosis-tech/kardinal/compare/0.4.5...0.4.6) (2024-10-23)
+
+
+### Bug Fixes
+
+* typo ([#289](https://github.com/kurtosis-tech/kardinal/issues/289)) ([8ba658a](https://github.com/kurtosis-tech/kardinal/commit/8ba658af0b81e4433096dd5c29a7154f9894f9a8))
+
 ## [0.4.5](https://github.com/kurtosis-tech/kardinal/compare/0.4.4...0.4.5) (2024-10-18)
 
 
