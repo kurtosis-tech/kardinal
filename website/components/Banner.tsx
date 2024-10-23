@@ -14,7 +14,7 @@ const Banner = () => {
         archived source code is still available on{" "}
         <a
           style={{ textDecoration: "underline" }}
-          href="https://github.com/kurtosis-tech/kardinak"
+          href="https://github.com/kurtosis-tech/kardinal"
         >
           Github
         </a>
