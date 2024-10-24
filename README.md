@@ -150,8 +150,8 @@ if kardinal_topology_yaml_str != '':
     k8s_yaml(kardinal_topology_yaml, allow_duplicates = True)
 
 local_resource(
-    name='ingress-gateway-port-forward',
-    serve_cmd=['kubectl', 'port-forward', 'service/istio-ingressgateway', '80:80', '-n', 'istio-system']
+    name='tunnel',
+    serve_cmd=['minikube', 'tunnel']
 )
 ```
 2. Run `sudo tilt up`
@@ -176,8 +176,8 @@ if kardinal_topology_yaml_str != '':
     k8s_yaml(kardinal_topology_yaml, allow_duplicates = True)
 
 local_resource(
-    name='ingress-gateway-port-forward',
-    serve_cmd=['kubectl', 'port-forward', 'service/istio-ingressgateway', '80:80', '-n', 'istio-system']
+    name='tunnel',
+    serve_cmd=['minikube', 'tunnel']
 )
 ```
 2. Run `sudo tilt up`
@@ -210,8 +210,8 @@ if kardinal_topology_yaml_str != '':
     k8s_yaml(kardinal_topology_yaml, allow_duplicates = True)
 
 local_resource(
-    name='ingress-gateway-port-forward',
-    serve_cmd=['kubectl', 'port-forward', 'service/istio-ingressgateway', '80:80', '-n', 'istio-system']
+    name='tunnel',
+    serve_cmd=['minikube', 'tunnel']
 )
 ```
 
