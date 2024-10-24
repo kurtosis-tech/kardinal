@@ -11,7 +11,7 @@ const Banner = () => {
     <S.Banner>
       <S.BannerText>
         <b>Disclaimer:</b> The Kardinal project is no longer maintained. The
-        archived source code is still available on{" "}
+        archived source code is available on{" "}
         <a
           style={{ textDecoration: "underline" }}
           href="https://github.com/kurtosis-tech/kardinal"
