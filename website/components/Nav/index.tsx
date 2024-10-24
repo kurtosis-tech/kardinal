@@ -34,22 +34,6 @@ const NavLinksAndButton = () => {
         >
           GitHub
         </S.NavLink>
-        <S.NavLink
-          href={"https://discuss.kardinal.dev"}
-          onClick={() =>
-            analytics.track("BUTTON_CLICK", { analyticsId: "link_nav_forum" })
-          }
-        >
-          Forum
-        </S.NavLink>
-        <S.NavLink
-          href={"https://blog.kardinal.dev"}
-          onClick={() =>
-            analytics.track("BUTTON_CLICK", { analyticsId: "link_nav_blog" })
-          }
-        >
-          Blog
-        </S.NavLink>
         <S.PlaygroundButton
           analyticsId="button_nav_playground"
           href="https://github.com/kurtosis-tech/kardinal-playground"
